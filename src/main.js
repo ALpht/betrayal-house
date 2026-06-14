@@ -15,14 +15,20 @@ import { Camera } from "./view/Camera.js";
 import { MapRenderer } from "./view/MapRenderer.js";
 import { DebugOverlay } from "./view/DebugOverlay.js";
 
-import { CharacterDefinitions } from './data/CharacterDefinitions.js';
-import { Player } from './model/Player.js';
+import { CharacterDefinitions }
+from './data/CharacterDefinitions.js';
 
-const player = new Player(
-    CharacterDefinitions[0]
-);
+import { Player }
+from './model/Player.js';
 
-console.log(player);
+import { PlayerManager }
+from './model/PlayerManager.js';
+
+import { CharacterFactory }
+from './model/CharacterFactory.js';
+
+import { PlayerSpawnController }
+from './controller/PlayerSpawnController.js';
 
 /* =========================
  * Canvas Setup
@@ -125,6 +131,39 @@ explorer.explore(3, 0);
 console.log(
     "房間數:",
     graph.getAllRooms().length
+);
+
+const manager =
+    new PlayerManager();
+
+const entranceHall =
+    graph.getRoom(0,0);
+
+const player1 =
+    CharacterFactory.create(
+        'brandon'
+    );
+
+const player2 =
+    CharacterFactory.create(
+        'ox'
+    );
+
+PlayerSpawnController.spawnPlayer(
+    player1,
+    entranceHall
+);
+
+PlayerSpawnController.spawnPlayer(
+    player2,
+    entranceHall
+);
+
+manager.addPlayer(player1);
+manager.addPlayer(player2);
+
+console.log(
+    manager.getAllPlayers()
 );
 
 console.log(

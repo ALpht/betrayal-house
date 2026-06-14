@@ -25,4 +25,27 @@ export class Player {
 
     }
 
+    getCurrentRoom() {
+
+        return this.currentRoom;
+
+    }
+
+    getPosition() {
+
+        if (!this.currentRoom) {
+
+            return null;
+
+        }
+
+        return {
+
+            x: this.currentRoom.x,
+            y: this.currentRoom.y
+
+        };
+
+    }
+
 }
