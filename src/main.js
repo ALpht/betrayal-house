@@ -1,7 +1,3 @@
-import { EventBus } from "./core/EventBus.js";
-import { EventTypes } from "./core/EventTypes.js";
-import { GameStateManager } from "./state/GameStateManager.js";
-
 import { GraphMap } from "./model/GraphMap.js";
 import { RoomNode } from "./model/RoomNode.js";
 import { RoomTile } from "./model/RoomTile.js";
@@ -15,38 +11,41 @@ import { Camera } from "./view/Camera.js";
 import { MapRenderer } from "./view/MapRenderer.js";
 import { DebugOverlay } from "./view/DebugOverlay.js";
 
-import { CharacterDefinitions }
-from './data/CharacterDefinitions.js';
-
-import { Player }
-from './model/Player.js';
-
-import { PlayerManager }
-from './model/PlayerManager.js';
-
-import { CharacterFactory }
-from './model/CharacterFactory.js';
-
-import { PlayerSpawnController }
-from './controller/PlayerSpawnController.js';
+import {
+    runMovementTest
+}
+from "./test/MovementTest.js";
 
 /* =========================
  * Canvas Setup
  * ========================= */
 
-const app = document.getElementById("app");
+const app =
+    document.getElementById(
+        "app"
+    );
 
-const canvas = document.createElement("canvas");
+const canvas =
+    document.createElement(
+        "canvas"
+    );
 
-app.appendChild(canvas);
+app.appendChild(
+    canvas
+);
 
-const ctx = canvas.getContext("2d");
+const ctx =
+    canvas.getContext(
+        "2d"
+    );
 
 function resize() {
 
-    canvas.width = window.innerWidth;
+    canvas.width =
+        window.innerWidth;
 
-    canvas.height = window.innerHeight;
+    canvas.height =
+        window.innerHeight;
 }
 
 window.addEventListener(
@@ -82,11 +81,6 @@ debug.log(
     "Map System Initialized"
 );
 
-debug.log(
-    `Rooms: ${graph.getAllRooms().length
-    }`
-);
-
 const entrance =
     new RoomNode(
         0,
@@ -94,10 +88,10 @@ const entrance =
             0,
             "Entrance Hall",
             {
-                north: true,
-                east: true,
-                south: true,
-                west: true
+                north:true,
+                east:true,
+                south:true,
+                west:true
             }
         ),
         0,
@@ -120,85 +114,20 @@ const explorer =
     );
 
 /* =========================
- * Test Explore
+ * Temporary Map Seed
  * ========================= */
 
-explorer.explore(1, 0);
-explorer.explore(2, 0);
-explorer.explore(2, 1);
-explorer.explore(3, 0);
-
-console.log(
-    "房間數:",
-    graph.getAllRooms().length
-);
-
-const manager =
-    new PlayerManager();
-
-const entranceHall =
-    graph.getRoom(0,0);
-
-const player1 =
-    CharacterFactory.create(
-        'brandon'
-    );
-
-const player2 =
-    CharacterFactory.create(
-        'ox'
-    );
-
-PlayerSpawnController.spawnPlayer(
-    player1,
-    entranceHall
-);
-
-PlayerSpawnController.spawnPlayer(
-    player2,
-    entranceHall
-);
-
-manager.addPlayer(player1);
-manager.addPlayer(player2);
-
-console.log(
-    manager.getAllPlayers()
-);
-
-console.log(
-    graph.getAllRooms()
-);
-
-console.log(
-    graph
-        .getRoom(1, 0)
-        .getNeighbors()
-);
+explorer.explore(1,0);
+explorer.explore(2,0);
+explorer.explore(2,1);
+explorer.explore(3,0);
 
 /* =========================
- * EventBus Test
+ * Movement Test
  * ========================= */
 
-EventBus.on(
-    EventTypes.GAME_STATE_CHANGED,
-    state => {
-
-        console.log(
-            "狀態切換:",
-            state
-        );
-    }
-);
-
-setTimeout(
-    () => {
-
-        GameStateManager
-            .triggerHaunt();
-
-    },
-    3000
+runMovementTest(
+    graph
 );
 
 /* =========================
@@ -237,15 +166,12 @@ function draw() {
     );
 
     ctx.fillText(
-        `State: ${GameStateManager.getState()}`,
+        `Rooms: ${
+            graph.getAllRooms()
+                .length
+        }`,
         40,
         120
-    );
-
-    ctx.fillText(
-        `Rooms: ${graph.getAllRooms().length}`,
-        40,
-        180
     );
 
     mapRenderer.render(
