@@ -1,4 +1,4 @@
-export default class PlacementRule {
+export class PlacementRule {
 
     validate(
         graph,
@@ -9,3 +9,6 @@ export default class PlacementRule {
         return true;
     }
 }
+
+
+

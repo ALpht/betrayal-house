@@ -1,4 +1,4 @@
-const EventTypes = {
+export const EventTypes = {
 
     GAME_STARTED:
         "GAME_STARTED",
@@ -21,8 +21,14 @@ const EventTypes = {
     HAUNT_TRIGGERED:
         "HAUNT_TRIGGERED",
 
+    PLAYER_CREATED:
+        "PLAYER_CREATED",
+
+    PLAYER_REMOVED:
+        "PLAYER_REMOVED",
+
     MAP_UPDATED:
         "MAP_UPDATED"
 };
 
-export default EventTypes;
+

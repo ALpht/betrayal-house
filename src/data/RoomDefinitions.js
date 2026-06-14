@@ -1,6 +1,6 @@
-import RoomTile from "../model/RoomTile.js";
+import { RoomTile } from "../model/RoomTile.js";
 
-export default [
+export const RoomDefinitions = [
 
     new RoomTile(
         1,
@@ -46,3 +46,5 @@ export default [
         }
     )
 ];
+
+

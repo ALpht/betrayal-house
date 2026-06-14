@@ -1,4 +1,4 @@
-import PlacementRule
+import { PlacementRule }
     from "./PlacementRule.js";
 
 const OPPOSITE = {
@@ -9,7 +9,7 @@ const OPPOSITE = {
     west: "east"
 };
 
-export default class ConnectivityRule
+export class ConnectivityRule
 extends PlacementRule {
 
     validate(

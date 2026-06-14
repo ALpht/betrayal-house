@@ -1,4 +1,4 @@
-export default class RoomTile {
+export class RoomTile {
 
     constructor(
         id,
@@ -45,3 +45,5 @@ export default class RoomTile {
         return tile;
     }
 }
+
+

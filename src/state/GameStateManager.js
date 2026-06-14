@@ -1,12 +1,12 @@
-import EventBus from "../core/EventBus.js";
-import EventTypes from "../core/EventTypes.js";
+import { EventBus } from "../core/EventBus.js";
+import { EventTypes } from "../core/EventTypes.js";
 
 export const GAME_STATE = {
     EXPLORATION: "EXPLORATION",
     HAUNT: "HAUNT"
 };
 
-class GameStateManager {
+class GameStateManagerClass {
 
     constructor() {
         this.current = GAME_STATE.EXPLORATION;
@@ -50,4 +50,4 @@ class GameStateManager {
     }
 }
 
-export default new GameStateManager();
+export const GameStateManager = new GameStateManagerClass();

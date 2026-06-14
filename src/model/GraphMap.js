@@ -1,4 +1,4 @@
-export default class GraphMap {
+export class GraphMap {
 
     constructor() {
 
@@ -51,3 +51,5 @@ export default class GraphMap {
         ];
     }
 }
+
+

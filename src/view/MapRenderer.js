@@ -1,4 +1,4 @@
-export default class MapRenderer {
+export class MapRenderer {
 
     constructor(
         graph,

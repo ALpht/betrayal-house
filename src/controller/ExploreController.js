@@ -1,15 +1,15 @@
-import RoomNode from "../model/RoomNode.js";
+import { RoomNode } from "../model/RoomNode.js";
 
-import RotationManager
+import { RotationManager }
     from "./RotationManager.js";
 
-import DoorRule
+import { DoorRule }
     from "../rules/DoorRule.js";
 
-import ConnectivityRule
+import { ConnectivityRule }
     from "../rules/ConnectivityRule.js";
 
-export default class ExploreController {
+export class ExploreController {
 
     constructor(
         graph,
@@ -212,3 +212,5 @@ export default class ExploreController {
         }
     }
 }
+
+

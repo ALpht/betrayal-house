@@ -1,4 +1,4 @@
-export default class EventBus {
+export class EventBus {
 
     static listeners =
         new Map();
@@ -74,3 +74,5 @@ export default class EventBus {
         this.listeners.clear();
     }
 }
+
+

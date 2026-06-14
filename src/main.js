@@ -1,19 +1,28 @@
-import EventBus from "./core/EventBus.js";
-import EventTypes from "./core/EventTypes.js";
-import GameStateManager from "./state/GameStateManager.js";
+import { EventBus } from "./core/EventBus.js";
+import { EventTypes } from "./core/EventTypes.js";
+import { GameStateManager } from "./state/GameStateManager.js";
 
-import GraphMap from "./model/GraphMap.js";
-import RoomNode from "./model/RoomNode.js";
-import RoomTile from "./model/RoomTile.js";
-import TileDeck from "./model/TileDeck.js";
+import { GraphMap } from "./model/GraphMap.js";
+import { RoomNode } from "./model/RoomNode.js";
+import { RoomTile } from "./model/RoomTile.js";
+import { TileDeck } from "./model/TileDeck.js";
 
-import ExploreController from "./controller/ExploreController.js";
+import { ExploreController } from "./controller/ExploreController.js";
 
-import RoomDefinitions from "./data/RoomDefinitions.js";
+import { RoomDefinitions } from "./data/RoomDefinitions.js";
 
-import Camera from "./view/Camera.js";
-import MapRenderer from "./view/MapRenderer.js";
-import DebugOverlay from "./view/DebugOverlay.js";
+import { Camera } from "./view/Camera.js";
+import { MapRenderer } from "./view/MapRenderer.js";
+import { DebugOverlay } from "./view/DebugOverlay.js";
+
+import { CharacterDefinitions } from './data/CharacterDefinitions.js';
+import { Player } from './model/Player.js';
+
+const player = new Player(
+    CharacterDefinitions[0]
+);
+
+console.log(player);
 
 /* =========================
  * Canvas Setup

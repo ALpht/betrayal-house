@@ -1,4 +1,4 @@
-export default class RoomNode {
+export class RoomNode {
 
     constructor(
         id,
@@ -41,3 +41,5 @@ export default class RoomNode {
         );
     }
 }
+
+

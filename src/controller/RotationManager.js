@@ -1,4 +1,4 @@
-export default class RotationManager {
+export class RotationManager {
 
     static rotate(tile)
     {
@@ -46,3 +46,6 @@ export default class RotationManager {
         return tile;
     }
 }
+
+
+

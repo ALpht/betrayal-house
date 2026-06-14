@@ -1,4 +1,4 @@
-export default class TileDeck {
+export class TileDeck {
 
     constructor(tiles = [])
     {
@@ -71,3 +71,5 @@ export default class TileDeck {
         return this.tiles.length === 0;
     }
 }
+
+

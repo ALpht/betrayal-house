@@ -1,4 +1,4 @@
-export default class DebugOverlay {
+export class DebugOverlay {
 
     constructor() {
 
