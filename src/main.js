@@ -16,6 +16,13 @@ import {
 }
 from "./test/MovementTest.js";
 
+import {
+    runTurnManagerTest
+}
+from './test/TurnManagerTest.js';
+
+runTurnManagerTest();
+
 /* =========================
  * Canvas Setup
  * ========================= */
