@@ -15,6 +15,9 @@ export const EventTypes = {
     PLAYER_MOVED:
         "PLAYER_MOVED",
 
+    TURN_CHANGED:
+        "TURN_CHANGED",
+
     PLAYER_STAT_CHANGED:
         "PLAYER_STAT_CHANGED",
 
