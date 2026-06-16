@@ -6,6 +6,7 @@ import { RoomTile } from "./model/RoomTile.js";
 import { TileDeck } from "./model/TileDeck.js";
 
 import { ExploreController } from "./controller/ExploreController.js";
+import { FogOfWarController } from "./controller/FogOfWarController.js";
 
 import { RoomDefinitions } from "./data/RoomDefinitions.js";
 
@@ -82,7 +83,7 @@ function startGame() {
         );
 
     const debug =
-        new DebugOverlay();
+        new DebugOverlay(graph);
 
     debug.log(
         "Map System Initialized"
@@ -109,6 +110,8 @@ function startGame() {
         entrance
     );
 
+    entrance.tile.isRevealed = true;
+
     const deck =
         new TileDeck(
             RoomDefinitions
@@ -118,6 +121,11 @@ function startGame() {
         new ExploreController(
             graph,
             deck
+        );
+
+    const fogOfWar =
+        new FogOfWarController(
+            graph
         );
 
     /* =========================

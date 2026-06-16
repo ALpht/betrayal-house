@@ -53,54 +53,82 @@ export class MapRenderer {
 
         ctx.save();
 
-        ctx.fillStyle =
-            "#2c3e50";
+        if (room.tile.isVisible()) {
 
-        ctx.strokeStyle =
-            "#ffffff";
+            ctx.fillStyle =
+                "#2c3e50";
 
-        ctx.lineWidth =
-            2;
+            ctx.strokeStyle =
+                "#ffffff";
 
-        ctx.fillRect(
-            pos.x,
-            pos.y,
-            size,
-            size
-        );
+            ctx.lineWidth =
+                2;
 
-        ctx.strokeRect(
-            pos.x,
-            pos.y,
-            size,
-            size
-        );
+            ctx.fillRect(
+                pos.x,
+                pos.y,
+                size,
+                size
+            );
 
-        ctx.fillStyle =
-            "#ffffff";
+            ctx.strokeRect(
+                pos.x,
+                pos.y,
+                size,
+                size
+            );
 
-        ctx.font =
-            "14px sans-serif";
+            ctx.fillStyle =
+                "#ffffff";
 
-        ctx.fillText(
-            room.tile.name,
-            pos.x + 10,
-            pos.y + 30
-        );
+            ctx.font =
+                "14px sans-serif";
 
-        ctx.fillText(
-            `(${room.x},${room.y})`,
-            pos.x + 10,
-            pos.y + 55
-        );
+            ctx.fillText(
+                room.tile.name,
+                pos.x + 10,
+                pos.y + 30
+            );
 
-        this.drawDoors(
-            ctx,
-            room,
-            pos.x,
-            pos.y,
-            size
-        );
+            ctx.fillText(
+                `(${room.x},${room.y})`,
+                pos.x + 10,
+                pos.y + 55
+            );
+
+            this.drawDoors(
+                ctx,
+                room,
+                pos.x,
+                pos.y,
+                size
+            );
+        }
+        else {
+
+            ctx.fillStyle =
+                "#1a1a2e";
+
+            ctx.fillRect(
+                pos.x,
+                pos.y,
+                size,
+                size
+            );
+
+            ctx.strokeStyle =
+                "#333";
+
+            ctx.lineWidth =
+                1;
+
+            ctx.strokeRect(
+                pos.x,
+                pos.y,
+                size,
+                size
+            );
+        }
 
         ctx.restore();
     }

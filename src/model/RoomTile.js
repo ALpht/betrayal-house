@@ -44,6 +44,10 @@ export class RoomTile {
 
         return tile;
     }
+
+    isVisible() {
+        return this.isRevealed;
+    }
 }
 
 

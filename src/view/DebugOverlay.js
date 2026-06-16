@@ -1,7 +1,8 @@
 export class DebugOverlay {
 
-    constructor() {
+    constructor(graph) {
 
+        this.graph = graph;
         this.lines = [];
 
         this.maxLines = 12;
@@ -31,7 +32,7 @@ export class DebugOverlay {
             10,
             10,
             350,
-            220
+            250
         );
 
         ctx.fillStyle =
@@ -41,6 +42,24 @@ export class DebugOverlay {
             "14px monospace";
 
         let y = 35;
+
+        if (this.graph) {
+            const rooms =
+                this.graph.getAllRooms();
+
+            const revealed =
+                rooms.filter(
+                    r => r.tile.isRevealed
+                ).length;
+
+            ctx.fillText(
+                `Rooms: ${revealed}/${rooms.length}`,
+                20,
+                y
+            );
+
+            y += 18;
+        }
 
         for(const line of this.lines)
         {

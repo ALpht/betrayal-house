@@ -13,6 +13,12 @@ import {
 }
 from "./test/ExploreLoopTest.js";
 
+import {
+    fogOfWarTest
+}
+from "./test/FogOfWarTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
+fogOfWarTest();

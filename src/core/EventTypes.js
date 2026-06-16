@@ -31,7 +31,10 @@ export const EventTypes = {
         "PLAYER_REMOVED",
 
     MAP_UPDATED:
-        "MAP_UPDATED"
+        "MAP_UPDATED",
+
+    ROOM_REVEALED:
+        "ROOM_REVEALED"
 };
 
 
