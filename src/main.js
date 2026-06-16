@@ -1,3 +1,5 @@
+import "./testRunner.js";
+
 import { GraphMap } from "./model/GraphMap.js";
 import { RoomNode } from "./model/RoomNode.js";
 import { RoomTile } from "./model/RoomTile.js";
@@ -11,187 +13,177 @@ import { Camera } from "./view/Camera.js";
 import { MapRenderer } from "./view/MapRenderer.js";
 import { DebugOverlay } from "./view/DebugOverlay.js";
 
-import {
-    runMovementTest
+const TEST_MODE = true;
+
+if (TEST_MODE) {
+    // 只跑測試
 }
-from "./test/MovementTest.js";
-
-import {
-    runTurnManagerTest
-}
-from './test/TurnManagerTest.js';
-
-runTurnManagerTest();
-
-/* =========================
- * Canvas Setup
- * ========================= */
-
-const app =
-    document.getElementById(
-        "app"
-    );
-
-const canvas =
-    document.createElement(
-        "canvas"
-    );
-
-app.appendChild(
-    canvas
-);
-
-const ctx =
-    canvas.getContext(
-        "2d"
-    );
-
-function resize() {
-
-    canvas.width =
-        window.innerWidth;
-
-    canvas.height =
-        window.innerHeight;
+else {
+    startGame();
 }
 
-window.addEventListener(
-    "resize",
-    resize
-);
+function startGame() {
+    /* =========================
+     * Canvas Setup
+     * ========================= */
 
-resize();
+    const app =
+        document.getElementById(
+            "app"
+        );
 
-/* =========================
- * Graph System
- * ========================= */
+    const canvas =
+        document.createElement(
+            "canvas"
+        );
 
-const graph =
-    new GraphMap();
-
-const camera =
-    new Camera();
-
-camera.x = 400;
-camera.y = 250;
-
-const mapRenderer =
-    new MapRenderer(
-        graph,
-        camera
+    app.appendChild(
+        canvas
     );
 
-const debug =
-    new DebugOverlay();
+    const ctx =
+        canvas.getContext(
+            "2d"
+        );
 
-debug.log(
-    "Map System Initialized"
-);
+    function resize() {
 
-const entrance =
-    new RoomNode(
-        0,
-        new RoomTile(
+        canvas.width =
+            window.innerWidth;
+
+        canvas.height =
+            window.innerHeight;
+    }
+
+    window.addEventListener(
+        "resize",
+        resize
+    );
+
+    resize();
+
+    /* =========================
+     * Graph System
+     * ========================= */
+
+    const graph =
+        new GraphMap();
+
+    const camera =
+        new Camera();
+
+    camera.x = 400;
+    camera.y = 250;
+
+    const mapRenderer =
+        new MapRenderer(
+            graph,
+            camera
+        );
+
+    const debug =
+        new DebugOverlay();
+
+    debug.log(
+        "Map System Initialized"
+    );
+
+    const entrance =
+        new RoomNode(
             0,
-            "Entrance Hall",
-            {
-                north:true,
-                east:true,
-                south:true,
-                west:true
-            }
-        ),
-        0,
-        0
+            new RoomTile(
+                0,
+                "Entrance Hall",
+                {
+                    north: true,
+                    east: true,
+                    south: true,
+                    west: true
+                }
+            ),
+            0,
+            0
+        );
+
+    graph.addRoom(
+        entrance
     );
 
-graph.addRoom(
-    entrance
-);
+    const deck =
+        new TileDeck(
+            RoomDefinitions
+        );
 
-const deck =
-    new TileDeck(
-        RoomDefinitions
-    );
+    const explorer =
+        new ExploreController(
+            graph,
+            deck
+        );
 
-const explorer =
-    new ExploreController(
-        graph,
-        deck
-    );
+    /* =========================
+     * Temporary Map Seed
+     * ========================= */
 
-/* =========================
- * Temporary Map Seed
- * ========================= */
+    explorer.explore(1, 0);
+    explorer.explore(2, 0);
+    explorer.explore(2, 1);
+    explorer.explore(3, 0);
 
-explorer.explore(1,0);
-explorer.explore(2,0);
-explorer.explore(2,1);
-explorer.explore(3,0);
+    /* =========================
+     * Render
+     * ========================= */
 
-/* =========================
- * Movement Test
- * ========================= */
+    function draw() {
 
-runMovementTest(
-    graph
-);
+        ctx.clearRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
 
-/* =========================
- * Render
- * ========================= */
+        ctx.fillStyle =
+            "#111";
 
-function draw() {
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
 
-    ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
+        ctx.fillStyle =
+            "#fff";
 
-    ctx.fillStyle =
-        "#111";
+        ctx.font =
+            "30px sans-serif";
 
-    ctx.fillRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
+        ctx.fillText(
+            "Betrayal House",
+            40,
+            60
+        );
 
-    ctx.fillStyle =
-        "#fff";
-
-    ctx.font =
-        "30px sans-serif";
-
-    ctx.fillText(
-        "Betrayal House",
-        40,
-        60
-    );
-
-    ctx.fillText(
-        `Rooms: ${
-            graph.getAllRooms()
+        ctx.fillText(
+            `Rooms: ${graph.getAllRooms()
                 .length
-        }`,
-        40,
-        120
-    );
+            }`,
+            40,
+            120
+        );
 
-    mapRenderer.render(
-        ctx
-    );
+        mapRenderer.render(
+            ctx
+        );
 
-    debug.render(
-        ctx
-    );
+        debug.render(
+            ctx
+        );
 
-    requestAnimationFrame(
-        draw
-    );
+        requestAnimationFrame(
+            draw
+        );
+    }
+
+    draw();
 }
-
-draw();

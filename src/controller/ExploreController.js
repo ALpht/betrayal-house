@@ -9,6 +9,12 @@ import { DoorRule }
 import { ConnectivityRule }
     from "../rules/ConnectivityRule.js";
 
+import { EventBus }
+    from "../core/EventBus.js";
+
+import { EventTypes }
+    from "../core/EventTypes.js";
+
 export class ExploreController {
 
     constructor(
@@ -38,13 +44,12 @@ export class ExploreController {
         y
     ) {
 
-        if(
+        if (
             this.graph.hasRoom(
                 x,
                 y
             )
-        )
-        {
+        ) {
             console.warn(
                 `[ROOM] (${x},${y}) 已存在房間`
             );
@@ -52,10 +57,9 @@ export class ExploreController {
             return false;
         }
 
-        if(
+        if (
             this.deck.isEmpty()
-        )
-        {
+        ) {
             console.warn(
                 "[DECK] 牌庫已空"
             );
@@ -73,12 +77,11 @@ export class ExploreController {
             y
         );
 
-        for(
+        for (
             let rot = 0;
             rot < 4;
             rot++
-        )
-        {
+        ) {
             const rotated =
                 RotationManager
                     .cloneAndRotate(
@@ -104,8 +107,7 @@ export class ExploreController {
                 valid
             );
 
-            if(valid)
-            {
+            if (valid) {
                 const room =
                     new RoomNode(
                         this.nextId++,
@@ -120,6 +122,31 @@ export class ExploreController {
 
                 this.linkNeighbors(
                     room
+                );
+
+                EventBus.emit(
+                    EventTypes.ROOM_DISCOVERED,
+                    {
+                        roomId:
+                            room.id,
+
+                        roomName:
+                            room.tile.name,
+
+                        x:
+                            room.x,
+
+                        y:
+                            room.y
+                    }
+                );
+
+                EventBus.emit(
+                    EventTypes.MAP_UPDATED,
+                    {
+                        roomId:
+                            room.id
+                    }
                 );
 
                 this.deck.draw();
@@ -154,20 +181,18 @@ export class ExploreController {
         x,
         y
     ) {
-        for(
+        for (
             const rule
             of this.rules
-        )
-        {
-            if(
+        ) {
+            if (
                 !rule.validate(
                     this.graph,
                     tile,
                     x,
                     y
                 )
-            )
-            {
+            ) {
                 return false;
             }
         }
@@ -181,26 +206,24 @@ export class ExploreController {
 
         const dirs = [
 
-            [0,-1],
-            [1,0],
-            [0,1],
-            [-1,0]
+            [0, -1],
+            [1, 0],
+            [0, 1],
+            [-1, 0]
 
         ];
 
-        for(
-            const [dx,dy]
+        for (
+            const [dx, dy]
             of dirs
-        )
-        {
+        ) {
             const neighbor =
                 this.graph.getRoom(
                     room.x + dx,
                     room.y + dy
                 );
 
-            if(neighbor)
-            {
+            if (neighbor) {
                 room.addNeighbor(
                     neighbor
                 );
