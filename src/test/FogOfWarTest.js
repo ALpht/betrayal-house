@@ -202,11 +202,11 @@ export function fogOfWarTest() {
 
     /* =========================
      * CASE 4
-     * Second Player Enters Revealed Room
+     * Player2 Reveals New Room
      * ========================= */
 
     console.log(
-        "\n[CASE 4] Player2 Enters Revealed"
+        "\n[CASE 4] Player2 Reveals North"
     );
 
     loop.endTurn();
@@ -214,27 +214,29 @@ export function fogOfWarTest() {
     revealEvents = 0;
 
     const result4 =
-        loop.moveOrExplore(player2, 1, 0);
+        loop.moveOrExplore(
+            player2,
+            0,
+            -1
+        );
 
     const room4 =
-        graph.getRoom(1, 0);
+        graph.getRoom(
+            0,
+            -1
+        );
 
-    const room4b =
-        graph.getRoom(2, 0);
+    if (room4) {
 
-    console.log(
-        "[CASE 4] Room(1,0) Revealed:",
-        room4?.tile?.isRevealed
-    );
-
-    console.log(
-        "[CASE 4] Room(2,0) Exists:",
-        !!room4b
-    );
+        console.log(
+            "[CASE 4] Room(0,-1) Revealed:",
+            room4.tile.isRevealed
+        );
+    }
 
     console.log(
-        "[CASE 4] Room(2,0) Revealed:",
-        room4b?.tile?.isRevealed
+        "[CASE 4] Explore Result:",
+        result4
     );
 
     console.log(
@@ -303,10 +305,55 @@ export function fogOfWarTest() {
     );
 
     /* =========================
-     * Cleanup
+     * CASE 7
+     * Destroy Cleanup
      * ========================= */
 
+    console.log(
+        "\n[CASE 7] Destroy Cleanup"
+    );
+
+    const secretRoom =
+        new RoomNode(
+            99,
+            new RoomTile(
+                99,
+                "Secret Room",
+                {
+                    north: false,
+                    east: false,
+                    south: false,
+                    west: false
+                }
+            ),
+            5,
+            5
+        );
+
+    graph.addRoom(secretRoom);
+
+    const beforeDestroy =
+        revealEvents;
+
     fogController.destroy();
+
+    EventBus.emit(
+        EventTypes.PLAYER_MOVED,
+        {
+            toRoomId: secretRoom.id,
+            playerId: player1.id
+        }
+    );
+
+    console.log(
+        "[CASE 7] ROOM_REVEALED after destroy:",
+        revealEvents - beforeDestroy
+    );
+
+    console.log(
+        "[CASE 7] isRevealed after destroy:",
+        secretRoom.tile.isRevealed
+    );
 
     console.log(
         "\n===== FOG OF WAR TEST COMPLETE ====="
