@@ -18,7 +18,13 @@ import {
 }
 from "./test/FogOfWarTest.js";
 
+import {
+    runCardDeckTest
+}
+from "./test/CardDeckTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
 fogOfWarTest();
+runCardDeckTest();
