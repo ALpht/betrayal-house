@@ -4,3 +4,4 @@ vite.log
 .playwright-cli/
 .opencode/
 AGENTS.md
+phase-*.md

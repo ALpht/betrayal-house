@@ -3,7 +3,8 @@ export class RoomTile {
     constructor(
         id,
         name,
-        exits
+        exits,
+        triggerType = null
     ) {
 
         this.id = id;
@@ -15,6 +16,8 @@ export class RoomTile {
         this.isRevealed = false;
 
         this.isVisited = false;
+
+        this.triggerType = triggerType;
 
         this.exits = {
             north: exits.north,
@@ -41,6 +44,9 @@ export class RoomTile {
 
         tile.isVisited =
             this.isVisited;
+
+        tile.triggerType =
+            this.triggerType;
 
         return tile;
     }

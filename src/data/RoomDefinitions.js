@@ -10,7 +10,8 @@ export const RoomDefinitions = [
             east:false,
             south:true,
             west:false
-        }
+        },
+        'event'
     ),
 
     new RoomTile(
@@ -21,7 +22,8 @@ export const RoomDefinitions = [
             east:true,
             south:false,
             west:false
-        }
+        },
+        'item'
     ),
 
     new RoomTile(
@@ -32,7 +34,8 @@ export const RoomDefinitions = [
             east:true,
             south:true,
             west:false
-        }
+        },
+        'event'
     ),
 
     new RoomTile(
@@ -43,7 +46,8 @@ export const RoomDefinitions = [
             east:true,
             south:true,
             west:true
-        }
+        },
+        'omen'
     )
 ];
 

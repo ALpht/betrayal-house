@@ -28,9 +28,15 @@ import {
 }
 from "./test/CardDataTest.js";
 
+import {
+    runCardTriggerTest
+}
+from "./test/CardTriggerTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
 fogOfWarTest();
 runCardDeckTest();
 runCardDataTest();
+runCardTriggerTest();

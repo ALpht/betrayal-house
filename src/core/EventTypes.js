@@ -34,7 +34,13 @@ export const EventTypes = {
         "MAP_UPDATED",
 
     ROOM_REVEALED:
-        "ROOM_REVEALED"
+        "ROOM_REVEALED",
+
+    CARD_DRAW_REQUESTED:
+        "CARD_DRAW_REQUESTED",
+
+    CARD_DRAWN:
+        "CARD_DRAWN"
 };
 
 
