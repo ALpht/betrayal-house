@@ -23,8 +23,14 @@ import {
 }
 from "./test/CardDeckTest.js";
 
+import {
+    runCardDataTest
+}
+from "./test/CardDataTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
 fogOfWarTest();
 runCardDeckTest();
+runCardDataTest();
