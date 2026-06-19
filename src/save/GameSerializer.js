@@ -12,7 +12,8 @@ export class GameSerializer {
         itemDeck,
         omenDeck,
         tileDeck,
-        hauntTracker
+        hauntTracker,
+        scenarioRuntime
     ) {
 
         const rooms =
@@ -145,6 +146,23 @@ export class GameSerializer {
             }
 
         });
+
+        if (
+            scenarioRuntime
+            && scenarioRuntime.isActive
+        ) {
+
+            const runtimeSnap =
+                scenarioRuntime
+                    .toSnapshot();
+
+            snapshot.scenarioId =
+                runtimeSnap.scenarioId;
+
+            snapshot.scenarioState =
+                runtimeSnap.state;
+
+        }
 
         return snapshot;
 

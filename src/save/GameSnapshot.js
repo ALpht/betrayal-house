@@ -13,6 +13,10 @@ export class GameSnapshot {
         this.hauntTracker = data.hauntTracker;
         this.traitorPlayerId =
             data.traitorPlayerId;
+        this.scenarioId =
+            data.scenarioId || null;
+        this.scenarioState =
+            data.scenarioState || null;
     }
 
 }

@@ -5,17 +5,21 @@ export class TestScenario
     extends HauntScenario {
 
     static meta = {
+        id: "testScenario",
         traitorRule: "random"
     };
 
-    start(context) {
+    start(context, state) {
 
-        return {
-            scenarioId:
-                "testScenario",
-            startedAt:
-                Date.now()
-        };
+        state.set(
+            "scenarioId",
+            "testScenario"
+        );
+
+        state.set(
+            "startedAt",
+            Date.now()
+        );
 
     }
 

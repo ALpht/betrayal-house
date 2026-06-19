@@ -74,6 +74,35 @@ export class GameDeserializer {
             "traitorPlayerId"
         ];
 
+        if (
+            "scenarioId" in snapshot
+            && snapshot.scenarioId !== null
+            && typeof snapshot.scenarioId
+                !== "string"
+        ) {
+
+            throw new Error(
+                "Invalid snapshot: scenarioId must be a string or null"
+            );
+
+        }
+
+        if (
+            "scenarioState" in snapshot
+            && snapshot.scenarioState !== null
+            && (
+                typeof snapshot
+                    .scenarioState
+                !== "object"
+            )
+        ) {
+
+            throw new Error(
+                "Invalid snapshot: scenarioState must be an object or null"
+            );
+
+        }
+
         for (const key of required) {
 
             if (!(key in snapshot)) {

@@ -4,43 +4,96 @@ import { EventBus }
 import { EventTypes }
     from "../core/EventTypes.js";
 
+import { ScenarioContext }
+    from "./runtime/ScenarioContext.js";
+
+import { ScenarioRuntimeFactory }
+    from "./ScenarioRuntimeFactory.js";
+
 export class ScenarioController {
 
     constructor(
         registry,
-        gameStateManager
+        gameStateManager,
+        worldDeps
     ) {
+
         this.#registry = registry;
         this.#gameStateManager =
             gameStateManager;
-        this.#currentScenario = null;
+        this.#worldDeps = worldDeps;
+        this.#pendingScenario = null;
+        this.#currentRuntime = null;
 
-        this.handler =
+        this.#hauntHandler =
             this.#onHauntTriggered
+                .bind(this);
+
+        this.#traitorHandler =
+            this.#onTraitorAssigned
+                .bind(this);
+
+        this.#turnHandler =
+            this.#onTurnChanged
                 .bind(this);
 
         EventBus.on(
             EventTypes.HAUNT_TRIGGERED,
-            this.handler
+            this.#hauntHandler
         );
+
+        EventBus.on(
+            EventTypes.TRAITOR_ASSIGNED,
+            this.#traitorHandler
+        );
+
+        EventBus.on(
+            EventTypes.TURN_CHANGED,
+            this.#turnHandler
+        );
+
     }
 
     destroy() {
+
         EventBus.off(
             EventTypes.HAUNT_TRIGGERED,
-            this.handler
+            this.#hauntHandler
         );
 
-        this.#currentScenario = null;
+        EventBus.off(
+            EventTypes.TRAITOR_ASSIGNED,
+            this.#traitorHandler
+        );
+
+        EventBus.off(
+            EventTypes.TURN_CHANGED,
+            this.#turnHandler
+        );
+
+        this.#pendingScenario = null;
+        this.#currentRuntime = null;
+
     }
 
     getCurrentScenario() {
-        return this.#currentScenario;
+        return this.#currentRuntime
+            ?.definition || null;
+    }
+
+    getCurrentRuntime() {
+        return this.#currentRuntime
+            || null;
     }
 
     #registry;
     #gameStateManager;
-    #currentScenario;
+    #worldDeps;
+    #pendingScenario;
+    #currentRuntime;
+    #hauntHandler;
+    #traitorHandler;
+    #turnHandler;
 
     #onHauntTriggered(payload) {
 
@@ -64,28 +117,123 @@ export class ScenarioController {
 
         const scenario = factory();
 
-        const context = {
-            gameStateManager:
-                this.#gameStateManager
-        };
-
-        const result =
-            scenario.start(context);
-
         const meta =
             scenario.getMeta();
 
-        this.#currentScenario =
+        this.#pendingScenario =
             scenario;
 
         EventBus.emit(
             EventTypes.SCENARIO_STARTED,
             {
-                ...result,
+                scenarioId:
+                    meta.id
+                        || scenarioId,
                 traitorRule:
                     meta.traitorRule
             }
         );
+
+    }
+
+    #onTraitorAssigned(payload) {
+
+        const scenario =
+            this.#pendingScenario;
+
+        if (!scenario) {
+            return;
+        }
+
+        const context =
+            new ScenarioContext({
+
+                players:
+                    this.#worldDeps
+                        .playerManager,
+
+                gameState:
+                    this.#gameStateManager,
+
+                graphMap:
+                    this.#worldDeps
+                        .graphMap,
+
+                cardManager:
+                    this.#worldDeps
+                        .cardManager
+
+            });
+
+        const runtime =
+            ScenarioRuntimeFactory
+                .create(
+                    scenario,
+                    context
+                );
+
+        this.#currentRuntime =
+            runtime;
+
+        this.#pendingScenario =
+            null;
+
+        runtime.start();
+
+        EventBus.emit(
+            EventTypes
+                .SCENARIO_RUNTIME_CREATED,
+            {
+                scenarioId:
+                    runtime.scenarioId
+            }
+        );
+
+    }
+
+    #onTurnChanged(payload) {
+
+        const runtime =
+            this.#currentRuntime;
+
+        if (
+            !runtime
+            || !runtime.isActive
+        ) {
+            return;
+        }
+
+        runtime.onTurnEnd();
+        runtime.onTurnStart();
+        runtime.update();
+
+        const result =
+            runtime.checkVictory();
+
+        EventBus.emit(
+            EventTypes
+                .SCENARIO_RUNTIME_UPDATED,
+            {
+                scenarioId:
+                    runtime.scenarioId,
+                state:
+                    runtime.state
+                        .serialize()
+            }
+        );
+
+        if (result) {
+            EventBus.emit(
+                EventTypes
+                    .SCENARIO_COMPLETED,
+                {
+                    scenarioId:
+                        runtime.scenarioId,
+                    ...result
+                }
+            );
+        }
+
     }
 
 }

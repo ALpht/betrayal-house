@@ -22,7 +22,8 @@ export class SaveGameController {
         omenDeck,
         tileDeck,
         hauntTracker,
-        storageProvider
+        storageProvider,
+        scenarioRuntime
     ) {
 
         this.graph = graph;
@@ -37,6 +38,8 @@ export class SaveGameController {
         this.hauntTracker = hauntTracker;
         this.storageProvider =
             storageProvider;
+        this.scenarioRuntime =
+            scenarioRuntime;
 
         this.serializer =
             new GameSerializer();
@@ -73,7 +76,8 @@ export class SaveGameController {
                 this.itemDeck,
                 this.omenDeck,
                 this.tileDeck,
-                this.hauntTracker
+                this.hauntTracker,
+                this.scenarioRuntime
             );
 
         this.storageProvider.save(

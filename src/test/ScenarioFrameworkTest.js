@@ -16,8 +16,25 @@ import { ScenarioController }
 import { TestScenario }
     from "../scenario/scenarios/TestScenario.js";
 
+import { ScenarioState }
+    from "../scenario/runtime/ScenarioState.js";
+
 import { GameStateManager }
     from "../state/GameStateManager.js";
+
+const MOCK_DEPS = {
+    playerManager: {
+        getAllPlayers: () => []
+    },
+    graphMap: {
+        getAllRooms: () => []
+    },
+    cardManager: {
+        eventDeck: {},
+        itemDeck: {},
+        omenDeck: {}
+    }
+};
 
 export function
     runScenarioFrameworkTest() {
@@ -36,7 +53,8 @@ export function
     const controller =
         new ScenarioController(
             HauntScenarioRegistry,
-            GameStateManager
+            GameStateManager,
+            MOCK_DEPS
         );
 
     let startedEvent = null;
@@ -66,16 +84,16 @@ export function
     );
 
     console.log(
-        "[CASE 1] startedAt present:",
-        typeof startedEvent?.startedAt
-            === "number"
+        "[CASE 1] has traitorRule:",
+        startedEvent?.traitorRule
+            === "random"
     );
 
     controller.destroy();
 
     /* =========================
      * [CASE 2] TestScenario.start()
-     *   returns correct result
+     *   stores data in state
      * ========================= */
 
     EventBus.clear();
@@ -83,24 +101,20 @@ export function
     const scenario =
         new TestScenario();
 
-    const result =
-        scenario.start({});
+    const state =
+        new ScenarioState();
+
+    scenario.start({}, state);
 
     console.log(
-        "[CASE 2] returns object:",
-        typeof result === "object"
-            && result !== null
-    );
-
-    console.log(
-        "[CASE 2] scenarioId is testScenario:",
-        result?.scenarioId
+        "[CASE 2] state has scenarioId:",
+        state.get("scenarioId")
             === "testScenario"
     );
 
     console.log(
-        "[CASE 2] startedAt is number:",
-        typeof result?.startedAt
+        "[CASE 2] state has startedAt:",
+        typeof state.get("startedAt")
             === "number"
     );
 
@@ -132,7 +146,8 @@ export function
     const ctrl3 =
         new ScenarioController(
             HauntScenarioRegistry,
-            GameStateManager
+            GameStateManager,
+            MOCK_DEPS
         );
 
     try {
@@ -169,7 +184,8 @@ export function
     const controller2 =
         new ScenarioController(
             HauntScenarioRegistry,
-            GameStateManager
+            GameStateManager,
+            MOCK_DEPS
         );
 
     let afterDestroy =

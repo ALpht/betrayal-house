@@ -1,12 +1,18 @@
 export class HauntScenario {
 
-    static meta = {};
+    static meta = {
+        id: "unknown"
+    };
 
     getMeta() {
         return this.constructor.meta;
     }
 
-    start(context) {}
+    /**
+     * @param {import("./runtime/ScenarioContext.js").ScenarioContext} context
+     * @param {import("./runtime/ScenarioState.js").ScenarioState} state
+     */
+    start(context, state) {}
 
     onTurnStart(context) {}
 
@@ -14,6 +20,11 @@ export class HauntScenario {
 
     update(context) {}
 
+    /**
+     * @returns {Object|null}
+     *   null — game continues
+     *   { completed: true, winner: "heroes" | "traitor" | string } — game ended
+     */
     checkVictory(context) {
         return null;
     }
