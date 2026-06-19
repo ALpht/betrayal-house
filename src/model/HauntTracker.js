@@ -37,4 +37,9 @@ export class HauntTracker {
         this.#records = [];
     }
 
+    restoreFromSnapshot(records, omenCount) {
+        this.#records = [...records];
+        this.#omenCount = omenCount;
+    }
+
 }

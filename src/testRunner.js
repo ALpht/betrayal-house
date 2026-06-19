@@ -53,6 +53,11 @@ import {
 }
 from "./test/HauntManagerTest.js";
 
+import {
+    runSaveGameTest
+}
+from "./test/SaveGameTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -64,3 +69,4 @@ runCardEffectTest();
 runHauntTrackerTest();
 runHauntRollControllerTest();
 runHauntManagerTest();
+runSaveGameTest();
