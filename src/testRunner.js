@@ -63,6 +63,11 @@ import {
 }
 from "./test/ScenarioFrameworkTest.js";
 
+import {
+    runTraitorAssignmentTest
+}
+from "./test/TraitorAssignmentTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -76,3 +81,4 @@ runHauntRollControllerTest();
 runHauntManagerTest();
 runSaveGameTest();
 runScenarioFrameworkTest();
+runTraitorAssignmentTest();

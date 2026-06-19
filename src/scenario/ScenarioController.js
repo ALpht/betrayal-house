@@ -72,12 +72,19 @@ export class ScenarioController {
         const result =
             scenario.start(context);
 
+        const meta =
+            scenario.getMeta();
+
         this.#currentScenario =
             scenario;
 
         EventBus.emit(
             EventTypes.SCENARIO_STARTED,
-            result
+            {
+                ...result,
+                traitorRule:
+                    meta.traitorRule
+            }
         );
     }
 

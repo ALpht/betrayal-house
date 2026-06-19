@@ -70,7 +70,8 @@ export class GameDeserializer {
             "players",
             "turnManager",
             "decks",
-            "hauntTracker"
+            "hauntTracker",
+            "traitorPlayerId"
         ];
 
         for (const key of required) {
@@ -437,6 +438,10 @@ export class GameDeserializer {
 
         gameStateManager.current =
             snapshot.gameState;
+
+        gameStateManager.setTraitorPlayerId(
+            snapshot.traitorPlayerId
+        );
 
     }
 

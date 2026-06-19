@@ -11,6 +11,8 @@ export class GameSnapshot {
         this.turnManager = data.turnManager;
         this.decks = data.decks;
         this.hauntTracker = data.hauntTracker;
+        this.traitorPlayerId =
+            data.traitorPlayerId;
     }
 
 }

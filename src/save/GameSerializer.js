@@ -92,6 +92,10 @@ export class GameSerializer {
             gameState:
                 gameStateManager.getState(),
 
+            traitorPlayerId:
+                gameStateManager
+                    .getTraitorPlayerId(),
+
             rooms,
 
             players,
