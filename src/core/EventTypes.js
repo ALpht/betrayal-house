@@ -67,7 +67,16 @@ export const EventTypes = {
         "LOAD_GAME_REQUESTED",
 
     GAME_LOADED:
-        "GAME_LOADED"
+        "GAME_LOADED",
+
+    SCENARIO_STARTED:
+        "SCENARIO_STARTED",
+
+    SCENARIO_UPDATED:
+        "SCENARIO_UPDATED",
+
+    SCENARIO_COMPLETED:
+        "SCENARIO_COMPLETED"
 };
 
 

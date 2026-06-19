@@ -27,7 +27,11 @@ export class HauntManager {
         if (!payload.hauntTriggered) return;
 
         EventBus.emit(
-            EventTypes.HAUNT_TRIGGERED
+            EventTypes.HAUNT_TRIGGERED,
+            {
+                scenarioId:
+                    "testScenario"
+            }
         );
     }
 

@@ -58,6 +58,11 @@ import {
 }
 from "./test/SaveGameTest.js";
 
+import {
+    runScenarioFrameworkTest
+}
+from "./test/ScenarioFrameworkTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -70,3 +75,4 @@ runHauntTrackerTest();
 runHauntRollControllerTest();
 runHauntManagerTest();
 runSaveGameTest();
+runScenarioFrameworkTest();
