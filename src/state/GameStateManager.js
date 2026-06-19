@@ -10,6 +10,14 @@ class GameStateManagerClass {
 
     constructor() {
         this.current = GAME_STATE.EXPLORATION;
+
+        this.hauntHandler = () =>
+            this.setState(GAME_STATE.HAUNT);
+
+        EventBus.on(
+            EventTypes.HAUNT_TRIGGERED,
+            this.hauntHandler
+        );
     }
 
     getState() {
@@ -38,16 +46,6 @@ class GameStateManagerClass {
         return this.current === GAME_STATE.HAUNT;
     }
 
-    triggerHaunt() {
-
-        this.setState(
-            GAME_STATE.HAUNT
-        );
-
-        EventBus.emit(
-            EventTypes.HAUNT_TRIGGERED
-        );
-    }
 }
 
 export const GameStateManager = new GameStateManagerClass();
