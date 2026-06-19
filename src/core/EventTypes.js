@@ -46,7 +46,10 @@ export const EventTypes = {
         "CARD_EFFECT_REQUESTED",
 
     CARD_EFFECT_RESOLVED:
-        "CARD_EFFECT_RESOLVED"
+        "CARD_EFFECT_RESOLVED",
+
+    OMEN_DRAWN:
+        "OMEN_DRAWN"
 };
 
 

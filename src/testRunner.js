@@ -38,6 +38,11 @@ import {
 }
 from "./test/CardEffectTest.js";
 
+import {
+    runHauntTrackerTest
+}
+from "./test/HauntTrackerTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -46,3 +51,4 @@ runCardDeckTest();
 runCardDataTest();
 runCardTriggerTest();
 runCardEffectTest();
+runHauntTrackerTest();
