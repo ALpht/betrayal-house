@@ -1,5 +1,3 @@
-// src/model/PlayerStats.js
-
 export class PlayerStats {
 
     constructor(stats) {
@@ -9,6 +7,28 @@ export class PlayerStats {
         this.sanity = stats.sanity;
         this.knowledge = stats.knowledge;
 
+    }
+
+    modifyStat(stat, delta) {
+
+        const allowed = [
+            'might',
+            'speed',
+            'sanity',
+            'knowledge'
+        ];
+
+        if (!allowed.includes(stat)) {
+
+            throw new Error(
+                `Unknown stat: ${stat}`
+            );
+
+        }
+
+        this[stat] += delta;
+
+        return this[stat];
     }
 
 }

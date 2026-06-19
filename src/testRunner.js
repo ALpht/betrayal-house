@@ -33,6 +33,11 @@ import {
 }
 from "./test/CardTriggerTest.js";
 
+import {
+    runCardEffectTest
+}
+from "./test/CardEffectTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -40,3 +45,4 @@ fogOfWarTest();
 runCardDeckTest();
 runCardDataTest();
 runCardTriggerTest();
+runCardEffectTest();

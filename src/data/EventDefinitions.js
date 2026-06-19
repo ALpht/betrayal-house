@@ -7,7 +7,10 @@ export const EventDefinitions = [
         name: 'Burning Man',
         description: 'A horribly burned man staggers toward you.',
         tags: ['damage'],
-        rarity: 'common'
+        rarity: 'common',
+        effect: 'modifyStat',
+        stat: 'sanity',
+        amount: -1
     },
 
     {
@@ -17,7 +20,10 @@ export const EventDefinitions = [
         name: 'Secret Passage',
         description: 'You discover a hidden passage behind the bookshelf.',
         tags: ['movement'],
-        rarity: 'common'
+        rarity: 'common',
+        effect: null,
+        stat: null,
+        amount: null
     },
 
     {
@@ -27,7 +33,10 @@ export const EventDefinitions = [
         name: 'Spider Webs',
         description: 'Thick spider webs block your path.',
         tags: ['obstacle'],
-        rarity: 'common'
+        rarity: 'common',
+        effect: null,
+        stat: null,
+        amount: null
     },
 
     {
@@ -37,7 +46,10 @@ export const EventDefinitions = [
         name: 'Closet Door',
         description: 'A closet door creaks open by itself.',
         tags: ['exploration'],
-        rarity: 'common'
+        rarity: 'common',
+        effect: null,
+        stat: null,
+        amount: null
     },
 
     {
@@ -47,7 +59,10 @@ export const EventDefinitions = [
         name: 'Footsteps',
         description: 'You hear footsteps behind you, but no one is there.',
         tags: ['psychological'],
-        rarity: 'common'
+        rarity: 'common',
+        effect: 'modifyStat',
+        stat: 'sanity',
+        amount: -1
     },
 
     {
@@ -57,7 +72,10 @@ export const EventDefinitions = [
         name: 'Creepy Puppet',
         description: 'A doll on the shelf turns its head to watch you.',
         tags: ['psychological'],
-        rarity: 'uncommon'
+        rarity: 'uncommon',
+        effect: 'modifyStat',
+        stat: 'sanity',
+        amount: -1
     },
 
     {
@@ -67,7 +85,10 @@ export const EventDefinitions = [
         name: 'Strange Noise',
         description: 'A strange noise echoes from somewhere in the house.',
         tags: ['exploration'],
-        rarity: 'common'
+        rarity: 'common',
+        effect: null,
+        stat: null,
+        amount: null
     },
 
     {
@@ -77,7 +98,10 @@ export const EventDefinitions = [
         name: 'Cold Wind',
         description: 'A freezing cold wind blows through the room, extinguishing your light.',
         tags: ['obstacle'],
-        rarity: 'common'
+        rarity: 'common',
+        effect: 'modifyStat',
+        stat: 'might',
+        amount: 1
     },
 
     {
@@ -87,7 +111,10 @@ export const EventDefinitions = [
         name: 'Vanishing Room',
         description: 'The room behind you has disappeared. There is no way back.',
         tags: ['movement', 'obstacle'],
-        rarity: 'uncommon'
+        rarity: 'uncommon',
+        effect: null,
+        stat: null,
+        amount: null
     },
 
     {
@@ -97,7 +124,10 @@ export const EventDefinitions = [
         name: 'Broken Clock',
         description: 'All the clocks in the house have stopped at the same time.',
         tags: ['psychological'],
-        rarity: 'common'
+        rarity: 'common',
+        effect: null,
+        stat: null,
+        amount: null
     }
 
 ];

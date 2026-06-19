@@ -40,7 +40,13 @@ export const EventTypes = {
         "CARD_DRAW_REQUESTED",
 
     CARD_DRAWN:
-        "CARD_DRAWN"
+        "CARD_DRAWN",
+
+    CARD_EFFECT_REQUESTED:
+        "CARD_EFFECT_REQUESTED",
+
+    CARD_EFFECT_RESOLVED:
+        "CARD_EFFECT_RESOLVED"
 };
 
 

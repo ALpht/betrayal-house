@@ -5,3 +5,5 @@ vite.log
 .opencode/
 AGENTS.md
 phase-*.md
+handover-*.md
+REPORT_TEMPLATE.md
