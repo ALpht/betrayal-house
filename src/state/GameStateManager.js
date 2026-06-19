@@ -38,6 +38,14 @@ class GameStateManagerClass {
         );
     }
 
+    getTraitorPlayerId() {
+        return this.#traitorPlayerId;
+    }
+
+    setTraitorPlayerId(id) {
+        this.#traitorPlayerId = id;
+    }
+
     isExploration() {
         return this.current === GAME_STATE.EXPLORATION;
     }
@@ -45,6 +53,8 @@ class GameStateManagerClass {
     isHaunt() {
         return this.current === GAME_STATE.HAUNT;
     }
+
+    #traitorPlayerId = null;
 
 }
 
