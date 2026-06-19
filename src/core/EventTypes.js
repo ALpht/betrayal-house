@@ -55,7 +55,19 @@ export const EventTypes = {
         "HAUNT_ROLL_REQUESTED",
 
     HAUNT_ROLL_COMPLETED:
-        "HAUNT_ROLL_COMPLETED"
+        "HAUNT_ROLL_COMPLETED",
+
+    SAVE_GAME_REQUESTED:
+        "SAVE_GAME_REQUESTED",
+
+    GAME_SAVED:
+        "GAME_SAVED",
+
+    LOAD_GAME_REQUESTED:
+        "LOAD_GAME_REQUESTED",
+
+    GAME_LOADED:
+        "GAME_LOADED"
 };
 
 
