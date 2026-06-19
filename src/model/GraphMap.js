@@ -50,6 +50,14 @@ export class GraphMap {
             ...this.rooms.values()
         ];
     }
+
+    clear() {
+
+        this.rooms.clear();
+
+        this.positionIndex.clear();
+
+    }
 }
 
 
