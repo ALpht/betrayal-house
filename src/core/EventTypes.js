@@ -49,7 +49,13 @@ export const EventTypes = {
         "CARD_EFFECT_RESOLVED",
 
     OMEN_DRAWN:
-        "OMEN_DRAWN"
+        "OMEN_DRAWN",
+
+    HAUNT_ROLL_REQUESTED:
+        "HAUNT_ROLL_REQUESTED",
+
+    HAUNT_ROLL_COMPLETED:
+        "HAUNT_ROLL_COMPLETED"
 };
 
 

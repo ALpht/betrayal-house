@@ -43,6 +43,11 @@ import {
 }
 from "./test/HauntTrackerTest.js";
 
+import {
+    runHauntRollControllerTest
+}
+from "./test/HauntRollControllerTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -52,3 +57,4 @@ runCardDataTest();
 runCardTriggerTest();
 runCardEffectTest();
 runHauntTrackerTest();
+runHauntRollControllerTest();
