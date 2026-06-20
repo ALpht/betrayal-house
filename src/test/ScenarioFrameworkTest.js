@@ -7,7 +7,13 @@ import { EventTypes }
 import { HauntScenario }
     from "../scenario/HauntScenario.js";
 
-import { HauntScenarioRegistry }
+import { ScenarioRegistry }
+    from "../scenario/definition/ScenarioRegistry.js";
+
+import { ScenarioDefinition }
+    from "../scenario/definition/ScenarioDefinition.js";
+
+import HauntScenarioRegistry
     from "../scenario/HauntScenarioRegistry.js";
 
 import { ScenarioController }
@@ -119,25 +125,33 @@ export function
     );
 
     /* =========================
-     * [CASE 3] Registry creates
-     *   correct scenario type
+     * [CASE 3] Registry lookup +
+     *   Definition.createScenario()
      * ========================= */
 
     EventBus.clear();
 
-    const registered =
+    const definition =
         HauntScenarioRegistry
-            .testScenario();
+            .get("testScenario");
+
+    console.log(
+        "[CASE 3] registry has testScenario:",
+        definition !== null
+    );
+
+    const created =
+        definition.createScenario();
 
     console.log(
         "[CASE 3] instanceof HauntScenario:",
-        registered
+        created
             instanceof HauntScenario
     );
 
     console.log(
         "[CASE 3] instanceof TestScenario:",
-        registered
+        created
             instanceof TestScenario
     );
 
@@ -209,6 +223,34 @@ export function
     console.log(
         "[CASE 4] SCENARIO_STARTED not fired:",
         !afterDestroy
+    );
+
+    /* =========================
+     * [CASE 5] createScenario()
+     *   returns TestScenario
+     * ========================= */
+
+    const def5 =
+        HauntScenarioRegistry
+            .get("testScenario");
+
+    const s5 =
+        def5.createScenario();
+
+    console.log(
+        "[CASE 5] createScenario returns TestScenario:",
+        s5 instanceof TestScenario
+    );
+
+    /* =========================
+     * [CASE 6] createScenario()
+     *   no victoryCondition for TestScenario
+     * ========================= */
+
+    console.log(
+        "[CASE 6] victoryCondition is null:",
+        s5.getVictoryCondition()
+            === null
     );
 
 }
