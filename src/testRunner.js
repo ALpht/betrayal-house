@@ -83,6 +83,11 @@ import {
 }
 from "./test/EscapeTheHouseScenarioTest.js";
 
+import {
+    runScenarioTestHarnessTest
+}
+from "./test/ScenarioTestHarnessTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -100,3 +105,4 @@ runScenarioRuntimeTest();
 runTraitorAssignmentTest();
 runVictoryFrameworkTest();
 runEscapeTheHouseScenarioTest();
+runScenarioTestHarnessTest();
