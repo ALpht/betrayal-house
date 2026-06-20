@@ -7,6 +7,9 @@ import { ScenarioDefinition }
 import { TestScenario }
     from "./scenarios/TestScenario.js";
 
+import { EscapeTheHouseDefinition }
+    from "./scenarios/EscapeTheHouseDefinition.js";
+
 const registry = new ScenarioRegistry();
 
 registry.register(
@@ -35,6 +38,10 @@ registry.register(
         victoryCondition:
             null
     })
+);
+
+registry.register(
+    EscapeTheHouseDefinition
 );
 
 export default registry;

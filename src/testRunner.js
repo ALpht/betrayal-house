@@ -78,6 +78,11 @@ import {
 }
 from "./test/VictoryFrameworkTest.js";
 
+import {
+    runEscapeTheHouseScenarioTest
+}
+from "./test/EscapeTheHouseScenarioTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -94,3 +99,4 @@ runScenarioFrameworkTest();
 runScenarioRuntimeTest();
 runTraitorAssignmentTest();
 runVictoryFrameworkTest();
+runEscapeTheHouseScenarioTest();

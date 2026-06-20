@@ -16,7 +16,9 @@ export class HauntScenario {
     onTurnEnd(context) {}
     update(context) {}
 
-    getVictoryCondition() { return null; }
+    getVictoryCondition() {
+        return this.#victoryCondition;
+    }
 
     setVictoryCondition(instance) {
         this.#victoryCondition = instance;
