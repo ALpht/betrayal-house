@@ -88,7 +88,10 @@ export const EventTypes = {
         "TRAITOR_ASSIGNMENT_REQUESTED",
 
     TRAITOR_ASSIGNED:
-        "TRAITOR_ASSIGNED"
+        "TRAITOR_ASSIGNED",
+
+    GAME_ENDED:
+        "GAME_ENDED"
 };
 
 

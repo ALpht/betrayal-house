@@ -1,32 +1,30 @@
 export class HauntScenario {
+    #state = null;
+    #victoryCondition = null;
 
-    static meta = {
-        id: "unknown"
-    };
+    static meta = { id: "unknown" };
 
     getMeta() {
         return this.constructor.meta;
     }
 
-    /**
-     * @param {import("./runtime/ScenarioContext.js").ScenarioContext} context
-     * @param {import("./runtime/ScenarioState.js").ScenarioState} state
-     */
-    start(context, state) {}
-
-    onTurnStart(context) {}
-
-    onTurnEnd(context) {}
-
-    update(context) {}
-
-    /**
-     * @returns {Object|null}
-     *   null — game continues
-     *   { completed: true, winner: "heroes" | "traitor" | string } — game ended
-     */
-    checkVictory(context) {
-        return null;
+    start(context, state) {
+        this.#state = state;
     }
 
+    onTurnStart(context) {}
+    onTurnEnd(context) {}
+    update(context) {}
+
+    getVictoryCondition() { return null; }
+
+    setVictoryCondition(instance) {
+        this.#victoryCondition = instance;
+    }
+
+    checkVictory(context) {
+        if (!this.#victoryCondition) return null;
+        const result = this.#victoryCondition.evaluate(context, this.#state);
+        return result ? result.toJSON() : null;
+    }
 }

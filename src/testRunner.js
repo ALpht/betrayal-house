@@ -73,6 +73,11 @@ import {
 }
 from "./test/TraitorAssignmentTest.js";
 
+import {
+    runVictoryFrameworkTest
+}
+from "./test/VictoryFrameworkTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -88,3 +93,4 @@ runSaveGameTest();
 runScenarioFrameworkTest();
 runScenarioRuntimeTest();
 runTraitorAssignmentTest();
+runVictoryFrameworkTest();
