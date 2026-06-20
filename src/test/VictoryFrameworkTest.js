@@ -11,6 +11,12 @@ import { ScenarioController } from "../scenario/ScenarioController.js";
 import { ScenarioState } from "../scenario/runtime/ScenarioState.js";
 import { GameStateManager } from "../state/GameStateManager.js";
 
+import { ScenarioRegistry }
+    from "../scenario/definition/ScenarioRegistry.js";
+
+import { ScenarioDefinition }
+    from "../scenario/definition/ScenarioDefinition.js";
+
 const MOCK_DEPS = {
     playerManager: {
         getAllPlayers: () => []
@@ -53,18 +59,10 @@ class ProgressCondition extends VictoryCondition {
 
 class VictoryTestScenario extends HauntScenario {
     static meta = { id: "testVictory", traitorRule: "random" };
-    constructor() {
-        super();
-        this.setVictoryCondition(new TestCondition());
-    }
 }
 
 class NoWinScenario extends HauntScenario {
     static meta = { id: "testNoWin", traitorRule: "random" };
-    constructor() {
-        super();
-        this.setVictoryCondition(new NoWinCondition());
-    }
 }
 
 export function runVictoryFrameworkTest() {
@@ -152,9 +150,32 @@ export function runVictoryFrameworkTest() {
         gameEndedPayload = p;
     });
 
-    const registry4 = {
-        testVictory: () => new VictoryTestScenario()
-    };
+    const registry4 = new ScenarioRegistry();
+
+    registry4.register(
+        new ScenarioDefinition({
+
+            metadata: {
+                id: "testVictory",
+                title: "Victory Test",
+                description: "...",
+                difficulty: 1
+            },
+
+            objectives: {
+                heroes: "Win.",
+                traitor: "Stop them."
+            },
+
+            traitorRule: "random",
+
+            runtimeClass:
+                VictoryTestScenario,
+
+            victoryCondition:
+                TestCondition
+        })
+    );
 
     const controller4 = new ScenarioController(
         registry4,

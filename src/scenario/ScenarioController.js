@@ -72,6 +72,7 @@ export class ScenarioController {
         );
 
         this.#pendingScenario = null;
+        this.#pendingDefinition = null;
         this.#currentRuntime = null;
 
     }
@@ -90,6 +91,7 @@ export class ScenarioController {
     #gameStateManager;
     #worldDeps;
     #pendingScenario;
+    #pendingDefinition;
     #currentRuntime;
     #hauntHandler;
     #traitorHandler;
@@ -104,10 +106,12 @@ export class ScenarioController {
             return;
         }
 
-        const factory =
-            this.#registry[scenarioId];
+        const definition =
+            this.#registry.get(
+                scenarioId
+            );
 
-        if (!factory) {
+        if (!definition) {
 
             throw new Error(
                 `Unknown scenario: ${scenarioId}`
@@ -115,22 +119,25 @@ export class ScenarioController {
 
         }
 
-        const scenario = factory();
-
-        const meta =
-            scenario.getMeta();
+        const scenario =
+            definition
+                .createScenario();
 
         this.#pendingScenario =
             scenario;
+
+        this.#pendingDefinition =
+            definition;
 
         EventBus.emit(
             EventTypes.SCENARIO_STARTED,
             {
                 scenarioId:
-                    meta.id
-                        || scenarioId,
+                    definition
+                        .metadata.id,
                 traitorRule:
-                    meta.traitorRule
+                    definition
+                        .traitorRule
             }
         );
 
