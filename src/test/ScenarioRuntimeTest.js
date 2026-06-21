@@ -230,8 +230,9 @@ export function
     );
 
     console.log(
-        "[CASE 3] snapshot has active:",
-        snapshot.active === false
+        "[CASE 3] snapshot lifecycleState created:",
+        snapshot.lifecycleState
+            === "created"
     );
 
     console.log(

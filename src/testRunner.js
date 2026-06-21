@@ -93,6 +93,11 @@ import {
 }
 from "./test/InformationRouterTest.js";
 
+import {
+    runScenarioLifecycleTest
+}
+from "./test/ScenarioLifecycleTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -112,3 +117,4 @@ runVictoryFrameworkTest();
 runEscapeTheHouseScenarioTest();
 runScenarioTestHarnessTest();
 runInformationRouterTest();
+runScenarioLifecycleTest();

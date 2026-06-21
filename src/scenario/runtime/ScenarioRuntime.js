@@ -1,19 +1,25 @@
 import { InformationRouter }
     from "../information/InformationRouter.js";
 
+import { ScenarioLifecycle }
+    from "../lifecycle/ScenarioLifecycle.js";
+
+import { ScenarioLifecycleState }
+    from "../lifecycle/ScenarioLifecycleState.js";
+
 export class ScenarioRuntime {
     #definition;
     #state;
     #context;
     #router;
-    #active;
+    #lifecycle;
 
     constructor(definition, state, context, router = new InformationRouter()) {
         this.#definition = definition;
         this.#state = state;
         this.#context = context;
         this.#router = router;
-        this.#active = false;
+        this.#lifecycle = new ScenarioLifecycle();
     }
 
     get definition() {
@@ -29,7 +35,8 @@ export class ScenarioRuntime {
     }
 
     get isActive() {
-        return this.#active;
+        return this.#lifecycle.getState()
+            === ScenarioLifecycleState.STARTED;
     }
 
     get router() {
@@ -40,9 +47,36 @@ export class ScenarioRuntime {
         return this.#definition.getMeta().id;
     }
 
+    getLifecycleState() {
+        return this.#lifecycle.getState();
+    }
+
     start() {
-        this.#active = true;
+        this.#lifecycle.start();
         this.#definition.start(this.#context, this.#state);
+    }
+
+    pause() {
+        this.#lifecycle.pause();
+    }
+
+    resume() {
+        this.#lifecycle.resume();
+    }
+
+    complete() {
+        this.#lifecycle.complete();
+    }
+
+    destroy() {
+        if (this.#lifecycle.getState()
+            === ScenarioLifecycleState.DESTROYED
+        ) {
+            return;
+        }
+
+        this.#router.clear();
+        this.#lifecycle.destroy();
     }
 
     onTurnStart() {
@@ -64,7 +98,7 @@ export class ScenarioRuntime {
     toSnapshot() {
         return {
             scenarioId: this.scenarioId,
-            active: this.#active,
+            lifecycleState: this.#lifecycle.getState(),
             state: this.#state.serialize(),
             information: this.#router.serialize()
         };
@@ -73,6 +107,12 @@ export class ScenarioRuntime {
     restoreFromSnapshot(snapshot) {
         this.#state.deserialize(snapshot.state);
         this.#router.deserialize(snapshot.information);
-        this.#active = snapshot.active ?? true;
+
+        const ls = snapshot.lifecycleState
+            ?? (snapshot.active
+                ? ScenarioLifecycleState.STARTED
+                : ScenarioLifecycleState.CREATED);
+
+        this.#lifecycle._forceState(ls);
     }
 }

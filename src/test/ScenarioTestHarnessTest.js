@@ -363,8 +363,9 @@ export function
     );
 
     ScenarioAssertions.assertTrue(
-        "snapshot active is true",
-        snapshot5.active === true
+        "snapshot lifecycleState started",
+        snapshot5.lifecycleState
+            === "started"
     );
 
     /* Modify state → trigger victory */

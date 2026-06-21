@@ -40,6 +40,8 @@ export class ScenarioTestHarness {
     }
 
     destroy() {
+        this.#runtime.destroy();
+
         const scenario =
             this.#runtime.definition;
 

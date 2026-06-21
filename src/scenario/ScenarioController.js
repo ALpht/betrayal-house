@@ -77,6 +77,10 @@ export class ScenarioController {
             this.#turnHandler
         );
 
+        if (this.#currentRuntime) {
+            this.#currentRuntime.destroy();
+        }
+
         this.#pendingScenario = null;
         this.#pendingDefinition = null;
         this.#currentRuntime = null;
@@ -247,6 +251,9 @@ export class ScenarioController {
         );
 
         if (result) {
+
+            runtime.complete();
+
             EventBus.emit(
                 EventTypes
                     .SCENARIO_COMPLETED,
@@ -256,6 +263,7 @@ export class ScenarioController {
                     ...result
                 }
             );
+
         }
 
     }

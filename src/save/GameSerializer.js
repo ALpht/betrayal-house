@@ -1,6 +1,9 @@
 import { GameSnapshot }
     from "./GameSnapshot.js";
 
+import { ScenarioLifecycleState }
+    from "../scenario/lifecycle/ScenarioLifecycleState.js";
+
 export class GameSerializer {
 
     toSnapshot(
@@ -149,21 +152,40 @@ export class GameSerializer {
 
         if (
             scenarioRuntime
-            && scenarioRuntime.isActive
         ) {
 
-            const runtimeSnap =
+            const ls =
                 scenarioRuntime
-                    .toSnapshot();
+                    .getLifecycleState();
 
-            snapshot.scenarioId =
-                runtimeSnap.scenarioId;
+            if (
+                ls
+                !== ScenarioLifecycleState
+                    .CREATED
+                && ls
+                !== ScenarioLifecycleState
+                    .DESTROYED
+            ) {
 
-            snapshot.scenarioState =
-                runtimeSnap.state;
+                const runtimeSnap =
+                    scenarioRuntime
+                        .toSnapshot();
 
-            snapshot.scenarioInformation =
-                runtimeSnap.information;
+                snapshot.scenarioId =
+                    runtimeSnap.scenarioId;
+
+                snapshot.lifecycleState =
+                    runtimeSnap
+                        .lifecycleState;
+
+                snapshot.scenarioState =
+                    runtimeSnap.state;
+
+                snapshot
+                    .scenarioInformation =
+                    runtimeSnap.information;
+
+            }
 
         }
 

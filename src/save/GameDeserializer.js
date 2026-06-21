@@ -104,6 +104,19 @@ export class GameDeserializer {
         }
 
         if (
+            "lifecycleState" in snapshot
+            && snapshot.lifecycleState !== null
+            && typeof snapshot.lifecycleState
+                !== "string"
+        ) {
+
+            throw new Error(
+                "Invalid snapshot: lifecycleState must be a string or null"
+            );
+
+        }
+
+        if (
             "scenarioInformation" in snapshot
             && snapshot.scenarioInformation !== null
             && (
