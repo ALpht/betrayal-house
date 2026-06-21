@@ -98,6 +98,11 @@ import {
 }
 from "./test/ScenarioLifecycleTest.js";
 
+import {
+    runScenarioContractTest
+}
+from "./test/ScenarioContractTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -118,3 +123,4 @@ runEscapeTheHouseScenarioTest();
 runScenarioTestHarnessTest();
 runInformationRouterTest();
 runScenarioLifecycleTest();
+runScenarioContractTest();
