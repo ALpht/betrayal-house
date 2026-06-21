@@ -103,6 +103,22 @@ export class GameDeserializer {
 
         }
 
+        if (
+            "scenarioInformation" in snapshot
+            && snapshot.scenarioInformation !== null
+            && (
+                typeof snapshot
+                    .scenarioInformation
+                !== "object"
+            )
+        ) {
+
+            throw new Error(
+                "Invalid snapshot: scenarioInformation must be an object or null"
+            );
+
+        }
+
         for (const key of required) {
 
             if (!(key in snapshot)) {

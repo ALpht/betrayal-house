@@ -88,6 +88,11 @@ import {
 }
 from "./test/ScenarioTestHarnessTest.js";
 
+import {
+    runInformationRouterTest
+}
+from "./test/InformationRouterTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -106,3 +111,4 @@ runTraitorAssignmentTest();
 runVictoryFrameworkTest();
 runEscapeTheHouseScenarioTest();
 runScenarioTestHarnessTest();
+runInformationRouterTest();

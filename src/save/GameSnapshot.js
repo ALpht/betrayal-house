@@ -19,6 +19,9 @@ export class GameSnapshot {
             data.scenarioState || null;
         this.victoryResult =
             data.victoryResult || null;
+
+        this.scenarioInformation =
+            data.scenarioInformation || null;
     }
 
 }

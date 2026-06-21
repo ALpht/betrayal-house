@@ -6,9 +6,9 @@ import { ScenarioState }
 
 export const ScenarioRuntimeFactory = {
 
-    create(definition, context) {
+    create(definition, context, router) {
         const state = new ScenarioState();
-        return new ScenarioRuntime(definition, state, context);
+        return new ScenarioRuntime(definition, state, context, router);
     }
 
 };

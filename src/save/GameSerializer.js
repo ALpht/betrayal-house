@@ -162,6 +162,9 @@ export class GameSerializer {
             snapshot.scenarioState =
                 runtimeSnap.state;
 
+            snapshot.scenarioInformation =
+                runtimeSnap.information;
+
         }
 
         return snapshot;

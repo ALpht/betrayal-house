@@ -15,12 +15,14 @@ export class ScenarioContext {
     #gameState;
     #graphMap;
     #cardManager;
+    #services;
 
-    constructor({ players, gameState, graphMap, cardManager }) {
+    constructor({ players, gameState, graphMap, cardManager, services }) {
         this.#players = players;
         this.#gameState = gameState;
         this.#graphMap = graphMap;
         this.#cardManager = cardManager;
+        this.#services = services || null;
     }
 
     get players() {
@@ -37,5 +39,9 @@ export class ScenarioContext {
 
     get cardManager() {
         return this.#cardManager;
+    }
+
+    get services() {
+        return this.#services;
     }
 }

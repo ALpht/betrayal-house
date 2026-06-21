@@ -10,6 +10,12 @@ import { ScenarioContext }
 import { ScenarioRuntimeFactory }
     from "./ScenarioRuntimeFactory.js";
 
+import { InformationRouter }
+    from "./information/InformationRouter.js";
+
+import { ScenarioServices }
+    from "./services/ScenarioServices.js";
+
 export class ScenarioController {
 
     constructor(
@@ -152,6 +158,14 @@ export class ScenarioController {
             return;
         }
 
+        const router =
+            new InformationRouter();
+
+        const services =
+            new ScenarioServices({
+                router
+            });
+
         const context =
             new ScenarioContext({
 
@@ -168,7 +182,9 @@ export class ScenarioController {
 
                 cardManager:
                     this.#worldDeps
-                        .cardManager
+                        .cardManager,
+
+                services
 
             });
 
@@ -176,7 +192,8 @@ export class ScenarioController {
             ScenarioRuntimeFactory
                 .create(
                     scenario,
-                    context
+                    context,
+                    router
                 );
 
         this.#currentRuntime =
