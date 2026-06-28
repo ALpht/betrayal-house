@@ -11,11 +11,11 @@ export class ScenarioDefinition {
     constructor({ metadata, objectives, traitorRule, runtimeClass, victoryCondition }) {
         this.#metadata = metadata instanceof ScenarioMetadata
             ? metadata
-            : new ScenarioMetadata(metadata);
+            : new ScenarioMetadata(metadata || {});
 
         this.#objectives = objectives instanceof ScenarioObjectives
             ? objectives
-            : new ScenarioObjectives(objectives);
+            : new ScenarioObjectives(objectives || {});
 
         this.#traitorRule = traitorRule;
         this.#runtimeClass = runtimeClass;

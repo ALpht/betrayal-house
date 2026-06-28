@@ -108,6 +108,11 @@ import {
 }
 from "./test/ScenarioBatchRegressionTest.js";
 
+import {
+    runScenarioBundleTest
+}
+from "./test/ScenarioBundleTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -130,3 +135,4 @@ runInformationRouterTest();
 runScenarioLifecycleTest();
 runScenarioContractTest();
 runScenarioBatchRegressionTest();
+runScenarioBundleTest();

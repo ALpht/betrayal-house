@@ -4,6 +4,9 @@ import { ScenarioRegistry }
 import { ScenarioDefinition }
     from "./definition/ScenarioDefinition.js";
 
+import { RuntimeRegistry }
+    from "./package/RuntimeRegistry.js";
+
 import { TestScenario }
     from "./scenarios/TestScenario.js";
 
@@ -11,6 +14,9 @@ import { EscapeTheHouseDefinition }
     from "./scenarios/EscapeTheHouseDefinition.js";
 
 const registry = new ScenarioRegistry();
+const runtimeRegistry = new RuntimeRegistry();
+
+runtimeRegistry.register("testScenario", TestScenario);
 
 registry.register(
     new ScenarioDefinition({
@@ -40,8 +46,14 @@ registry.register(
     })
 );
 
+const escapeRuntimeClass = EscapeTheHouseDefinition.runtimeClass;
+if (escapeRuntimeClass) {
+    runtimeRegistry.register("escapeTheHouse", escapeRuntimeClass);
+}
+
 registry.register(
     EscapeTheHouseDefinition
 );
 
+export { runtimeRegistry };
 export default registry;
