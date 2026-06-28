@@ -113,6 +113,11 @@ import {
 }
 from "./test/ScenarioBundleTest.js";
 
+import {
+    runHauntContentPack01Test
+}
+from "./test/HauntContentPack01Test.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -136,3 +141,4 @@ runScenarioLifecycleTest();
 runScenarioContractTest();
 runScenarioBatchRegressionTest();
 runScenarioBundleTest();
+runHauntContentPack01Test();

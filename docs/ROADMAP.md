@@ -1,6 +1,6 @@
 # Roadmap
 
-Version: 5.0
+Version: 5.1
 
 ---
 
@@ -21,10 +21,11 @@ Version: 5.0
 | Save / Load           | 100% ✓   |
 | Presentation Layer    | 20%      |
 | Multiplayer           | 0%       |
+| Content Expansion     | 0%       |
 
 ---
 
-# M1 — M10：Architecture Layer（完成）
+# M1 — M10：Platform Construction
 
 Status: COMPLETE
 
@@ -83,11 +84,33 @@ Status: CANCELLED
 
 ---
 
-# M11：Content Validation
+# M11：Framework Consumer Validation（IN PROGRESS）
 
-方向從「架構建設」切換為「遊戲建設」。
+方向從「架構建設」切換為「Content 作為 Framework 的 Consumer」。
 
-目標：驗證 Scenario Platform 是否能量產真正可玩的內容。
+驗證 Scenario Platform 能支撐多個內容差異化、互不耦合的正式 Scenario。
+
+```
+Architecture KPI（所有 Content Pack 的品質門檻）：
+
+新增一個 Scenario 所需：
+  Framework 修改：    0
+  Runtime 修改：      0
+  Infrastructure 修改：0
+  Regression 修改：    0
+
+只新增：
+  Scenario
+  VictoryCondition
+  Definition
+  Bundle
+  Tests
+```
+
+## Phase 11A — feature/haunt-content-pack-01（IN PROGRESS）
+
+Mission：5 個 Scenario 涵蓋 5 種型態（Collection、Survival、Escort、Boss Fight、Puzzle），
+使用既有 Authoring → Bundle → Loader → Runtime 流程，Framework 零修改。
 
 ```
 Branch                     Phase     Status
@@ -132,9 +155,38 @@ Mission：
 
 ---
 
-# M12：Multiplayer
+# M12：Content Expansion
 
-Status: Planned（late）
+Status: Planned
+
+目標為更多內容量產：
+
+- 更多 Haunt Pack
+- 更多 Event Card
+- 更多 Omen
+- 更多 Item
+- 更多角色
+- 更多房間
+
+全部透過 M1~M10 建立的 Content Pipeline，不修改 Framework。
+
+---
+
+# M13：Presentation Layer
+
+Status: Planned
+
+- Turn UI
+- Card UI
+- Scenario UI
+- Victory UI
+- Player Information UI（InformationRouter 前端整合）
+
+---
+
+# M14：Multiplayer Synchronization
+
+Status: Planned
 
 在單機內容與 UI 穩定後，再將既有 Rule Engine 接回多人同步。
 
@@ -144,7 +196,7 @@ Status: Planned（late）
 - InformationRouter Audience 同步
 - Snapshot Protocol
 
-待 M11 Content Validation 完成後啟動。
+待 M13 Presentation Layer 完成後啟動。
 
 ---
 
@@ -152,7 +204,7 @@ Status: Planned（late）
 
 | 舊 Milestone | 原規劃 | 取消原因 |
 |---|---|---|
-| M9 Multiplayer Server | Socket Layer, Room Mgmt | 延至 M12 |
-| M10 Multiplayer Sync | Snapshot Protocol | 延至 M12 |
+| M9 Multiplayer Server | Socket Layer, Room Mgmt | 移至 M14 |
+| M10 Multiplayer Sync | Snapshot Protocol | 移至 M14 |
 | M11 Version Platform | Plugin, DLC, Migration | 不需要（本機專案） |
-| M11 UI/Animation | UI Layer | 重組為 M11 11B/11C |
+| M11 UI/Animation | UI Layer | 重組為 M13 |

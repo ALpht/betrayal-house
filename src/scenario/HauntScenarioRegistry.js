@@ -13,6 +13,9 @@ import { TestScenario }
 import { EscapeTheHouseDefinition }
     from "./scenarios/EscapeTheHouseDefinition.js";
 
+import { HAUNT_DEFINITIONS_LIST }
+    from "./scenarios/haunts/HauntContentPack01Definition.js";
+
 const registry = new ScenarioRegistry();
 const runtimeRegistry = new RuntimeRegistry();
 
@@ -54,6 +57,14 @@ if (escapeRuntimeClass) {
 registry.register(
     EscapeTheHouseDefinition
 );
+
+for (const def of HAUNT_DEFINITIONS_LIST) {
+    const rc = def.runtimeClass;
+    if (rc) {
+        runtimeRegistry.register(def.metadata.id, rc);
+    }
+    registry.register(def);
+}
 
 export { runtimeRegistry };
 export default registry;

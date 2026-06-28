@@ -376,3 +376,69 @@ Metadata
 Registry
 ```
 
+---
+
+# CONSTRAINT-031
+
+Scenario 不得依賴其他 Scenario。
+
+禁止：
+
+```
+import OtherScenario
+new OtherScenario()
+registry.get("otherScenario")
+```
+
+所有 Scenario 必須透過 Bundle → Definition → Registry 獨立存在。
+
+---
+
+# CONSTRAINT-032
+
+Scenario 不得修改 Framework State。
+
+合法修改僅限：
+
+```
+state.set()
+state.get()
+state.has()
+state.remove()
+router.route()
+```
+
+禁止存取：
+
+```
+context.runtime
+context.controller
+context.eventBus
+```
+
+---
+
+# CONSTRAINT-033
+
+Content 必須是 Engine 的 Consumer，而非 Contributor。
+
+允許：
+
+```
+extends HauntScenario
+extends VictoryCondition
+use ScenarioState
+use InformationRouter
+use ScenarioDefinition
+use ScenarioBundle
+```
+
+禁止：
+
+```
+修改 Engine
+修改 Runtime
+修改 Infrastructure
+修改其他 Content
+```
+
