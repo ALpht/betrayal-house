@@ -2,6 +2,7 @@ import { HauntScenario } from "../../HauntScenario.js";
 import { InformationPacket } from "../../information/InformationPacket.js";
 import { InformationAudience } from "../../information/InformationAudience.js";
 import { InformationScope } from "../../information/InformationScope.js";
+import { ActionType } from "../../action/ActionType.js";
 
 export class ClockTowerScenario extends HauntScenario {
     static meta = { id: "clockTower", traitorRule: "random" };
@@ -34,5 +35,16 @@ export class ClockTowerScenario extends HauntScenario {
                 partsNeeded: 4
             }
         }));
+    }
+
+    onAction(action, context, state) {
+        if (action.type === ActionType.ATTACK) {
+            const hp = state.get("bossHp") || 0;
+            state.set("bossHp", Math.max(0, hp - 1));
+        }
+        if (action.type === ActionType.COLLECT) {
+            const parts = state.get("partsFound") || 0;
+            state.set("partsFound", parts + 1);
+        }
     }
 }

@@ -123,6 +123,11 @@ import {
 }
 from "./test/GameplayActionTest.js";
 
+import {
+    runGameplayBehaviorTest
+}
+from "./test/GameplayBehaviorTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -148,3 +153,4 @@ runScenarioBatchRegressionTest();
 runScenarioBundleTest();
 runHauntContentPack01Test();
 runGameplayActionTest();
+runGameplayBehaviorTest();

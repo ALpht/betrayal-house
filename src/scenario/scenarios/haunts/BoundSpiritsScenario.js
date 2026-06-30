@@ -2,6 +2,7 @@ import { HauntScenario } from "../../HauntScenario.js";
 import { InformationPacket } from "../../information/InformationPacket.js";
 import { InformationAudience } from "../../information/InformationAudience.js";
 import { InformationScope } from "../../information/InformationScope.js";
+import { ActionType } from "../../action/ActionType.js";
 
 export class BoundSpiritsScenario extends HauntScenario {
     static meta = { id: "boundSpirits", traitorRule: "random" };
@@ -34,5 +35,15 @@ export class BoundSpiritsScenario extends HauntScenario {
                 text: "Destroy the spirit before it reaches safety."
             }
         }));
+    }
+
+    onAction(action, context, state) {
+        if (action.type === ActionType.INTERACT && action.payload?.type === "escort") {
+            const progress = state.get("escortProgress") || 0;
+            state.set("escortProgress", progress + 1);
+        }
+        if (action.type === ActionType.ATTACK && action.payload?.target === "spirit") {
+            state.set("spiritAlive", false);
+        }
     }
 }

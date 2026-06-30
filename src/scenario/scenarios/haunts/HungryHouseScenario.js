@@ -1,4 +1,5 @@
 import { HauntScenario } from "../../HauntScenario.js";
+import { ActionType } from "../../action/ActionType.js";
 
 export class HungryHouseScenario extends HauntScenario {
     static meta = { id: "hungryHouse", traitorRule: "random" };
@@ -11,9 +12,13 @@ export class HungryHouseScenario extends HauntScenario {
         state.set("maxTurns", 8);
     }
 
-    onTurnEnd(context) {
-        if (!this._state) return;
-        const turns = this._state.get("turnsElapsed") || 0;
-        this._state.set("turnsElapsed", turns + 1);
+    onAction(action, context, state) {
+        if (action.type === ActionType.MOVE && action.payload?.destination === "safeRoom") {
+            state.set("heroInSafeRoom", true);
+        }
+        if (action.type === ActionType.END_TURN) {
+            const turns = state.get("turnsElapsed") || 0;
+            state.set("turnsElapsed", turns + 1);
+        }
     }
 }

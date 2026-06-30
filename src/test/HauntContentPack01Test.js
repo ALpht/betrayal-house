@@ -15,6 +15,9 @@ import { ScenarioRegistry } from "../scenario/definition/ScenarioRegistry.js";
 import { ScenarioLoader } from "../scenario/package/ScenarioLoader.js";
 import { HAUNT_DEFINITIONS } from "../scenario/scenarios/haunts/HauntContentPack01Definition.js";
 import { hauntContentPack01Bundle } from "../scenario/scenarios/haunts/HauntContentPack01Bundle.js";
+import { PlayerAction } from "../scenario/action/PlayerAction.js";
+import { ActionType } from "../scenario/action/ActionType.js";
+import { ScenarioActionHandler } from "../scenario/action/ScenarioActionHandler.js";
 
 /* =========================
  * Test Helpers
@@ -279,7 +282,7 @@ export function runHauntContentPack01Test() {
 
     /* =========================
      * CASE 5 — Lifecycle Callback
-     * HungryHouse: onTurnEnd increments turnsElapsed
+     * HungryHouse: END_TURN action increments turnsElapsed
      * ========================= */
 
     try {
@@ -287,11 +290,17 @@ export function runHauntContentPack01Test() {
         hh.harness.start();
         assert(hh.runtime.state.get("turnsElapsed") === 0, "lifecycle initial 0");
 
-        hh.runtime.onTurnEnd();
+        ScenarioActionHandler.dispatch(hh.runtime, new PlayerAction({
+            id: "lifecycle-1", type: ActionType.END_TURN, playerId: "hero_1"
+        }));
         assert(hh.runtime.state.get("turnsElapsed") === 1, "lifecycle after 1 turn");
 
-        hh.runtime.onTurnEnd();
-        hh.runtime.onTurnEnd();
+        ScenarioActionHandler.dispatch(hh.runtime, new PlayerAction({
+            id: "lifecycle-2", type: ActionType.END_TURN, playerId: "hero_1"
+        }));
+        ScenarioActionHandler.dispatch(hh.runtime, new PlayerAction({
+            id: "lifecycle-3", type: ActionType.END_TURN, playerId: "hero_1"
+        }));
         assert(hh.runtime.state.get("turnsElapsed") === 3, "lifecycle after 3 turns");
 
         hh.harness.destroy();
