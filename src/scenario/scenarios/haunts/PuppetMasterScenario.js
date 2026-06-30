@@ -2,6 +2,7 @@ import { HauntScenario } from "../../HauntScenario.js";
 import { InformationPacket } from "../../information/InformationPacket.js";
 import { InformationAudience } from "../../information/InformationAudience.js";
 import { InformationScope } from "../../information/InformationScope.js";
+import { ActionType } from "../../action/ActionType.js";
 
 export class PuppetMasterScenario extends HauntScenario {
     static meta = { id: "puppetMaster", traitorRule: "random" };
@@ -35,5 +36,13 @@ export class PuppetMasterScenario extends HauntScenario {
                 text: "Protect the dolls. Eliminate all heroes before they destroy 3 dolls."
             }
         }));
+    }
+
+    onAction(action, context, state) {
+        if (action.type !== ActionType.DESTROY) {
+            return;
+        }
+
+        state.increment("dollsDestroyed", 1);
     }
 }

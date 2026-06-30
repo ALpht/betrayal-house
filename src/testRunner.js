@@ -118,6 +118,11 @@ import {
 }
 from "./test/HauntContentPack01Test.js";
 
+import {
+    runGameplayActionTest
+}
+from "./test/GameplayActionTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -142,3 +147,4 @@ runScenarioContractTest();
 runScenarioBatchRegressionTest();
 runScenarioBundleTest();
 runHauntContentPack01Test();
+runGameplayActionTest();

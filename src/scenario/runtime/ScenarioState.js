@@ -18,6 +18,12 @@ export class ScenarioState {
         delete this.#data[key];
     }
 
+    increment(key, amount = 1) {
+        const current = this.#data[key];
+        const base = typeof current === "number" ? current : 0;
+        this.#data[key] = base + amount;
+    }
+
     serialize() {
         return structuredClone(this.#data);
     }

@@ -442,3 +442,43 @@ use ScenarioBundle
 修改其他 Content
 ```
 
+---
+
+# CONSTRAINT-034
+
+PlayerAction 為唯一 Gameplay Input。
+
+Scenario 不得直接接受：
+
+```
+UI Event
+DOM Event
+Keyboard Event
+Mouse Event
+Network Packet
+```
+
+所有 Gameplay Input 必須先轉換為 PlayerAction，再交由 Scenario Runtime 處理。
+
+---
+
+# CONSTRAINT-035
+
+ActionValidator 僅驗證 Action Contract，不得驗證 Gameplay Rule。
+
+ActionValidator 只驗證：
+
+- Action id 是否存在
+- Action type 是否為合法 ActionType 值
+- playerId 是否為非空字串
+- payload 是否可序列化
+
+禁止驗證：
+
+- 玩家是否存活
+- 玩家是否在特定房間
+- 是否可以對目標執行 Action
+- 其他 Gameplay Domain Rule
+
+Gameplay Rule 必須由 Scenario.onAction() 判定。
+

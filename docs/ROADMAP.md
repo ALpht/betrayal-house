@@ -107,51 +107,59 @@ Architecture KPI（所有 Content Pack 的品質門檻）：
   Tests
 ```
 
-## Phase 11A — feature/haunt-content-pack-01（IN PROGRESS）
+## Phase 11A — feature/haunt-content-pack-01（COMPLETE）
 
 Mission：5 個 Scenario 涵蓋 5 種型態（Collection、Survival、Escort、Boss Fight、Puzzle），
 使用既有 Authoring → Bundle → Loader → Runtime 流程，Framework 零修改。
 
-```
-Branch                     Phase     Status
-────────────────────────────────────────────
-feature/haunt-content-pack-01      11A    Planned
-feature/player-information-ui     11B    Planned
-feature/game-ui-phase-1           11C    Planned
-```
+驗收標準：
+- 新增至少 5 個可遊玩的 Haunt Scenario ✓
+- 全部使用既有 Authoring、Bundle、Loader、Runtime 流程 ✓
+- 不允許為個別劇本修改 Framework ✓
+- 每個 Scenario 通過 Scenario Test Harness 與 Regression Test ✓
+- 驗證 Information Router、Victory Framework、Scenario Runtime 在不同劇本下皆可正常運作 ✓
 
-## Phase 11A — feature/haunt-content-pack-01
+## Phase 11B — feature/gameplay-action-system（COMPLETE）
 
 Mission：
-建立第一批正式 Scenario，驗證內容生產管線。
+建立 Scenario 與玩家行為之間的正式互動模型（PlayerAction Layer），
+讓 Scenario 由玩家行為驅動，而非測試直接修改 State。
 
 驗收標準：
-- 新增至少 5 個可遊玩的 Haunt Scenario
-- 全部使用既有 Authoring、Bundle、Loader、Runtime 流程
-- 不允許為個別劇本修改 Framework
-- 每個 Scenario 通過 Scenario Test Harness 與 Regression Test
-- 驗證 Information Router、Victory Framework、Scenario Runtime 在不同劇本下皆可正常運作
+- PlayerAction Value Object（id, type, playerId, payload）
+- ActionValidator Contract-only 驗證
+- ScenarioRuntime.handleAction() 委派
+- HauntScenario.onAction() hook
+- PuppetMasterScenario 支援 DESTROY → dollsDestroyed++
+- Snapshot → Restore → Continue Action → Victory 流程
+- Multi-runtime Action 隔離
+- 0 Framework regression
 
-## Phase 11B — feature/player-information-ui
+檔案變更：
+```
+CREATE  src/scenario/action/ActionType.js
+CREATE  src/scenario/action/PlayerAction.js
+CREATE  src/scenario/action/ActionValidator.js
+CREATE  src/scenario/action/ScenarioActionHandler.js
+CREATE  src/test/GameplayActionTest.js
+
+MODIFY  HauntScenario.js        (+onAction)
+MODIFY  ScenarioRuntime.js      (+handleAction)
+MODIFY  ScenarioState.js        (+increment)
+MODIFY  PuppetMasterScenario.js (+onAction)
+MODIFY  testRunner.js
+MODIFY  docs/CONSTRAINTS.md     (+CONSTRAINT-034, 035)
+```
+
+CONSTRAINTS 新增：
+- CONSTRAINT-034 — PlayerAction 為唯一 Gameplay Input
+- CONSTRAINT-035 — ActionValidator 僅驗證 Action Contract
+
+## Phase 11C — feature/gameplay-expansion（Planned）
 
 Mission：
-將已完成的 InformationRouter 接到 UI，讓秘密資訊與目標真正被玩家看到。
-
-目標：
-- Hero 視角：Objectives、Items、Secrets
-- Traitor 視角：Monster HP、Objectives、Special Rules
-- Information Visibility 與 Audience Routing 的前端整合
-
-## Phase 11C — feature/game-ui-phase-1
-
-Mission：
-完善 Presentation Layer，讓整體遊戲流程可實際遊玩。
-
-目標：
-- Turn UI
-- Card UI
-- Scenario UI
-- Victory UI
+逐步將剩餘 4 個 Scenario（HungryHouse, ClockTower, BoundSpirits, RitualOfShadows）
+從 state.set() 遷移至 onAction()，Framework 零修改。
 
 ---
 
