@@ -1,7 +1,7 @@
 import { ActionPresentationModel } from "./ActionPresentationModel.js";
 
 export class ActionAvailabilityQuery {
-    static buildModel(runtime) {
+    buildModel(runtime) {
         const actions = runtime.getActionAvailability();
         return new ActionPresentationModel({
             actions,

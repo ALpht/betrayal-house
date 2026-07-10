@@ -138,6 +138,11 @@ import {
 }
 from "./test/PresentationRenderingTest.js";
 
+import {
+    runPresentationControllerTest
+}
+from "./test/PresentationControllerTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -166,3 +171,4 @@ runGameplayActionTest();
 runGameplayBehaviorTest();
 runPresentationActionTest();
 runPresentationRenderingTest();
+runPresentationControllerTest();

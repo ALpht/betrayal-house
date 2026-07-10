@@ -182,13 +182,24 @@ Status: Planned
 
 # M13：Presentation Layer
 
-Status: Planned
+Status: In Progress
 
-- Turn UI
-- Card UI
-- Scenario UI
-- Victory UI
-- Player Information UI（InformationRouter 前端整合）
+## M13A — Presentation Controller Foundation ✅
+
+- PresentationController 作為 Presentation Layer 唯一協調者
+- ActionAvailabilityQuery 改為 instance-based
+- CONSTRAINT-045, CONSTRAINT-046 建立
+
+## M13B — Turn UI
+
+- TurnQuery / TurnPresentationModel
+- TurnPanel（Current Player, Turn Number, Phase）
+
+## M13C — Card UI
+
+## M13D — Scenario UI / Victory UI
+
+## M13E — Player Information UI（InformationRouter 前端整合）
 
 ---
 

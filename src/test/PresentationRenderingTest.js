@@ -117,7 +117,8 @@ export function runPresentationRenderingTest() {
      * ======================= */
     try {
         const runtime = createRuntime("puppetMaster");
-        const model = ActionAvailabilityQuery.buildModel(runtime);
+        const query = new ActionAvailabilityQuery();
+        const model = query.buildModel(runtime);
 
         assert(model instanceof ActionPresentationModel, "Case 1a: returns ActionPresentationModel");
         assert(model.scenarioId === "puppetMaster", "Case 1b: correct scenarioId");
@@ -137,7 +138,8 @@ export function runPresentationRenderingTest() {
      * ======================= */
     try {
         const runtime = createRuntime("clockTower");
-        const model = ActionAvailabilityQuery.buildModel(runtime);
+        const query = new ActionAvailabilityQuery();
+        const model = query.buildModel(runtime);
 
         const types = model.actions.map(a => a.type);
         assert(types.includes(ActionType.ATTACK), "Case 2a: ATTACK present");
@@ -160,7 +162,8 @@ export function runPresentationRenderingTest() {
         for (let i = 0; i < 9; i++) {
             runtime.handleAction({ type: ActionType.ATTACK, playerId: "hero_1", payload: { target: "golem" }, id: `test${i}` });
         }
-        const model = ActionAvailabilityQuery.buildModel(runtime);
+        const query = new ActionAvailabilityQuery();
+        const model = query.buildModel(runtime);
         const attack = model.actions.find(a => a.type === ActionType.ATTACK);
         assert(attack.enabled === false, "Case 3a: ATTACK disabled when bossHp=0");
         assert(attack.reason === "Boss defeated", "Case 3b: reason set");
@@ -176,7 +179,8 @@ export function runPresentationRenderingTest() {
      * ======================= */
     try {
         const runtime = createRuntime("clockTower");
-        const model = ActionAvailabilityQuery.buildModel(runtime);
+        const query = new ActionAvailabilityQuery();
+        const model = query.buildModel(runtime);
         const attack = model.actions.find(a => a.type === ActionType.ATTACK);
         const collect = model.actions.find(a => a.type === ActionType.COLLECT);
         assert(attack.enabled === true, "Case 4a: ATTACK enabled initially");
@@ -194,7 +198,8 @@ export function runPresentationRenderingTest() {
     try {
         const runtime = createRuntime("puppetMaster");
         const initialState = runtime.state.serialize();
-        ActionAvailabilityQuery.buildModel(runtime);
+        const query = new ActionAvailabilityQuery();
+        query.buildModel(runtime);
         const afterState = runtime.state.serialize();
 
         assert(JSON.stringify(initialState) === JSON.stringify(afterState), "Case 5: Runtime state unchanged after query");
@@ -219,7 +224,7 @@ export function runPresentationRenderingTest() {
             onAction: (action) => { capturedAction = action; }
         });
 
-        const model = ActionAvailabilityQuery.buildModel(runtime);
+        const model = new ActionAvailabilityQuery().buildModel(runtime);
         panel.render(model);
 
         const destroyButton = container.querySelector("button");
@@ -253,7 +258,7 @@ export function runPresentationRenderingTest() {
             onAction: () => {}
         });
 
-        const model = ActionAvailabilityQuery.buildModel(runtime);
+        const model = new ActionAvailabilityQuery().buildModel(runtime);
         panel.render(model);
 
         const panelKeys = Object.keys(panel);
@@ -272,7 +277,7 @@ export function runPresentationRenderingTest() {
      * ======================= */
     try {
         const runtime = createRuntime("puppetMaster");
-        const model = ActionAvailabilityQuery.buildModel(runtime);
+        const model = new ActionAvailabilityQuery().buildModel(runtime);
 
         let threw = false;
         try {
@@ -301,12 +306,13 @@ export function runPresentationRenderingTest() {
      * ======================= */
     try {
         const runtime = createRuntime("hungryHouse");
-        let model = ActionAvailabilityQuery.buildModel(runtime);
+        const query = new ActionAvailabilityQuery();
+        let model = query.buildModel(runtime);
         let move = model.actions.find(a => a.type === ActionType.MOVE);
         assert(move.enabled === true, "Case 9a: MOVE enabled initially");
 
         runtime.handleAction({ type: ActionType.MOVE, playerId: "hero_1", payload: { destination: "safeRoom" }, id: "test1" });
-        model = ActionAvailabilityQuery.buildModel(runtime);
+        model = query.buildModel(runtime);
         move = model.actions.find(a => a.type === ActionType.MOVE);
         assert(move.enabled === false, "Case 9b: MOVE disabled after reaching safe room");
         assert(move.reason === "Already in safe room", "Case 9c: reason set");
@@ -322,14 +328,15 @@ export function runPresentationRenderingTest() {
      * ======================= */
     try {
         const runtime = createRuntime("ritualOfShadows");
-        let model = ActionAvailabilityQuery.buildModel(runtime);
+        const query = new ActionAvailabilityQuery();
+        let model = query.buildModel(runtime);
         let activate = model.actions.find(a => a.type === ActionType.ACTIVATE);
         assert(activate.enabled === true, "Case 10a: ACTIVATE enabled initially");
 
         runtime.handleAction({ type: ActionType.ACTIVATE, playerId: "hero_1", payload: { altar: "altarA" }, id: "t1" });
         runtime.handleAction({ type: ActionType.ACTIVATE, playerId: "hero_1", payload: { altar: "altarB" }, id: "t2" });
         runtime.handleAction({ type: ActionType.ACTIVATE, playerId: "hero_1", payload: { altar: "altarC" }, id: "t3" });
-        model = ActionAvailabilityQuery.buildModel(runtime);
+        model = query.buildModel(runtime);
         activate = model.actions.find(a => a.type === ActionType.ACTIVATE);
         assert(activate.enabled === false, "Case 10b: ACTIVATE disabled after all altars");
         assert(activate.reason === "Ritual complete", "Case 10c: reason set");
