@@ -95,6 +95,10 @@ export class ScenarioRuntime {
         this.#definition.onAction(action, this.#context, this.#state);
     }
 
+    getSupportedActions() {
+        return this.#definition.getSupportedActions();
+    }
+
     checkVictory() {
         return this.#definition.checkVictory(this.#context);
     }

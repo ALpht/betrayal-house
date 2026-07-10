@@ -19,4 +19,8 @@ export class RitualOfShadowsScenario extends HauntScenario {
             if (action.payload?.altar === "altarC") state.set("altarC", true);
         }
     }
+
+    getSupportedActions() {
+        return [ActionType.ACTIVATE, ActionType.END_TURN];
+    }
 }

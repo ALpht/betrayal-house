@@ -21,4 +21,8 @@ export class HungryHouseScenario extends HauntScenario {
             state.set("turnsElapsed", turns + 1);
         }
     }
+
+    getSupportedActions() {
+        return [ActionType.MOVE, ActionType.END_TURN];
+    }
 }

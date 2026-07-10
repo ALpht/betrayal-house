@@ -47,4 +47,8 @@ export class ClockTowerScenario extends HauntScenario {
             state.set("partsFound", parts + 1);
         }
     }
+
+    getSupportedActions() {
+        return [ActionType.ATTACK, ActionType.COLLECT, ActionType.END_TURN];
+    }
 }

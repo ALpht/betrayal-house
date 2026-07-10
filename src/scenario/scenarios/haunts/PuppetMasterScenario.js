@@ -45,4 +45,8 @@ export class PuppetMasterScenario extends HauntScenario {
 
         state.increment("dollsDestroyed", 1);
     }
+
+    getSupportedActions() {
+        return [ActionType.DESTROY, ActionType.END_TURN];
+    }
 }

@@ -128,6 +128,11 @@ import {
 }
 from "./test/GameplayBehaviorTest.js";
 
+import {
+    runPresentationActionTest
+}
+from "./test/PresentationActionTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -154,3 +159,4 @@ runScenarioBundleTest();
 runHauntContentPack01Test();
 runGameplayActionTest();
 runGameplayBehaviorTest();
+runPresentationActionTest();

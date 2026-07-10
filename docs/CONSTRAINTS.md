@@ -482,3 +482,51 @@ ActionValidator 只驗證：
 
 Gameplay Rule 必須由 Scenario.onAction() 判定。
 
+---
+
+# CONSTRAINT-038
+
+Presentation Layer 不得包含 Gameplay Rule。
+
+UI 只能建立 PlayerAction，不能扣血、判勝、修改 State。
+
+---
+
+# CONSTRAINT-039
+
+Presentation Layer 不得直接操作 ScenarioState。
+
+唯一合法途徑為 PlayerAction → Runtime → Scenario。
+
+---
+
+# CONSTRAINT-040
+
+UI 為 Gameplay Consumer。
+
+流程固定為：
+
+```
+UI
+    ↓
+PlayerAction
+    ↓
+Runtime
+    ↓
+Scenario
+```
+
+不得反向依賴 Engine。
+
+---
+
+# CONSTRAINT-041
+
+Supported Actions 為 Scenario Capability，不代表目前可執行。
+
+`getSupportedActions()` 表示這個 Scenario 可能會使用哪些 ActionType。
+不是玩家現在能不能按。
+
+例如：ClockTower 支援 ATTACK，即使 Boss 已死亡，ATTACK 仍出現在 Supported Actions。
+真正送出 Action 後，Scenario 決定 ignore 或正常處理。
+

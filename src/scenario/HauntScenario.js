@@ -18,6 +18,10 @@ export class HauntScenario {
 
     onAction(action, context, state) {}
 
+    getSupportedActions() {
+        return [];
+    }
+
     getVictoryCondition() {
         return this.#victoryCondition;
     }

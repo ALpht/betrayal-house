@@ -46,4 +46,8 @@ export class BoundSpiritsScenario extends HauntScenario {
             state.set("spiritAlive", false);
         }
     }
+
+    getSupportedActions() {
+        return [ActionType.INTERACT, ActionType.ATTACK, ActionType.END_TURN];
+    }
 }
