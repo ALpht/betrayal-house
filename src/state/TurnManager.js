@@ -133,4 +133,11 @@ export class TurnManager {
         );
 
     }
+
+    restoreState(players, turnIndex, started) {
+        this.#players = players;
+        this.#currentIndex = turnIndex;
+        this.#started = started;
+    }
+
 }

@@ -1,0 +1,87 @@
+# Event Catalog
+
+---
+
+## Exploration
+
+ROOM_PLACED
+
+PLAYER_MOVED
+
+TURN_STARTED
+
+TURN_ENDED
+
+---
+
+## Card System
+
+CARD_DRAWN
+
+CARD_TRIGGERED
+
+CARD_EFFECT_APPLIED
+
+---
+
+## Haunt
+
+HAUNT_ROLL_REQUESTED
+
+HAUNT_ROLL_COMPLETED
+
+HAUNT_TRIGGERED
+
+---
+
+## Scenario
+
+SCENARIO_STARTED
+
+SCENARIO_UPDATED
+
+SCENARIO_COMPLETED
+
+SCENARIO_RUNTIME_CREATED
+
+SCENARIO_RUNTIME_UPDATED
+
+---
+
+## Traitor
+
+TRAITOR_ASSIGNMENT_STARTED
+
+TRAITOR_ASSIGNED
+
+---
+
+## Save
+
+GAME_SAVED
+
+GAME_LOADED
+
+GAME_RESTORED
+
+---
+
+## Information
+
+INFORMATION_ROUTED
+
+Payload: { packetId, audience, scope }
+
+僅包含 metadata，不包含秘密 payload。
+
+---
+
+## Game
+
+GAME_STARTED
+
+GAME_ENDED
+
+Payload: { scenarioId, winner, reason }
+
+由 VictoryController 在 SCENARIO_COMPLETED 後發送。

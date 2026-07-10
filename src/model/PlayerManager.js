@@ -30,4 +30,9 @@ export class PlayerManager {
     findByCharacterId(characterId) {
         return this.#players.find(p => p.character.id === characterId);
     }
+
+    clear() {
+        this.#players = [];
+    }
+
 }

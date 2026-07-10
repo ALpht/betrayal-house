@@ -10,6 +10,14 @@ class GameStateManagerClass {
 
     constructor() {
         this.current = GAME_STATE.EXPLORATION;
+
+        this.hauntHandler = () =>
+            this.setState(GAME_STATE.HAUNT);
+
+        EventBus.on(
+            EventTypes.HAUNT_TRIGGERED,
+            this.hauntHandler
+        );
     }
 
     getState() {
@@ -30,6 +38,14 @@ class GameStateManagerClass {
         );
     }
 
+    getTraitorPlayerId() {
+        return this.#traitorPlayerId;
+    }
+
+    setTraitorPlayerId(id) {
+        this.#traitorPlayerId = id;
+    }
+
     isExploration() {
         return this.current === GAME_STATE.EXPLORATION;
     }
@@ -38,16 +54,8 @@ class GameStateManagerClass {
         return this.current === GAME_STATE.HAUNT;
     }
 
-    triggerHaunt() {
+    #traitorPlayerId = null;
 
-        this.setState(
-            GAME_STATE.HAUNT
-        );
-
-        EventBus.emit(
-            EventTypes.HAUNT_TRIGGERED
-        );
-    }
 }
 
 export const GameStateManager = new GameStateManagerClass();

@@ -38,6 +38,101 @@ import {
 }
 from "./test/CardEffectTest.js";
 
+import {
+    runHauntTrackerTest
+}
+from "./test/HauntTrackerTest.js";
+
+import {
+    runHauntRollControllerTest
+}
+from "./test/HauntRollControllerTest.js";
+
+import {
+    runHauntManagerTest
+}
+from "./test/HauntManagerTest.js";
+
+import {
+    runSaveGameTest
+}
+from "./test/SaveGameTest.js";
+
+import {
+    runScenarioFrameworkTest
+}
+from "./test/ScenarioFrameworkTest.js";
+
+import {
+    runScenarioRuntimeTest
+}
+from "./test/ScenarioRuntimeTest.js";
+
+import {
+    runTraitorAssignmentTest
+}
+from "./test/TraitorAssignmentTest.js";
+
+import {
+    runVictoryFrameworkTest
+}
+from "./test/VictoryFrameworkTest.js";
+
+import {
+    runEscapeTheHouseScenarioTest
+}
+from "./test/EscapeTheHouseScenarioTest.js";
+
+import {
+    runScenarioTestHarnessTest
+}
+from "./test/ScenarioTestHarnessTest.js";
+
+import {
+    runInformationRouterTest
+}
+from "./test/InformationRouterTest.js";
+
+import {
+    runScenarioLifecycleTest
+}
+from "./test/ScenarioLifecycleTest.js";
+
+import {
+    runScenarioContractTest
+}
+from "./test/ScenarioContractTest.js";
+
+import {
+    runScenarioBatchRegressionTest
+}
+from "./test/ScenarioBatchRegressionTest.js";
+
+import {
+    runScenarioBundleTest
+}
+from "./test/ScenarioBundleTest.js";
+
+import {
+    runHauntContentPack01Test
+}
+from "./test/HauntContentPack01Test.js";
+
+import {
+    runGameplayActionTest
+}
+from "./test/GameplayActionTest.js";
+
+import {
+    runGameplayBehaviorTest
+}
+from "./test/GameplayBehaviorTest.js";
+
+import {
+    runPresentationActionTest
+}
+from "./test/PresentationActionTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -46,3 +141,22 @@ runCardDeckTest();
 runCardDataTest();
 runCardTriggerTest();
 runCardEffectTest();
+runHauntTrackerTest();
+runHauntRollControllerTest();
+runHauntManagerTest();
+runSaveGameTest();
+runScenarioFrameworkTest();
+runScenarioRuntimeTest();
+runTraitorAssignmentTest();
+runVictoryFrameworkTest();
+runEscapeTheHouseScenarioTest();
+runScenarioTestHarnessTest();
+runInformationRouterTest();
+runScenarioLifecycleTest();
+runScenarioContractTest();
+runScenarioBatchRegressionTest();
+runScenarioBundleTest();
+runHauntContentPack01Test();
+runGameplayActionTest();
+runGameplayBehaviorTest();
+runPresentationActionTest();

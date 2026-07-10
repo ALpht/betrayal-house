@@ -7,3 +7,7 @@ AGENTS.md
 phase-*.md
 handover-*.md
 REPORT_TEMPLATE.md
+docs/REPORT_*.md
+src/scenario/authoring/
+src/test/ScenarioAuthoringToolkitTest.js
+src/testing/scenario/ScenarioHarnessContract.md
