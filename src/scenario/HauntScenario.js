@@ -22,6 +22,14 @@ export class HauntScenario {
         return [];
     }
 
+    getActionAvailability(context, state) {
+        return this.getSupportedActions().map(type => ({
+            type,
+            enabled: true,
+            reason: null
+        }));
+    }
+
     getVictoryCondition() {
         return this.#victoryCondition;
     }

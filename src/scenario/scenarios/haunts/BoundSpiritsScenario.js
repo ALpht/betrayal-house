@@ -50,4 +50,14 @@ export class BoundSpiritsScenario extends HauntScenario {
     getSupportedActions() {
         return [ActionType.INTERACT, ActionType.ATTACK, ActionType.END_TURN];
     }
+
+    getActionAvailability(context, state) {
+        const spiritAlive = state.get("spiritAlive") !== false;
+        const escortProgress = state.get("escortProgress") || 0;
+        return [
+            { type: ActionType.INTERACT, enabled: spiritAlive && escortProgress < 3, reason: !spiritAlive ? "Spirit destroyed" : escortProgress >= 3 ? "Escort complete" : null },
+            { type: ActionType.ATTACK, enabled: spiritAlive, reason: !spiritAlive ? "Spirit already destroyed" : null },
+            { type: ActionType.END_TURN, enabled: true, reason: null }
+        ];
+    }
 }

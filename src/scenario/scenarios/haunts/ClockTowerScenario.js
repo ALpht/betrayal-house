@@ -51,4 +51,15 @@ export class ClockTowerScenario extends HauntScenario {
     getSupportedActions() {
         return [ActionType.ATTACK, ActionType.COLLECT, ActionType.END_TURN];
     }
+
+    getActionAvailability(context, state) {
+        const bossHp = state.get("bossHp") || 0;
+        const partsFound = state.get("partsFound") || 0;
+
+        return [
+            { type: ActionType.ATTACK, enabled: bossHp > 0, reason: bossHp <= 0 ? "Boss defeated" : null },
+            { type: ActionType.COLLECT, enabled: partsFound < 4, reason: partsFound >= 4 ? "All parts collected" : null },
+            { type: ActionType.END_TURN, enabled: true, reason: null }
+        ];
+    }
 }

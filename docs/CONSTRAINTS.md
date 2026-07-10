@@ -530,3 +530,29 @@ Supported Actions 為 Scenario Capability，不代表目前可執行。
 例如：ClockTower 支援 ATTACK，即使 Boss 已死亡，ATTACK 仍出現在 Supported Actions。
 真正送出 Action 後，Scenario 決定 ignore 或正常處理。
 
+---
+
+# CONSTRAINT-043
+
+Presentation Query Layer 不得推導 Gameplay Rule。
+
+只能：
+- Read
+- Transform
+- Present
+
+不能：
+- Infer
+- Validate
+- Judge
+- Execute
+
+---
+
+# CONSTRAINT-044
+
+Presentation Component 不得依賴 Runtime。
+
+只能依賴：
+- PresentationModel
+

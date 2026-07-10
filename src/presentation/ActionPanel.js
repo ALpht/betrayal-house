@@ -1,7 +1,6 @@
 import { ActionButton } from "./ActionButton.js";
-import { ActionAvailability } from "./ActionAvailability.js";
-import { ActionDispatcher } from "./ActionDispatcher.js";
 import { ActionFactory } from "./ActionFactory.js";
+import { ActionDispatcher } from "./ActionDispatcher.js";
 import { ActionType } from "../scenario/action/ActionType.js";
 
 const ACTION_LABELS = Object.freeze({
@@ -17,30 +16,34 @@ const ACTION_LABELS = Object.freeze({
 
 export class ActionPanel {
     #container;
-    #runtime;
     #playerId;
+    #onAction;
     #buttons;
 
-    constructor({ container, runtime, playerId }) {
+    constructor({ container, playerId, onAction }) {
         this.#container = container;
-        this.#runtime = runtime;
         this.#playerId = playerId;
+        this.#onAction = onAction;
         this.#buttons = [];
     }
 
-    render() {
+    render(model) {
         this.#clear();
 
-        const types = ActionAvailability.getActions(this.#runtime);
-
-        for (const type of types) {
-            const label = ACTION_LABELS[type] || type;
-            const button = new ActionButton({ label, action: type });
+        for (const action of model.actions) {
+            const label = ACTION_LABELS[action.type] || action.type;
+            const button = new ActionButton({
+                label,
+                action: action.type,
+                disabled: !action.enabled
+            });
 
             button.onClick(() => {
-                const action = this.#createAction(type);
-                if (action) {
-                    ActionDispatcher.dispatch(this.#runtime, action);
+                if (action.enabled && this.#onAction) {
+                    const playerAction = this.#createAction(action.type);
+                    if (playerAction) {
+                        this.#onAction(playerAction);
+                    }
                 }
             });
 
@@ -52,7 +55,7 @@ export class ActionPanel {
     destroy() {
         this.#clear();
         this.#buttons = [];
-        this.#runtime = null;
+        this.#onAction = null;
     }
 
     #clear() {
@@ -75,7 +78,7 @@ export class ActionPanel {
             case ActionType.INTERACT:
                 return ActionFactory.createInteract(this.#playerId, "");
             case ActionType.DESTROY:
-                return ActionFactory.createAttack(this.#playerId, "");
+                return ActionFactory.createDestroy(this.#playerId, "");
             case ActionType.END_TURN:
                 return ActionFactory.createEndTurn(this.#playerId);
             default:

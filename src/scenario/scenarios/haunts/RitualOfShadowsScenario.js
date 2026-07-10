@@ -23,4 +23,15 @@ export class RitualOfShadowsScenario extends HauntScenario {
     getSupportedActions() {
         return [ActionType.ACTIVATE, ActionType.END_TURN];
     }
+
+    getActionAvailability(context, state) {
+        const altarA = state.get("altarA") || false;
+        const altarB = state.get("altarB") || false;
+        const altarC = state.get("altarC") || false;
+        const allActivated = altarA && altarB && altarC;
+        return [
+            { type: ActionType.ACTIVATE, enabled: !allActivated, reason: allActivated ? "Ritual complete" : null },
+            { type: ActionType.END_TURN, enabled: true, reason: null }
+        ];
+    }
 }

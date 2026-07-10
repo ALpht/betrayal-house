@@ -1,6 +1,5 @@
 import { ActionFactory } from "../presentation/ActionFactory.js";
 import { ActionDispatcher } from "../presentation/ActionDispatcher.js";
-import { ActionAvailability } from "../presentation/ActionAvailability.js";
 import { ActionPanel } from "../presentation/ActionPanel.js";
 import { ActionButton } from "../presentation/ActionButton.js";
 import { ActionType } from "../scenario/action/ActionType.js";
@@ -177,7 +176,7 @@ export function runPresentationActionTest() {
 
     try {
         const pm = createRuntime("puppetMaster");
-        const pmActions = ActionAvailability.getActions(pm);
+        const pmActions = pm.getSupportedActions();
         assert(Array.isArray(pmActions), "Case 5a: returns array");
         assert(pmActions.includes(ActionType.DESTROY), "Case 5b: puppetMaster supports DESTROY");
         assert(pmActions.includes(ActionType.END_TURN), "Case 5c: puppetMaster supports END_TURN");
@@ -186,14 +185,14 @@ export function runPresentationActionTest() {
         pm.destroy();
 
         const hh = createRuntime("hungryHouse");
-        const hhActions = ActionAvailability.getActions(hh);
+        const hhActions = hh.getSupportedActions();
         assert(hhActions.includes(ActionType.MOVE), "Case 5f: hungryHouse supports MOVE");
         assert(!hhActions.includes(ActionType.ATTACK), "Case 5g: hungryHouse does NOT support ATTACK");
         assert(!hhActions.includes(ActionType.COLLECT), "Case 5h: hungryHouse does NOT support COLLECT");
         hh.destroy();
 
         const ct = createRuntime("clockTower");
-        const ctActions = ActionAvailability.getActions(ct);
+        const ctActions = ct.getSupportedActions();
         assert(ctActions.includes(ActionType.ATTACK), "Case 5i: clockTower supports ATTACK");
         assert(ctActions.includes(ActionType.COLLECT), "Case 5j: clockTower supports COLLECT");
         assert(!ctActions.includes(ActionType.MOVE), "Case 5k: clockTower does NOT support MOVE");
@@ -201,13 +200,13 @@ export function runPresentationActionTest() {
         ct.destroy();
 
         const bs = createRuntime("boundSpirits");
-        const bsActions = ActionAvailability.getActions(bs);
+        const bsActions = bs.getSupportedActions();
         assert(bsActions.includes(ActionType.INTERACT), "Case 5m: boundSpirits supports INTERACT");
         assert(bsActions.includes(ActionType.ATTACK), "Case 5n: boundSpirits supports ATTACK");
         bs.destroy();
 
         const rs = createRuntime("ritualOfShadows");
-        const rsActions = ActionAvailability.getActions(rs);
+        const rsActions = rs.getSupportedActions();
         assert(rsActions.includes(ActionType.ACTIVATE), "Case 5o: ritualOfShadows supports ACTIVATE");
         assert(rsActions.includes(ActionType.END_TURN), "Case 5p: ritualOfShadows supports END_TURN");
         assert(!rsActions.includes(ActionType.ATTACK), "Case 5q: ritualOfShadows does NOT support ATTACK");

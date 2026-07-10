@@ -49,4 +49,14 @@ export class PuppetMasterScenario extends HauntScenario {
     getSupportedActions() {
         return [ActionType.DESTROY, ActionType.END_TURN];
     }
+
+    getActionAvailability(context, state) {
+        const dollsDestroyed = state.get("dollsDestroyed") || 0;
+        const gameOver = state.get("gameOver") || false;
+
+        return [
+            { type: ActionType.DESTROY, enabled: !gameOver && dollsDestroyed < 3, reason: gameOver ? "Game over" : dollsDestroyed >= 3 ? "All dolls destroyed" : null },
+            { type: ActionType.END_TURN, enabled: true, reason: null }
+        ];
+    }
 }

@@ -133,6 +133,11 @@ import {
 }
 from "./test/PresentationActionTest.js";
 
+import {
+    runPresentationRenderingTest
+}
+from "./test/PresentationRenderingTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -160,3 +165,4 @@ runHauntContentPack01Test();
 runGameplayActionTest();
 runGameplayBehaviorTest();
 runPresentationActionTest();
+runPresentationRenderingTest();

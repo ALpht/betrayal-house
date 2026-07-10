@@ -99,6 +99,10 @@ export class ScenarioRuntime {
         return this.#definition.getSupportedActions();
     }
 
+    getActionAvailability() {
+        return this.#definition.getActionAvailability(this.#context, this.#state);
+    }
+
     checkVictory() {
         return this.#definition.checkVictory(this.#context);
     }
