@@ -148,6 +148,16 @@ import {
 }
 from "./test/TurnPresentationTest.js";
 
+import {
+    runScenarioPresentationTest
+}
+from "./test/ScenarioPresentationTest.js";
+
+import {
+    runVictoryPresentationTest
+}
+from "./test/VictoryPresentationTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -178,3 +188,5 @@ runPresentationActionTest();
 runPresentationRenderingTest();
 runPresentationControllerTest();
 runTurnPresentationTest();
+runScenarioPresentationTest();
+runVictoryPresentationTest();

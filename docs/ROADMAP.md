@@ -190,14 +190,20 @@ Status: In Progress
 - ActionAvailabilityQuery 改為 instance-based
 - CONSTRAINT-045, CONSTRAINT-046 建立
 
-## M13B — Turn UI
+## M13B — Turn UI ✅
 
 - TurnQuery / TurnPresentationModel
 - TurnPanel（Current Player, Turn Number, Phase）
 
-## M13C — Card UI
+## M13C — Scenario & Victory Presentation Foundation ✅
 
-## M13D — Scenario UI / Victory UI
+- Runtime Query Interface: getScenarioMetadata() / getVictoryResult()
+- ScenarioPresentationQuery / ScenarioPresentationModel / ScenarioPanel
+- VictoryPresentationQuery / VictoryPresentationModel / VictoryPanel
+- PresentationController.register() + GAME_ENDED
+- CONSTRAINT-048
+
+## M13D — Card UI
 
 ## M13E — Player Information UI（InformationRouter 前端整合）
 

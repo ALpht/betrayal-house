@@ -5,7 +5,17 @@ import { InformationScope } from "../../information/InformationScope.js";
 import { ActionType } from "../../action/ActionType.js";
 
 export class ClockTowerScenario extends HauntScenario {
-    static meta = { id: "clockTower", traitorRule: "random" };
+    static meta = {
+        id: "clockTower",
+        title: "The Clock Tower",
+        description: "Defeat the Clockwork Golem before it destroys everything.",
+        difficulty: 4,
+        traitorRule: "random",
+        objectives: {
+            heroes: "Reduce the Clockwork Golem HP to 0.",
+            traitor: "Protect the golem. Kill all heroes."
+        }
+    };
 
     start(context, state) {
         super.start(context, state);

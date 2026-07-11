@@ -8,6 +8,17 @@ export class HauntScenario {
         return this.constructor.meta;
     }
 
+    getPresentationMetadata() {
+        const meta = this.getMeta();
+        return {
+            id: meta.id,
+            title: meta.title || meta.id,
+            description: meta.description || "",
+            difficulty: meta.difficulty || 1,
+            objectives: meta.objectives || null
+        };
+    }
+
     start(context, state) {
         this.#state = state;
     }

@@ -22,6 +22,10 @@ export class PresentationController {
         this.#initialized = false;
     }
 
+    register(key, query, panel) {
+        this.#panels.set(key, { query, panel });
+    }
+
     init() {
         if (this.#initialized) return;
 
@@ -29,6 +33,7 @@ export class PresentationController {
             [EventTypes.SCENARIO_RUNTIME_UPDATED, () => this.#refreshAll()],
             [EventTypes.SCENARIO_STARTED, () => this.#refreshAll()],
             [EventTypes.TURN_CHANGED, () => this.#refreshAll()],
+            [EventTypes.GAME_ENDED, () => this.#refreshAll()],
         ];
         this.#subscriptions.forEach(([event, handler]) => {
             EventBus.on(event, handler);

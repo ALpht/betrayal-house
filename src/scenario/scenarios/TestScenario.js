@@ -6,7 +6,14 @@ export class TestScenario
 
     static meta = {
         id: "testScenario",
-        traitorRule: "random"
+        title: "Test Scenario",
+        description: "A test scenario.",
+        difficulty: 1,
+        traitorRule: "random",
+        objectives: {
+            heroes: "Complete the test.",
+            traitor: "Stop the heroes."
+        }
     };
 
     start(context, state) {

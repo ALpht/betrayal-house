@@ -5,7 +5,17 @@ import { InformationScope } from "../../information/InformationScope.js";
 import { ActionType } from "../../action/ActionType.js";
 
 export class PuppetMasterScenario extends HauntScenario {
-    static meta = { id: "puppetMaster", traitorRule: "random" };
+    static meta = {
+        id: "puppetMaster",
+        title: "The Puppet Master",
+        description: "Destroy 3 possessed dolls to banish the Puppet Master.",
+        difficulty: 2,
+        traitorRule: "random",
+        objectives: {
+            heroes: "Destroy 3 possessed dolls.",
+            traitor: "Protect the dolls. Kill all heroes."
+        }
+    };
 
     start(context, state) {
         super.start(context, state);

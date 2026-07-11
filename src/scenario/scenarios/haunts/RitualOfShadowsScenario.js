@@ -2,7 +2,17 @@ import { HauntScenario } from "../../HauntScenario.js";
 import { ActionType } from "../../action/ActionType.js";
 
 export class RitualOfShadowsScenario extends HauntScenario {
-    static meta = { id: "ritualOfShadows", traitorRule: "random" };
+    static meta = {
+        id: "ritualOfShadows",
+        title: "Ritual of Shadows",
+        description: "Activate 3 altars to complete the ritual.",
+        difficulty: 3,
+        traitorRule: "random",
+        objectives: {
+            heroes: "Activate all 3 altars to complete the ritual.",
+            traitor: "Stop the ritual. Kill all heroes."
+        }
+    };
 
     start(context, state) {
         super.start(context, state);

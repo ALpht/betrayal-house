@@ -2,7 +2,17 @@ import { HauntScenario } from "../../HauntScenario.js";
 import { ActionType } from "../../action/ActionType.js";
 
 export class HungryHouseScenario extends HauntScenario {
-    static meta = { id: "hungryHouse", traitorRule: "random" };
+    static meta = {
+        id: "hungryHouse",
+        title: "The Hungry House",
+        description: "Reach the safe room before the house collapses.",
+        difficulty: 3,
+        traitorRule: "random",
+        objectives: {
+            heroes: "Reach the safe room within 8 turns.",
+            traitor: "Survive until the house collapses."
+        }
+    };
 
     start(context, state) {
         super.start(context, state);

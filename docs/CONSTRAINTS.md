@@ -556,3 +556,33 @@ Presentation Component 不得依賴 Runtime。
 只能依賴：
 - PresentationModel
 
+---
+
+# CONSTRAINT-048
+
+Presentation Query 必須遵守 Information Visibility，
+不得繞過 InformationRouter 直接取得玩家不可見資料。
+
+禁止：
+
+```
+router.getAllPackets() 直接用於 PresentationModel
+ScenarioState 直接暴露給 PresentationModel
+Presentation 自行推導 Hidden Information
+```
+
+例如：
+
+```
+禁止 Boss HP == 0 → 推論玩家知道 Boss 已死亡
+Presentation 必須相信 InformationRouter
+```
+
+允許：
+
+```
+router.getVisiblePackets(playerId, traitorPlayerId)
+runtime.getScenarioMetadata()（非秘密資訊）
+runtime.getVictoryResult()（由 Runtime 公開的唯讀介面）
+```
+

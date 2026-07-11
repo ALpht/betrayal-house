@@ -13,6 +13,7 @@ export class ScenarioRuntime {
     #context;
     #router;
     #lifecycle;
+    #lastVictoryResult = null;
 
     constructor(definition, state, context, router = new InformationRouter()) {
         this.#definition = definition;
@@ -104,7 +105,17 @@ export class ScenarioRuntime {
     }
 
     checkVictory() {
-        return this.#definition.checkVictory(this.#context);
+        const result = this.#definition.checkVictory(this.#context);
+        this.#lastVictoryResult = result;
+        return result;
+    }
+
+    getScenarioMetadata() {
+        return this.#definition.getPresentationMetadata();
+    }
+
+    getVictoryResult() {
+        return this.#lastVictoryResult;
     }
 
     toSnapshot() {

@@ -5,7 +5,17 @@ import { InformationScope } from "../../information/InformationScope.js";
 import { ActionType } from "../../action/ActionType.js";
 
 export class BoundSpiritsScenario extends HauntScenario {
-    static meta = { id: "boundSpirits", traitorRule: "random" };
+    static meta = {
+        id: "boundSpirits",
+        title: "Bound Spirits",
+        description: "Escort the spirit to safety before it is destroyed.",
+        difficulty: 2,
+        traitorRule: "random",
+        objectives: {
+            heroes: "Escort the spirit to safety.",
+            traitor: "Destroy the bound spirit."
+        }
+    };
 
     start(context, state) {
         super.start(context, state);

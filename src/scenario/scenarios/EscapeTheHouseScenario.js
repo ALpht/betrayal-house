@@ -12,7 +12,14 @@ export class EscapeTheHouseScenario
 
     static meta = {
         id: "escapeTheHouse",
-        traitorRule: "random"
+        title: "Escape The House",
+        description: "Reach the Entrance Hall to escape!",
+        difficulty: 1,
+        traitorRule: "random",
+        objectives: {
+            heroes: "Reach the Entrance Hall.",
+            traitor: "Prevent all heroes from escaping."
+        }
     };
 
     #entranceRoomId = null;
