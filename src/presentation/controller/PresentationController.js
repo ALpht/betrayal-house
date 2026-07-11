@@ -28,6 +28,7 @@ export class PresentationController {
         this.#subscriptions = [
             [EventTypes.SCENARIO_RUNTIME_UPDATED, () => this.#refreshAll()],
             [EventTypes.SCENARIO_STARTED, () => this.#refreshAll()],
+            [EventTypes.TURN_CHANGED, () => this.#refreshAll()],
         ];
         this.#subscriptions.forEach(([event, handler]) => {
             EventBus.on(event, handler);
