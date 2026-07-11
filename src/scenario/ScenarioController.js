@@ -16,6 +16,9 @@ import { InformationRouter }
 import { ScenarioServices }
     from "./services/ScenarioServices.js";
 
+import { CardInformationAdapter }
+    from "../controller/CardInformationAdapter.js";
+
 export class ScenarioController {
 
     constructor(
@@ -30,6 +33,7 @@ export class ScenarioController {
         this.#worldDeps = worldDeps;
         this.#pendingScenario = null;
         this.#currentRuntime = null;
+        this.#cardAdapter = null;
 
         this.#hauntHandler =
             this.#onHauntTriggered
@@ -81,6 +85,11 @@ export class ScenarioController {
             this.#currentRuntime.destroy();
         }
 
+        if (this.#cardAdapter) {
+            this.#cardAdapter.destroy();
+            this.#cardAdapter = null;
+        }
+
         this.#pendingScenario = null;
         this.#pendingDefinition = null;
         this.#currentRuntime = null;
@@ -103,6 +112,7 @@ export class ScenarioController {
     #pendingScenario;
     #pendingDefinition;
     #currentRuntime;
+    #cardAdapter;
     #hauntHandler;
     #traitorHandler;
     #turnHandler;
@@ -202,6 +212,11 @@ export class ScenarioController {
 
         this.#currentRuntime =
             runtime;
+
+        this.#cardAdapter =
+            new CardInformationAdapter({
+                router
+            });
 
         this.#pendingScenario =
             null;
