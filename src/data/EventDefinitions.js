@@ -128,6 +128,136 @@ export const EventDefinitions = [
         effect: null,
         stat: null,
         amount: null
+    },
+
+    {
+        id: 'event_creaking_floors',
+        expansion: 'base',
+        type: 'event',
+        name: 'Creaking Floors',
+        description: 'The floorboards groan under your weight, threatening to give way.',
+        tags: ['trap', 'damage'],
+        rarity: 'common',
+        effect: 'modifyStat',
+        stat: 'might',
+        amount: -1
+    },
+
+    {
+        id: 'event_hidden_staircase',
+        expansion: 'base',
+        type: 'event',
+        name: 'Hidden Staircase',
+        description: 'Behind a faded tapestry, you find a narrow staircase leading down.',
+        tags: ['exploration', 'movement'],
+        rarity: 'uncommon',
+        effect: null,
+        stat: null,
+        amount: null
+    },
+
+    {
+        id: 'event_mirror_vision',
+        expansion: 'base',
+        type: 'event',
+        name: 'Mirror Vision',
+        description: 'Your reflection moves independently, mouthing words you cannot hear.',
+        tags: ['psychological'],
+        rarity: 'common',
+        effect: 'modifyStat',
+        stat: 'sanity',
+        amount: -1
+    },
+
+    {
+        id: 'event_dusty_bookshelf',
+        expansion: 'base',
+        type: 'event',
+        name: 'Dusty Bookshelf',
+        description: 'A book falls from the shelf, its pages filled with strange symbols.',
+        tags: ['exploration', 'discovery'],
+        rarity: 'common',
+        effect: null,
+        stat: null,
+        amount: null
+    },
+
+    {
+        id: 'event_collapsed_ceiling',
+        expansion: 'base',
+        type: 'event',
+        name: 'Collapsed Ceiling',
+        description: 'Plaster and timber rain down as the ceiling gives way above you.',
+        tags: ['trap', 'damage'],
+        rarity: 'uncommon',
+        effect: 'modifyStat',
+        stat: 'might',
+        amount: -1
+    },
+
+    {
+        id: 'event_adrenaline_rush',
+        expansion: 'base',
+        type: 'event',
+        name: 'Adrenaline Rush',
+        description: 'Fear sharpens your senses. You feel faster than before.',
+        tags: ['buff', 'psychological'],
+        rarity: 'uncommon',
+        effect: 'modifyStat',
+        stat: 'speed',
+        amount: 1
+    },
+
+    {
+        id: 'event_terrible_stench',
+        expansion: 'base',
+        type: 'event',
+        name: 'Terrible Stench',
+        description: 'A nauseating odor fills the room, making it hard to think clearly.',
+        tags: ['debuff', 'environmental'],
+        rarity: 'common',
+        effect: 'modifyStat',
+        stat: 'knowledge',
+        amount: -1
+    },
+
+    {
+        id: 'event_falling_chandelier',
+        expansion: 'base',
+        type: 'event',
+        name: 'Falling Chandelier',
+        description: 'A crystal chandelier crashes to the floor where you stood moments ago.',
+        tags: ['trap', 'damage'],
+        rarity: 'uncommon',
+        effect: 'modifyStat',
+        stat: 'might',
+        amount: -1
+    },
+
+    {
+        id: 'event_whispering_walls',
+        expansion: 'base',
+        type: 'event',
+        name: 'Whispering Walls',
+        description: 'The walls seem to whisper your name, growing louder with each breath.',
+        tags: ['psychological', 'mystery'],
+        rarity: 'common',
+        effect: 'modifyStat',
+        stat: 'sanity',
+        amount: -1
+    },
+
+    {
+        id: 'event_old_diary',
+        expansion: 'base',
+        type: 'event',
+        name: 'Old Diary',
+        description: 'A leather-bound diary lies open, its final entry written in blood.',
+        tags: ['discovery', 'story'],
+        rarity: 'common',
+        effect: null,
+        stat: null,
+        amount: null
     }
 
 ];

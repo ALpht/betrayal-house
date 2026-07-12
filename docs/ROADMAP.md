@@ -1,227 +1,310 @@
 # Roadmap
 
-Version: 5.1
+Version: 7.0
 
 ---
 
-## 專案成熟度
+# 專案成熟度
 
-| Layer                 | 狀態     |
-| --------------------- | -------- |
-| Rule Engine           | 100% ✓   |
-| Scenario Runtime      | 100% ✓   |
-| Scenario Framework    | 100% ✓   |
-| Scenario Authoring    | 100% ✓   |
-| Scenario Packaging    | 100% ✓   |
-| Scenario Testing      | 100% ✓   |
-| Content Governance    | 100% ✓   |
-| Secret Information    | 100% ✓   |
-| Victory Framework     | 100% ✓   |
-| Regression Testing    | 100% ✓   |
-| Save / Load           | 100% ✓   |
-| Presentation Layer    | 20%      |
-| Multiplayer           | 0%       |
-| Content Expansion     | 0%       |
+| Layer                     | 狀態     |
+| ------------------------- | -------- |
+| Graph Engine              | 100% ✓   |
+| Gameplay Action Pipeline  | 100% ✓   |
+| Scenario Runtime          | 100% ✓   |
+| Scenario Framework        | 100% ✓   |
+| Scenario Authoring        | 100% ✓   |
+| Scenario Packaging        | 100% ✓   |
+| Scenario Testing          | 100% ✓   |
+| Content Governance        | 100% ✓   |
+| Secret Information        | 100% ✓   |
+| Victory Framework         | 100% ✓   |
+| Regression Testing        | 100% ✓   |
+| Save / Load               | 100% ✓   |
+| Presentation Layer        | 100% ✓   |
+| Content Expansion         | 0%       |
+| Local Multiplayer         | 0%       |
 
 ---
 
-# M1 — M10：Platform Construction
+# Phase 1 — Platform Construction
 
-Status: COMPLETE
+Status: ✓ COMPLETE
 
-涵蓋範圍：
+## M1 ~ M10
 
-```
-M1  — Exploration Engine
-M2  — Haunt Foundation
-M3  — Scenario Runtime
-M4  — Victory Framework
-M5  — First Playable Haunt
-M6  — Information-Aware Scenario
-M7  — Scenario Content Governance
-M8  — Scenario Lifecycle Contract
-M9  — Scenario Regression Testing
-M10 — Scenario Content Packaging
-```
+建立可長期維護的 Gameplay Platform。
 
-專案已完成從 Rule Engine 到 Content Packaging 的完整架構。
-
-目前平台上線的完整管線：
+完成：
 
 ```
-Scenario Authoring
-        ↓
-Scenario Packaging (Bundle)
-        ↓
-Bundle Registry
-        ↓
-Scenario Loader
-        ↓
-Scenario Registry
-        ↓
+Graph Engine
+Explore
+Card System
 Scenario Runtime
-        ↓
-Information Router
-        ↓
-Victory
-        ↓
-Regression
+Rule Engine
+Lifecycle
+Save/Load
+Testing
+Packaging
+Governance
 ```
 
-無需繼續投入基礎架構建設。
-
 ---
 
-# M11（舊計畫）：Version & Compatibility Platform
+# Phase 2 — Gameplay Foundation
 
-Status: CANCELLED
+Status: ✓ COMPLETE
 
-理由：
-- 原規劃為 Plugin、DLC、第三方 Bundle、Engine Version Migration 建立平台
-- 本專案定位為本機開發專案，無外部內容生態系需求
-- 現有 Bundle Layer + RuntimeRegistry 已保留 Plugin Architecture 的 extension point
-- TECH-DEBT-034（Bundle Compatibility Matrix）降為 LOW Priority，不排入開發
+## M11
 
----
-
-# M11：Framework Consumer Validation（IN PROGRESS）
-
-方向從「架構建設」切換為「Content 作為 Framework 的 Consumer」。
+```
+M11A  Haunt Content Pack 01（5 Scenarios）    ✓
+M11B  Gameplay Action System                   ✓
+M11C  Gameplay Behavior Validation             ✓
+```
 
 驗證 Scenario Platform 能支撐多個內容差異化、互不耦合的正式 Scenario。
-
-```
-Architecture KPI（所有 Content Pack 的品質門檻）：
-
-新增一個 Scenario 所需：
-  Framework 修改：    0
-  Runtime 修改：      0
-  Infrastructure 修改：0
-  Regression 修改：    0
-
-只新增：
-  Scenario
-  VictoryCondition
-  Definition
-  Bundle
-  Tests
-```
-
-## Phase 11A — feature/haunt-content-pack-01（COMPLETE）
-
-Mission：5 個 Scenario 涵蓋 5 種型態（Collection、Survival、Escort、Boss Fight、Puzzle），
-使用既有 Authoring → Bundle → Loader → Runtime 流程，Framework 零修改。
-
-驗收標準：
-- 新增至少 5 個可遊玩的 Haunt Scenario ✓
-- 全部使用既有 Authoring、Bundle、Loader、Runtime 流程 ✓
-- 不允許為個別劇本修改 Framework ✓
-- 每個 Scenario 通過 Scenario Test Harness 與 Regression Test ✓
-- 驗證 Information Router、Victory Framework、Scenario Runtime 在不同劇本下皆可正常運作 ✓
-
-## Phase 11B — feature/gameplay-action-system（COMPLETE）
-
-Mission：
-建立 Scenario 與玩家行為之間的正式互動模型（PlayerAction Layer），
-讓 Scenario 由玩家行為驅動，而非測試直接修改 State。
-
-驗收標準：
-- PlayerAction Value Object（id, type, playerId, payload）
-- ActionValidator Contract-only 驗證
-- ScenarioRuntime.handleAction() 委派
-- HauntScenario.onAction() hook
-- PuppetMasterScenario 支援 DESTROY → dollsDestroyed++
-- Snapshot → Restore → Continue Action → Victory 流程
-- Multi-runtime Action 隔離
-- 0 Framework regression
-
-檔案變更：
-```
-CREATE  src/scenario/action/ActionType.js
-CREATE  src/scenario/action/PlayerAction.js
-CREATE  src/scenario/action/ActionValidator.js
-CREATE  src/scenario/action/ScenarioActionHandler.js
-CREATE  src/test/GameplayActionTest.js
-
-MODIFY  HauntScenario.js        (+onAction)
-MODIFY  ScenarioRuntime.js      (+handleAction)
-MODIFY  ScenarioState.js        (+increment)
-MODIFY  PuppetMasterScenario.js (+onAction)
-MODIFY  testRunner.js
-MODIFY  docs/CONSTRAINTS.md     (+CONSTRAINT-034, 035)
-```
-
-CONSTRAINTS 新增：
-- CONSTRAINT-034 — PlayerAction 為唯一 Gameplay Input
-- CONSTRAINT-035 — ActionValidator 僅驗證 Action Contract
-
-## Phase 11C — feature/gameplay-expansion（Planned）
-
-Mission：
-逐步將剩餘 4 個 Scenario（HungryHouse, ClockTower, BoundSpirits, RitualOfShadows）
-從 state.set() 遷移至 onAction()，Framework 零修改。
+所有 Scenario 透過既有 Authoring → Bundle → Loader → Runtime 流程建立，Framework 零修改。
 
 ---
 
-# M12：Content Expansion
+# Phase 3 — Presentation Layer
+
+Status: ✓ COMPLETE
+
+```
+M13A  Presentation Controller Foundation      ✓
+M13B  Turn Presentation                       ✓
+M13C  Scenario & Victory Presentation         ✓
+M13D  Card Presentation                       ✓
+M13E  Character Presentation                  ✓
+```
+
+四種不同 Domain（Turn、Scenario/Victory、Card、Character）皆已成功接入同一套 Presentation Architecture。
+Presentation Framework 已被充分驗證，不再新增。
+
+---
+
+# Phase 4 — Content Expansion
+
+Status: Current
+
+## M14A — Core Content Pack
+
+Branch: `feature/core-content-pack-01`
+
+Status: ✓ COMPLETE
+
+Mission:
+建立第一個完整可遊玩的 Content Pack，驗證既有平台足以支撐實際遊戲內容。
+
+包含：
+
+```
+Event Cards
+Item Cards
+Omen Cards
+Characters
+Room Content Review
+```
+
+驗收標準：
+至少包含上述五種內容類型。若在開發中發現某類內容已足夠支撐遊戲，可提前結束，不以固定數量為唯一驗收標準。
+
+Room Content Review：
+驗證 Trigger Distribution、Room Balance、Dead End、Exploration Flow。
+必要時新增 Safe Room、Utility Room、Neutral Room。
+
+不包含：
+Framework 修改、Runtime 修改、新 Effect Registry、UI 變更。
+
+---
+
+## M14B — Haunt Pack
+
+Branch: `feature/haunt-pack-02`
+
+Mission:
+新增 8~12 個 Scenario，使用既有 Authoring → Bundle → Loader → Runtime 流程，Framework 零修改。
+
+類型分佈：
+
+```
+Collection    2–3
+Survival      2–3
+Escort        1–2
+Boss Fight    1–2
+Puzzle        1–2
+Escape        1–2
+```
+
+每個 Scenario 需通過 Scenario Test Harness 與 Regression Test。
+
+---
+
+## M14C — Game Polish
+
+Branch: `feature/game-polish`
+
+Mission:
+讓遊戲「好玩」。
+
+包含：
+
+```
+Playtest
+Balance
+Bug Fix
+UX
+Flow
+```
+
+不包含：
+Framework 變更、新增抽象層、重構。
+
+---
+
+# Phase 5 — Local Multiplayer
 
 Status: Planned
 
-目標為更多內容量產：
+僅 localhost，不需要 Authoritative Server、Prediction、Rollback。
 
-- 更多 Haunt Pack
-- 更多 Event Card
-- 更多 Omen
-- 更多 Item
-- 更多角色
-- 更多房間
-
-全部透過 M1~M10 建立的 Content Pipeline，不修改 Framework。
+```
+M15A  Lobby（Create / Join / Leave）
+M15B  Action Sync（PlayerAction / Turn / Card Draw / Movement）
+M15C  Snapshot Sync（Save / Reconnect / Restore）
+```
 
 ---
 
-# M13：Presentation Layer
+# Architecture
 
-Status: In Progress
+```
+        Player
+           │
+           ▼
+      PlayerAction
+           │
+           ▼
+    Scenario Runtime
+           │
+     ┌─────┴─────┐
+     ▼           ▼
+Presentation  Save / Load
+     │
+     ▼
+PresentationController
+     │
+┌────┼──────────────────────┐
+▼    ▼          ▼           ▼
+Turn Card     Scenario   Character
+Panel Panel     Panel      Panel
+```
 
-## M13A — Presentation Controller Foundation ✅
-
-- PresentationController 作為 Presentation Layer 唯一協調者
-- ActionAvailabilityQuery 改為 instance-based
-- CONSTRAINT-045, CONSTRAINT-046 建立
-
-## M13B — Turn UI ✅
-
-- TurnQuery / TurnPresentationModel
-- TurnPanel（Current Player, Turn Number, Phase）
-
-## M13C — Scenario & Victory Presentation Foundation ✅
-
-- Runtime Query Interface: getScenarioMetadata() / getVictoryResult()
-- ScenarioPresentationQuery / ScenarioPresentationModel / ScenarioPanel
-- VictoryPresentationQuery / VictoryPresentationModel / VictoryPanel
-- PresentationController.register() + GAME_ENDED
-- CONSTRAINT-048
-
-## M13D — Card UI
-
-## M13E — Player Information UI（InformationRouter 前端整合）
+所有 Feature 都掛在這個架構上。不再新增新的 Layer。
 
 ---
 
-# M14：Multiplayer Synchronization
+# Architecture Freeze
 
-Status: Planned
+自 M13E 起，以下基礎架構視為穩定：
 
-在單機內容與 UI 穩定後，再將既有 Rule Engine 接回多人同步。
+- Graph Engine
+- Gameplay Action Pipeline
+- Scenario Runtime
+- Scenario Framework
+- Rule Engine
+- Victory Framework
+- Information Router
+- Presentation Adapter / Query / Controller
+- Save / Load
 
-現有架構已支援：
-- GameState 同步
-- ScenarioState 同步
-- InformationRouter Audience 同步
-- Snapshot Protocol
+除非遇到明確缺陷（Bug）或新需求無法以現有架構實現，否則：
 
-待 M13 Presentation Layer 完成後啟動。
+- 不新增新的 Framework Layer。
+- 不新增新的抽象（Abstract Layer）。
+- 不重新設計 Runtime。
+- 不重寫既有平台。
+
+Architecture Freeze 並非禁止改善，而是：
+
+```
+Architecture Changes  =  Exception
+Feature Changes       =  Default
+```
+
+Framework 穩定性優先於架構完美性。
+
+新增功能應優先以擴充 Query、Model、Panel、Scenario 或 Content 的方式完成。
+
+---
+
+# Milestone 審查標準
+
+每個新 Milestone 都先回答四個問題：
+
+1. **這個功能是新增內容（Feature）還是新增架構（Framework）？**
+
+   若是 Framework，必須證明現有架構無法支援。
+
+2. **是否可以透過既有的 Query、PresentationModel、Panel 或 Scenario 擴充完成？**
+
+3. **是否修改了 Runtime、Rule Engine、Scenario Framework？**
+
+   若有，需提出充分理由。
+
+4. **是否讓遊戲更完整、更好玩？**
+
+   若否，且不影響可玩性，則不納入 Milestone。
+
+---
+
+# Project Position
+
+自 Phase 4 起，專案從「Architecture Project」正式轉為「Game Project」。
+
+平台開發已告一段落，後續以內容、遊戲體驗與維護性為主要目標。
+
+每個 Milestone 必須回答：
+
+> **它是否讓遊戲更完整、更好玩？**
+
+---
+
+# Future Ideas（非 Milestone）
+
+以下功能有潛力但未排程：
+
+```
+Achievements
+Statistics
+Replay
+Replay Viewer
+AI Player
+Localization
+Sound
+Animation
+```
+
+狀態：Not Scheduled。
+不列入 Milestone，也不作為開發承諾。
+
+---
+
+# Branch Policy
+
+所有新 Branch 分為三類：
+
+```
+Framework（原則上禁止）
+Feature（預設）
+Content（預設）
+```
+
+- **Framework Branch**：僅在 Architecture Freeze 例外情況下建立。
+- **Feature Branch**：新增遊戲功能，不修改平台。
+- **Content Branch**：新增卡牌、角色、劇本、房間等資料內容。
 
 ---
 
@@ -229,7 +312,12 @@ Status: Planned
 
 | 舊 Milestone | 原規劃 | 取消原因 |
 |---|---|---|
-| M9 Multiplayer Server | Socket Layer, Room Mgmt | 移至 M14 |
-| M10 Multiplayer Sync | Snapshot Protocol | 移至 M14 |
+| M9 Multiplayer Server | Socket Layer, Room Mgmt | 併入 Phase 5 |
+| M10 Multiplayer Sync | Snapshot Protocol | 併入 Phase 5 |
 | M11 Version Platform | Plugin, DLC, Migration | 不需要（本機專案） |
-| M11 UI/Animation | UI Layer | 重組為 M13 |
+| M11 UI/Animation | UI Layer | 重組為 Phase 3 |
+| M14 Multiplayer Synchronization | 原 M14 | 重編為 Phase 5 |
+| M12 Content Expansion | 原 M12 | 重編為 Phase 4 |
+| M14A Card UI | Card Presentation | 已完成（M13D） |
+| M14B Player Info | Character Presentation | 已完成（M13E） |
+| M14C UI Polish | UI Polish | 改為 Continuous Improvement |

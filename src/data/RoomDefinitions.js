@@ -48,6 +48,30 @@ export const RoomDefinitions = [
             west:true
         },
         'omen'
+    ),
+
+    new RoomTile(
+        5,
+        "Storage Closet",
+        {
+            north:true,
+            east:false,
+            south:false,
+            west:false
+        },
+        null
+    ),
+
+    new RoomTile(
+        6,
+        "Grand Hall",
+        {
+            north:true,
+            east:true,
+            south:true,
+            west:true
+        },
+        null
     )
 ];
 

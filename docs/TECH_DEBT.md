@@ -162,3 +162,24 @@ Description:
 Phase 10A 將 metadata.version 設為 Schema optional、Lint warning。
 未來 Phase 10C Scenario Package System 時需升級為 required。
 此為唯一位移路徑。
+
+---
+
+## TECH-DEBT-038
+
+Title:
+event_cold_wind amount 方向未驗證
+
+Priority:
+LOW
+
+Description:
+
+EventDefinition `event_cold_wind` 的 `amount: 1` 結合 `stat: 'might'`，
+語意上可能是正向 buff（might +1）或負向傷害（should be -1）。
+
+缺乏測試證明其正確意圖。
+不修改，等待 Playtest 驗證。
+
+File:
+`src/data/EventDefinitions.js` — `event_cold_wind` entry

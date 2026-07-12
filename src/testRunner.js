@@ -163,6 +163,21 @@ import {
 }
 from "./test/CardPresentationTest.js";
 
+import {
+    runCharacterPresentationTest
+}
+from "./test/CharacterPresentationTest.js";
+
+import {
+    runCharacterDataTest
+}
+from "./test/CharacterDataTest.js";
+
+import {
+    runRoomDataTest
+}
+from "./test/RoomDataTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -196,3 +211,6 @@ runTurnPresentationTest();
 runScenarioPresentationTest();
 runVictoryPresentationTest();
 runCardPresentationTest();
+runCharacterPresentationTest();
+runCharacterDataTest();
+runRoomDataTest();
