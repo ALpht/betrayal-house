@@ -208,6 +208,11 @@ import {
 }
 from "./test/PlayableScenarioBalanceTest.js";
 
+import {
+    runLocalPlayIntegrationTest
+}
+from "./test/LocalPlayIntegrationTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -250,3 +255,4 @@ runSealedGalleryScenarioTest();
 runMaskedHostScenarioTest();
 runPlayableScenarioPack01Test();
 runPlayableScenarioBalanceTest();
+runLocalPlayIntegrationTest();

@@ -8,15 +8,32 @@ const EMPTY_MODEL = new CardPresentationModel({
 });
 
 export class CardPresentationQuery {
+    #routerProvider;
+    #viewerProvider;
+    #traitorProvider;
+
+    constructor({
+        routerProvider = null,
+        viewerProvider = () => null,
+        traitorProvider = () => null
+    } = {}) {
+        this.#routerProvider = routerProvider;
+        this.#viewerProvider = viewerProvider;
+        this.#traitorProvider = traitorProvider;
+    }
 
     buildModel(runtime) {
-        if (!runtime) {
+        const router = this.#routerProvider
+            ? this.#routerProvider()
+            : runtime?.router;
+
+        if (!router) {
             return EMPTY_MODEL;
         }
 
-        const router = runtime.router;
-        const playerId = null;
-        const visiblePackets = router.getVisiblePackets(playerId, null);
+        const playerId = this.#viewerProvider();
+        const traitorPlayerId = this.#traitorProvider();
+        const visiblePackets = router.getVisiblePackets(playerId, traitorPlayerId);
 
         const cardPackets = visiblePackets.filter(
             p => p.scope === InformationScope.CARD

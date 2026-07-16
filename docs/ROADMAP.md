@@ -22,6 +22,7 @@ Version: 7.0
 | Save / Load               | 100% ✓   |
 | Presentation Layer        | 100% ✓   |
 | Content Expansion         | 60%      |
+| Local Play Integration    | 100%     |
 | Local Multiplayer         | 0%       |
 
 ---
@@ -225,7 +226,53 @@ Framework 變更、新增抽象層、重構。
 
 # Phase 5 — Local Multiplayer
 
-Status: Planned
+Status: Local Play Baseline Complete / Network Multiplayer Planned
+
+## M15 — Local Play Integration
+
+Branch: `feature/local-play-integration`
+
+Status: IMPLEMENTED
+
+Mission:
+Connect the existing gameplay platform into a playable local browser flow without adding
+new framework layers.
+
+Required normal flow:
+
+```
+Create Local Game
+Explore
+Draw Omen
+Haunt Tracker / Roll / Triggered
+Runtime Factory
+Scenario
+PlayerAction
+Victory
+Restart
+```
+
+Result:
+The browser entry now starts the local play shell directly. The local session wires the
+existing exploration, card, haunt, scenario runtime, presentation, action, victory, and
+restart paths into one deterministic local hot-seat flow.
+
+Review rule:
+
+```
+Debug start does not replace the normal flow.
+Local play integration must not become a new gameplay framework.
+Network multiplayer remains out of scope.
+```
+
+Follow-up:
+Use localhost play observations to choose between UI integration polish and local
+multiplayer synchronization. Do not start network multiplayer until the local playable
+flow is stable enough to sync.
+
+---
+
+## Future Local Multiplayer
 
 僅 localhost，不需要 Authoritative Server、Prediction、Rollback。
 

@@ -18,12 +18,14 @@ export class ActionPanel {
     #container;
     #playerId;
     #onAction;
+    #actionCreator;
     #buttons;
 
-    constructor({ container, playerId, onAction }) {
+    constructor({ container, playerId, onAction, createAction = null }) {
         this.#container = container;
         this.#playerId = playerId;
         this.#onAction = onAction;
+        this.#actionCreator = createAction;
         this.#buttons = [];
     }
 
@@ -63,9 +65,19 @@ export class ActionPanel {
             b.remove();
         }
         this.#buttons = [];
+
+        if (typeof this.#container.replaceChildren === "function") {
+            this.#container.replaceChildren();
+        } else if (Array.isArray(this.#container.children)) {
+            this.#container.children.length = 0;
+        }
     }
 
     #createAction(type) {
+        if (this.#actionCreator) {
+            return this.#actionCreator(type, this.#playerId);
+        }
+
         switch (type) {
             case ActionType.MOVE:
                 return ActionFactory.createMove(this.#playerId, "");
