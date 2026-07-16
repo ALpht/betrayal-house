@@ -21,7 +21,8 @@ Version: 7.0
 | Regression Testing        | 100% ✓   |
 | Save / Load               | 100% ✓   |
 | Presentation Layer        | 100% ✓   |
-| Content Expansion         | 0%       |
+| Content Expansion         | 60%      |
+| Local Play Integration    | 100%     |
 | Local Multiplayer         | 0%       |
 
 ---
@@ -122,7 +123,36 @@ Framework 修改、Runtime 修改、新 Effect Registry、UI 變更。
 
 ## M14B — Haunt Pack
 
-Branch: `feature/haunt-pack-02`
+Branch: `feature/playable-scenario-pack-01`
+
+Status: COMPLETE
+
+Mission:
+Use the existing Cards, Characters, Rooms, Actions, Scenario Runtime, Victory Framework,
+Information Router, Bundle system, and test harness to create five complete playable
+scenarios. M14B is a game design/content milestone, not a framework milestone.
+
+Scenarios:
+
+```
+Relic Escape       Collection / Escape
+The Ashen Titan    Boss / Anchor Destroy
+The Lost Heir      Escort / Protect NPC
+The Sealed Gallery Puzzle / Ordered Activation
+The Masked Host    Hidden Information / Traitor Objective
+```
+
+Review rule:
+
+```
+Framework Modified = 0
+```
+
+No new Runtime API, Scenario Framework API, Victory Framework API, Rule Engine,
+Presentation API, ActionType, ScenarioActionHandler, or ActionValidator change is allowed.
+
+Legacy note:
+The older Haunt Pack mission text below is superseded by Playable Scenario Pack 01.
 
 Mission:
 新增 8~12 個 Scenario，使用既有 Authoring → Bundle → Loader → Runtime 流程，Framework 零修改。
@@ -142,9 +172,39 @@ Escape        1–2
 
 ---
 
-## M14C — Game Polish
+## M14C — Playtest & Balance
 
-Branch: `feature/game-polish`
+Branch: `feature/playtest-balance-01`
+
+Status: COMPLETE
+
+Mission:
+Use the existing content and five playable scenarios to run repeatable deterministic
+playtest samples, identify structural pacing and clarity problems, and apply only
+evidence-backed scenario-owned adjustments.
+
+Focus:
+
+```
+Scenario balance baseline
+Hero / traitor victory reachability
+Timeout boundaries
+Action availability clarity
+Snapshot / restore consistency
+Hidden information isolation
+Human playtest risks
+```
+
+Result:
+Baseline balance was established across all five playable scenarios. The only
+evidence-backed content adjustment was made to `lostHeir`, changing NPC defeat
+from one traitor attack to two scenario-owned wounds. No platform framework was
+expanded.
+
+Framework changes remain blocked unless approved as a separate architecture exception.
+
+Legacy note:
+The older Game Polish text below is superseded by Playtest & Balance.
 
 Mission:
 讓遊戲「好玩」。
@@ -166,7 +226,53 @@ Framework 變更、新增抽象層、重構。
 
 # Phase 5 — Local Multiplayer
 
-Status: Planned
+Status: Local Play Baseline Complete / Network Multiplayer Planned
+
+## M15 — Local Play Integration
+
+Branch: `feature/local-play-integration`
+
+Status: IMPLEMENTED
+
+Mission:
+Connect the existing gameplay platform into a playable local browser flow without adding
+new framework layers.
+
+Required normal flow:
+
+```
+Create Local Game
+Explore
+Draw Omen
+Haunt Tracker / Roll / Triggered
+Runtime Factory
+Scenario
+PlayerAction
+Victory
+Restart
+```
+
+Result:
+The browser entry now starts the local play shell directly. The local session wires the
+existing exploration, card, haunt, scenario runtime, presentation, action, victory, and
+restart paths into one deterministic local hot-seat flow.
+
+Review rule:
+
+```
+Debug start does not replace the normal flow.
+Local play integration must not become a new gameplay framework.
+Network multiplayer remains out of scope.
+```
+
+Follow-up:
+Use localhost play observations to choose between UI integration polish and local
+multiplayer synchronization. Do not start network multiplayer until the local playable
+flow is stable enough to sync.
+
+---
+
+## Future Local Multiplayer
 
 僅 localhost，不需要 Authoritative Server、Prediction、Rollback。
 

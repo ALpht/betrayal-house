@@ -1,13 +1,21 @@
 import { ScenarioPresentationModel } from "../model/ScenarioPresentationModel.js";
 
 export class ScenarioPresentationQuery {
+    #viewerProvider;
+    #traitorProvider;
+
+    constructor({ viewerProvider = () => null, traitorProvider = () => null } = {}) {
+        this.#viewerProvider = viewerProvider;
+        this.#traitorProvider = traitorProvider;
+    }
 
     buildModel(runtime) {
         const metadata = runtime.getScenarioMetadata();
         const router = runtime.router;
 
-        const playerId = null; // Reserved for Multiplayer (M14)
-        const visiblePackets = router.getVisiblePackets(playerId, null);
+        const playerId = this.#viewerProvider();
+        const traitorPlayerId = this.#traitorProvider();
+        const visiblePackets = router.getVisiblePackets(playerId, traitorPlayerId);
 
         const objectivePackets = visiblePackets.filter(
             p => p.scope === "objective"

@@ -6,7 +6,8 @@ import { EventTypes }
 
 export class HauntManager {
 
-    constructor() {
+    constructor({ scenarioId = "testScenario" } = {}) {
+        this.scenarioId = scenarioId;
         this.handler =
             this.onHauntRollCompleted.bind(this);
 
@@ -30,7 +31,7 @@ export class HauntManager {
             EventTypes.HAUNT_TRIGGERED,
             {
                 scenarioId:
-                    "testScenario"
+                    this.scenarioId
             }
         );
     }

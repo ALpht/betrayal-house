@@ -164,11 +164,6 @@ import {
 from "./test/CardPresentationTest.js";
 
 import {
-    runCharacterPresentationTest
-}
-from "./test/CharacterPresentationTest.js";
-
-import {
     runCharacterDataTest
 }
 from "./test/CharacterDataTest.js";
@@ -177,6 +172,46 @@ import {
     runRoomDataTest
 }
 from "./test/RoomDataTest.js";
+
+import {
+    runRelicEscapeScenarioTest
+}
+from "./test/RelicEscapeScenarioTest.js";
+
+import {
+    runAshenTitanScenarioTest
+}
+from "./test/AshenTitanScenarioTest.js";
+
+import {
+    runLostHeirScenarioTest
+}
+from "./test/LostHeirScenarioTest.js";
+
+import {
+    runSealedGalleryScenarioTest
+}
+from "./test/SealedGalleryScenarioTest.js";
+
+import {
+    runMaskedHostScenarioTest
+}
+from "./test/MaskedHostScenarioTest.js";
+
+import {
+    runPlayableScenarioPack01Test
+}
+from "./test/PlayableScenarioPack01Test.js";
+
+import {
+    runPlayableScenarioBalanceTest
+}
+from "./test/PlayableScenarioBalanceTest.js";
+
+import {
+    runLocalPlayIntegrationTest
+}
+from "./test/LocalPlayIntegrationTest.js";
 
 //runMovementTest();
 runTurnManagerTest();
@@ -211,6 +246,13 @@ runTurnPresentationTest();
 runScenarioPresentationTest();
 runVictoryPresentationTest();
 runCardPresentationTest();
-runCharacterPresentationTest();
 runCharacterDataTest();
 runRoomDataTest();
+runRelicEscapeScenarioTest();
+runAshenTitanScenarioTest();
+runLostHeirScenarioTest();
+runSealedGalleryScenarioTest();
+runMaskedHostScenarioTest();
+runPlayableScenarioPack01Test();
+runPlayableScenarioBalanceTest();
+runLocalPlayIntegrationTest();

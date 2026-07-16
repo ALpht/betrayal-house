@@ -1,0 +1,97 @@
+body {
+    background: #101114;
+    color: #f4f2ee;
+    font-family: "Microsoft JhengHei", system-ui, sans-serif;
+}
+
+button,
+select {
+    font: inherit;
+}
+
+.local-play-shell {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr;
+}
+
+.local-setup {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border-bottom: 1px solid #333842;
+    background: #181b20;
+}
+
+.local-setup h1 {
+    font-size: 20px;
+    margin-right: auto;
+}
+
+.local-board {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr 390px;
+}
+
+.local-map {
+    width: 100%;
+    height: 100%;
+    min-height: 500px;
+    background: #0b0c0f;
+}
+
+.local-side {
+    min-height: 0;
+    overflow: auto;
+    border-left: 1px solid #333842;
+    background: #14171c;
+}
+
+.local-panel,
+.local-movement,
+.local-payload {
+    padding: 12px;
+    border-bottom: 1px solid #333842;
+    white-space: pre-wrap;
+}
+
+.local-panel h2,
+.local-movement h2,
+.local-payload h2 {
+    margin-bottom: 8px;
+    font-size: 15px;
+}
+
+.local-command,
+.local-control {
+    min-height: 34px;
+    margin: 4px;
+    padding: 6px 10px;
+    color: #f4f2ee;
+    border: 1px solid #49505c;
+    background: #232832;
+}
+
+.local-command:disabled {
+    opacity: 0.45;
+}
+
+.local-label {
+    font-size: 12px;
+    color: #b8bec9;
+}
+
+.local-actions button {
+    display: inline-block;
+}
+
+.local-debug {
+    position: fixed;
+    left: 12px;
+    bottom: 12px;
+    padding: 8px;
+    border: 1px dashed #8a8f99;
+    background: #20242c;
+}
