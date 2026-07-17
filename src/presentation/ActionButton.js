@@ -1,12 +1,14 @@
 export class ActionButton {
     #element;
     #action;
+    #clickHandler;
 
     constructor({ label, action, disabled = false }) {
         this.#action = action;
         this.#element = document.createElement("button");
         this.#element.textContent = label;
         this.#element.disabled = disabled;
+        this.#clickHandler = null;
     }
 
     get element() {
@@ -22,10 +24,23 @@ export class ActionButton {
     }
 
     onClick(handler) {
-        this.#element.addEventListener("click", handler);
+        if (this.#clickHandler && typeof this.#element.removeEventListener === "function") {
+            this.#element.removeEventListener("click", this.#clickHandler);
+        }
+        const wrapped = () => {
+            if (this.#clickHandler === wrapped) {
+                handler();
+            }
+        };
+        this.#clickHandler = wrapped;
+        this.#element.addEventListener("click", wrapped);
     }
 
     remove() {
+        if (this.#clickHandler && typeof this.#element.removeEventListener === "function") {
+            this.#element.removeEventListener("click", this.#clickHandler);
+        }
+        this.#clickHandler = null;
         this.#element.remove();
     }
 }

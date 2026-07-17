@@ -230,3 +230,18 @@ Only local hot-seat behavior is covered; network synchronization is not implemen
 
 Next milestone should be selected from real localhost play observations, with likely
 candidates being UI integration polish or local multiplayer synchronization.
+
+---
+
+## 10. M15B Stabilization Addendum
+
+M15B hardens the local browser prototype into a stable single-browser localhost baseline.
+
+Detailed evidence:
+
+```text
+docs/REVIEW_M15B.md
+```
+
+M15B supersedes the earlier "choose between UI polish and multiplayer synchronization"
+follow-up by inserting a stabilization milestone before M16 multiplayer work.

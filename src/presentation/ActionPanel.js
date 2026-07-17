@@ -39,6 +39,10 @@ export class ActionPanel {
                 action: action.type,
                 disabled: !action.enabled
             });
+            if (!action.enabled && action.reason) {
+                button.element.title = action.reason;
+                button.element.setAttribute?.("aria-label", `${label}: ${action.reason}`);
+            }
 
             button.onClick(() => {
                 if (action.enabled && this.#onAction) {

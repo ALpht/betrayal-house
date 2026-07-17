@@ -21,6 +21,11 @@ export class CardPanel {
         const lines = [];
         lines.push(`${model.title}:`);
 
+        const latest = model.cards[model.cards.length - 1];
+        const latestType = CARD_TYPE_LABELS[latest.type] || latest.type;
+        lines.push(`Latest visible card: [${latestType}] ${latest.name}`);
+        lines.push("");
+
         for (const card of model.cards) {
             const typeLabel = CARD_TYPE_LABELS[card.type] || card.type;
             lines.push(`[${typeLabel}] ${card.name}`);

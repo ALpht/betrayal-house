@@ -213,6 +213,11 @@ import {
 }
 from "./test/LocalPlayIntegrationTest.js";
 
+import {
+    runLocalPlayStabilityTest
+}
+from "./test/LocalPlayStabilityTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -256,3 +261,4 @@ runMaskedHostScenarioTest();
 runPlayableScenarioPack01Test();
 runPlayableScenarioBalanceTest();
 runLocalPlayIntegrationTest();
+runLocalPlayStabilityTest();
