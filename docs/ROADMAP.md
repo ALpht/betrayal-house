@@ -226,13 +226,13 @@ Framework 變更、新增抽象層、重構。
 
 # Phase 5 — Local Multiplayer
 
-Status: Local Play Baseline Complete / Network Multiplayer Planned
+Status: Local Play Complete / M16A Next
 
 ## M15 — Local Play Integration
 
 Branch: `feature/local-play-integration`
 
-Status: IMPLEMENTED
+Status: COMPLETE
 
 Mission:
 Connect the existing gameplay platform into a playable local browser flow without adding
@@ -272,6 +272,43 @@ flow is stable enough to sync.
 
 ---
 
+## M15B — Local Play Stabilization & UX Fixes
+
+Branch: `feature/local-play-stabilization`
+
+Status: COMPLETE
+
+Mission:
+Harden the M15 local browser prototype into a stable single-browser localhost baseline
+before multiplayer work begins.
+
+Result:
+Restart lifecycle, stale DOM controls, victory lock, hot-seat private-information refresh,
+latest visible card labeling, target selector clarity, and map readability were stabilized
+without adding gameplay, framework, content, save/load, or multiplayer capability.
+
+Review rule:
+
+```
+Architecture Freeze: maintained
+Content Freeze: maintained
+Feature Freeze: maintained
+```
+
+Stabilization gate:
+
+```
+Restart x10
+No duplicate dispatch
+No stale runtime
+No stale DOM
+Victory blocks mutation
+Hot-seat private information clears on viewer change
+Second game remains playable after restart
+```
+
+---
+
 ## Future Local Multiplayer
 
 僅 localhost，不需要 Authoritative Server、Prediction、Rollback。
@@ -280,6 +317,17 @@ flow is stable enough to sync.
 M15A  Lobby（Create / Join / Leave）
 M15B  Action Sync（PlayerAction / Turn / Card Draw / Movement）
 M15C  Snapshot Sync（Save / Reconnect / Restore）
+```
+
+---
+
+Previous multiplayer numbering is superseded after insertion of M15B stabilization.
+Use the following numbering for implementation:
+
+```
+M16A  Local Multiplayer Transport Foundation
+M16B  Action / Turn Synchronization
+M16C  Snapshot Recovery
 ```
 
 ---

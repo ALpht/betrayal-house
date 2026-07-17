@@ -1,8 +1,8 @@
 # Local Play Checklist
 
-Version: 1.0
-Milestone: M15
-Branch: `feature/local-play-integration`
+Version: 2.0
+Milestone: M15B
+Branch: `feature/local-play-stabilization`
 
 ---
 
@@ -18,6 +18,9 @@ Branch: `feature/local-play-integration`
 | Victory path works | PASS | Automated flow collects relics, moves to exit, shows hero victory |
 | Restart cleanup works | PASS | Destroyed panels remain clear and dispatch is not duplicated |
 | Hot-seat hidden info changes by current viewer | PASS | Masked Host traitor-only objective is isolated |
+| Restart stress passes | PASS | `Local Play Stability Test: 26 passed, 0 failed` |
+| Victory lock prevents mutation | PASS | Dispatch count and scenario snapshot remain unchanged after victory |
+| Old DOM controls are inert | PASS | Old button reference does not dispatch after destroy |
 
 ---
 
@@ -38,6 +41,25 @@ Run from localhost after `npm run dev`.
 | After victory | Actions are disabled and victory result is shown. | READY |
 | Restart | New game starts without duplicated actions or stale panel content. | READY |
 | Switch turns in hidden-info scenario | Viewer-specific private objective changes with current player. | READY |
+
+---
+
+## M15B Stabilization Checklist
+
+Run from localhost after `npm run dev`.
+
+| Step | Expected Result | Status |
+|---|---|---:|
+| Create game | Local play shell starts a two-player game with current player visible. | PASS |
+| Explore | Direction buttons move or explain unavailable movement. | PASS |
+| Reveal room | Revealed room is visible on the map with current room emphasis. | PASS |
+| Draw card | Latest visible card is clearly labeled. | PASS |
+| Trigger haunt | Omen flow starts a playable scenario without console use. | PASS |
+| Scenario playable | Available actions and static target selectors are understandable. | PASS |
+| Victory | Victory message appears and actions are disabled. | PASS |
+| Restart | New session replaces old session without stale panel content. | PASS |
+| 10 consecutive restarts | No duplicate dispatch, stale runtime, or stale DOM controls. | PASS |
+| Browser console clean | No blocker or high-severity console error observed in M15B pass. | PASS |
 
 ---
 

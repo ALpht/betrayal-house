@@ -42,7 +42,7 @@ export function createLocalGameDom({ root }) {
     const restartButton = el("button", "local-command", "Restart");
 
     setup.append(
-        el("h1", "", "Betrayal House"),
+        el("h1", "", "Betrayal House - Local Play"),
         el("span", "local-label", "Player 1"),
         playerOne,
         el("span", "local-label", "Player 2"),
@@ -73,32 +73,48 @@ export function createLocalGameDom({ root }) {
         ["east", "East"],
         ["south", "South"]
     ];
+    const movementFeedback = el("p", "local-feedback", "Choose a direction to explore or move.");
 
     movement.appendChild(el("h2", "", "Explore"));
+    movement.appendChild(movementFeedback);
     for (const [direction, label] of directions) {
         const button = el("button", "local-command", label);
-        const handler = () => session?.move(direction);
+        const handler = () => {
+            const moved = session?.move(direction) || false;
+            movementFeedback.textContent = moved
+                ? `Moved ${label}.`
+                : `${label} is not available from the current room.`;
+            renderMap();
+        };
         button.addEventListener("click", handler);
         listeners.push([button, "click", handler]);
         movement.appendChild(button);
     }
 
     const collectTarget = el("select", "local-control");
-    for (const id of ["relic_1", "relic_2", "relic_3"]) {
-        collectTarget.appendChild(option(id, id));
+    for (const [id, label] of [
+        ["relic_1", "Relic 1"],
+        ["relic_2", "Relic 2"],
+        ["relic_3", "Relic 3"]
+    ]) {
+        collectTarget.appendChild(option(id, label));
     }
 
     const destroyTarget = el("select", "local-control");
-    for (const id of ["cursed_mask_1", "cursed_mask_2"]) {
-        destroyTarget.appendChild(option(id, id));
+    for (const [id, label] of [
+        ["cursed_mask_1", "Cursed Mask 1"],
+        ["cursed_mask_2", "Cursed Mask 2"]
+    ]) {
+        destroyTarget.appendChild(option(id, label));
     }
 
     payload.append(
         el("h2", "", "Action Target"),
-        el("span", "local-label", "Collect target"),
+        el("span", "local-label", "Collect action target"),
         collectTarget,
-        el("span", "local-label", "Destroy target"),
-        destroyTarget
+        el("span", "local-label", "Destroy action target"),
+        destroyTarget,
+        el("p", "local-help", "Targets are static local inputs for the current prototype; action availability still comes from the scenario.")
     );
 
     panels.append(
@@ -131,22 +147,30 @@ export function createLocalGameDom({ root }) {
 
         const rooms = session.getGraph().getAllRooms();
         const players = session.getPlayerManager().getAllPlayers();
-        const size = 96;
-        const gap = 22;
+        const currentPlayer = session.getCurrentPlayer();
+        const currentRoom = currentPlayer?.getCurrentRoom?.() || null;
+        const size = 110;
+        const gap = 30;
         const originX = canvas.width / 2;
         const originY = canvas.height / 2;
 
         for (const room of rooms) {
             const x = originX + room.x * (size + gap) - size / 2;
             const y = originY + room.y * (size + gap) - size / 2;
-            ctx.fillStyle = room.tile.isRevealed ? "#252b35" : "#151922";
-            ctx.strokeStyle = "#677083";
-            ctx.lineWidth = 2;
+            const isCurrentRoom = currentRoom?.id === room.id;
+            ctx.fillStyle = room.tile.isRevealed ? "#26313f" : "#11151d";
+            ctx.strokeStyle = isCurrentRoom ? "#f4c95d" : "#677083";
+            ctx.lineWidth = isCurrentRoom ? 4 : 2;
             ctx.fillRect(x, y, size, size);
             ctx.strokeRect(x, y, size, size);
             ctx.fillStyle = "#f4f2ee";
-            ctx.font = "12px sans-serif";
-            ctx.fillText(room.tile.name, x + 8, y + 22);
+            ctx.font = "13px sans-serif";
+            ctx.fillText(room.tile.name, x + 8, y + 24);
+            if (isCurrentRoom) {
+                ctx.fillStyle = "#f4c95d";
+                ctx.font = "11px sans-serif";
+                ctx.fillText("Current room", x + 8, y + size - 12);
+            }
         }
 
         players.forEach((player, index) => {
@@ -154,10 +178,16 @@ export function createLocalGameDom({ root }) {
             if (!room) return;
             const x = originX + room.x * (size + gap) - 18 + index * 22;
             const y = originY + room.y * (size + gap) + 22;
+            const isCurrentPlayer = currentPlayer?.id === player.id;
             ctx.fillStyle = player.character.color || "#ffffff";
             ctx.beginPath();
-            ctx.arc(x, y, 8, 0, Math.PI * 2);
+            ctx.arc(x, y, isCurrentPlayer ? 11 : 8, 0, Math.PI * 2);
             ctx.fill();
+            if (isCurrentPlayer) {
+                ctx.strokeStyle = "#ffffff";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
         });
     }
 
@@ -200,6 +230,7 @@ export function createLocalGameDom({ root }) {
             actionInputProvider
         });
         session.start();
+        movementFeedback.textContent = `Current player: ${session.getCurrentPlayer()?.name || "Unknown"}.`;
         renderMap();
     }
 
