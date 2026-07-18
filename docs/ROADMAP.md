@@ -572,3 +572,58 @@ M16B explicitly defers:
 - full guest browser UI
 - turn framework rewrite
 - gameplay error taxonomy
+
+---
+
+# M16C Addendum - Local Multiplayer Lobby & Socket Transport
+
+Branch: `feature/local-multiplayer-lobby-socket`
+
+Status: IMPLEMENTED - READY FOR REVIEW
+
+Mission:
+Add a real localhost socket server, single-room lobby, server-assigned client identity,
+host-owned player binding, payload-blind transport relay, and basic disconnect cleanup
+while preserving the M16A/M16B authority boundary.
+
+Boundary:
+
+```text
+Host Execute
+Guest Render
+PlayerAction Up
+Viewer-safe Projection Down
+```
+
+M16C deliverables:
+
+- Local socket server
+- Lobby registry and one-host/one-guest room model
+- Room code generation
+- Lobby / session control / gameplay protocol split
+- SocketTransportEndpoint
+- LobbyClient
+- Socket host / guest session bootstrap
+- Trusted sender relay metadata
+- Initial projection revision 1
+- Active disconnect lifecycle
+- MultiplayerLobbyTest
+- SocketTransportTest
+- MultiplayerSocketIntegrationTest
+- Lobby and socket transport contract documentation
+
+M16C explicitly defers:
+
+- reconnect and session resume
+- host migration
+- multi-guest routing
+- persistent lobby storage
+- real authentication
+- network delivery recovery
+- full guest presentation polish
+
+Next milestone:
+
+```text
+M16D  Disconnect, Reconnect & Session Recovery
+```

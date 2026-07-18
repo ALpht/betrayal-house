@@ -289,3 +289,40 @@ serialization boundary.
 
 Transport messages are not gameplay EventBus events. See `EVENT_CATALOG.md` for
 gameplay events only.
+
+---
+
+## M16C Socket Transport Addendum
+
+M16C adds a real localhost socket adapter without changing the transport envelope.
+
+The socket event payload is:
+
+```js
+{
+    senderId,
+    serializedEnvelope
+}
+```
+
+`senderId` is server-owned relay metadata derived from the socket connection.
+`serializedEnvelope` is the existing transport envelope serialized through
+`TransportSerializer`.
+
+The server does not rewrite gameplay payload. Host must use the trusted relay metadata
+as sender source and then apply the existing binding, ownership, sequence, and
+victory-lock checks.
+
+Server may inspect routing metadata only:
+
+- message type
+- sessionId
+- room membership
+- connection identity
+- role
+- allowed direction
+
+Server must not inspect gameplay payload meaning, ActionType semantics, turn legality,
+scenario state, projection content, or victory meaning.
+
+Socket ownership lives in `docs/SOCKET_TRANSPORT_CONTRACT.md`.

@@ -425,3 +425,36 @@ Responsibilities:
 - Projection converts host state into viewer-safe UI data.
 
 Session details live in `docs/MULTIPLAYER_SESSION_CONTRACT.md`.
+
+---
+
+# M16C Socket Lobby Boundary
+
+M16C adds a local socket server and one-host/one-guest lobby around the existing
+multiplayer transport boundary.
+
+```text
+Host Browser
+    |
+    | lobby/session control
+    v
+Local Socket Server
+    |
+    | payload-blind transport relay
+    v
+Guest Browser
+```
+
+The server owns connection identity, room membership, role assignment, direction
+enforcement, and lifecycle notifications. It does not own gameplay authority.
+
+```text
+Server = connection/router/lobby lifecycle
+Host   = gameplay authority and player binding authority
+Guest  = action producer and projection consumer
+```
+
+Socket details live in:
+
+- `docs/MULTIPLAYER_LOBBY_CONTRACT.md`
+- `docs/SOCKET_TRANSPORT_CONTRACT.md`

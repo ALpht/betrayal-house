@@ -266,3 +266,40 @@ buildProjection(hostViewerId)
 
 Host projection is for tests, debug, and contract comparison; it is not sent back to the
 host through transport.
+
+---
+
+## M16C Session Activation Addendum
+
+M16C separates lobby identity from gameplay transport identity:
+
+```text
+roomId    -> lobby identity
+roomCode  -> human-facing join code
+sessionId -> gameplay transport identity
+```
+
+Host remains player binding authority. Server assigns `clientId` and role, but does not
+choose domain player ids.
+
+Activation order:
+
+```text
+Host creates LocalGameSession
+Host creates PlayerBindings
+Host sends ACTIVATE_SESSION
+Server validates HOST + READY room
+Server confirms sessionId
+Server emits SESSION_STARTED
+Host sends PLAYER_BINDING_ASSIGNED
+Guest validates binding
+GuestGameSession is created
+Host publishes initial STATE_UPDATED revision 1
+```
+
+`PLAYER_BINDING_ASSIGNED` is a session control message. It is delivered before gameplay
+transport state and does not increment revision.
+
+If an active guest disconnects, the host local gameplay session is not rolled back or
+mutated. Host transport is closed for the guest, and later accepted local gameplay may
+record publish failure without undoing gameplay state.

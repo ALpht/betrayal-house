@@ -285,3 +285,102 @@ Description:
 M16B intentionally whitelists action projection to type, label, and enabled. Rich target
 or option metadata for the current viewer is deferred until a viewer-safe payload
 metadata contract exists.
+
+---
+
+## TECH-DEBT-046
+
+Title:
+Reconnect and session resume deferred
+
+Priority:
+LOW
+
+Description:
+M16C closes active rooms on disconnect. Reconnect, missed message replay, session resume,
+and recovery after network interruption are deferred.
+
+---
+
+## TECH-DEBT-047
+
+Title:
+Host migration deferred
+
+Priority:
+LOW
+
+Description:
+If the host disconnects, the room closes and guest session is destroyed. Host migration
+is intentionally out of scope.
+
+---
+
+## TECH-DEBT-048
+
+Title:
+Multi-guest room routing deferred
+
+Priority:
+LOW
+
+Description:
+M16C supports one host and one guest. Multiple guests, spectators, per-viewer fanout,
+and room capacity management are deferred.
+
+---
+
+## TECH-DEBT-049
+
+Title:
+Persistent lobby storage deferred
+
+Priority:
+LOW
+
+Description:
+Room registry is in-memory and process-local. Database storage, durable room codes, and
+cross-process room recovery are deferred.
+
+---
+
+## TECH-DEBT-050
+
+Title:
+Real authentication deferred
+
+Priority:
+LOW
+
+Description:
+M16C uses server-assigned local socket client identity. Account login, authentication,
+authorization, and internet deployment security are deferred.
+
+---
+
+## TECH-DEBT-051
+
+Title:
+Network delivery recovery deferred
+
+Priority:
+LOW
+
+Description:
+Socket publish failure records connection failure and does not rollback gameplay.
+Automatic retry, ack replay, delta recovery, rollback, and guaranteed delivery are
+deferred.
+
+---
+
+## TECH-DEBT-052
+
+Title:
+Guest full browser presentation deferred
+
+Priority:
+LOW
+
+Description:
+M16C verifies guest render-only projection flow and minimal browser bootstrap. Full
+guest UI polish remains deferred until socket lifecycle is reviewed.

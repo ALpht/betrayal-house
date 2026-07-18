@@ -699,3 +699,81 @@ Action Result Is Non-domain
 
 ACTION_RESULT is multiplayer delivery feedback. It must not become a gameplay EventBus
 event, scenario rule contract, or domain outcome taxonomy.
+
+---
+
+# CONSTRAINT-061
+
+Server Is Not Gameplay Authority
+
+The M16C socket server owns connection, lobby, routing, and lifecycle metadata only. It
+must not import or own ScenarioRuntime, ActionValidator, TurnManager,
+ScenarioActionHandler, VictoryEvaluator, projection builder, save/load state, game
+snapshots, or InformationRouter internals.
+
+---
+
+# CONSTRAINT-062
+
+Socket Adapter Reuses Transport Contract
+
+Socket transport must use the existing transport envelope and `TransportSerializer`.
+Do not create SocketPlayerAction, NetworkActionResult, RemoteStateSnapshot, or a second
+gameplay transport protocol.
+
+---
+
+# CONSTRAINT-063
+
+Connection Identity Is Server-owned
+
+Socket `clientId` and role are assigned by the server. Client-provided sender identity
+is not trusted. Trusted sender source is socket connection metadata relayed to host.
+
+---
+
+# CONSTRAINT-064
+
+Lobby State Is Not Game State
+
+Lobby rooms may store room identity, room code, client membership, role, status, and
+sessionId. Lobby rooms must not store runtime, graph, player domain objects, action
+history, projection history, snapshot, victory, scenario state, or router data.
+
+---
+
+# CONSTRAINT-065
+
+Gameplay Relay Is Payload-blind
+
+Server may inspect transport metadata required for identity, direction enforcement,
+session validation, and routing. Server must not interpret or mutate gameplay payload
+content.
+
+---
+
+# CONSTRAINT-066
+
+Disconnect Does Not Mutate Gameplay
+
+Socket disconnect closes lobby/session lifecycle according to room state. It must not
+alter scenario state, player state, turn state, victory state, or save/load state.
+
+---
+
+# CONSTRAINT-067
+
+One Client One Room / One Host One Guest
+
+M16C supports one host and one guest per room. A socket client may belong to at most
+one room. Multi-guest routing, spectators, host election, and host migration are
+deferred.
+
+---
+
+# CONSTRAINT-068
+
+Room and Session Identities Are Separate
+
+`roomId`, `roomCode`, and `sessionId` have different meanings and must remain distinct.
+Lobby lookup uses `roomId` / `roomCode`; gameplay transport routing uses `sessionId`.

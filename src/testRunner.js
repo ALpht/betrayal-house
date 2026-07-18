@@ -228,6 +228,21 @@ import {
 }
 from "./test/MultiplayerActionTurnSyncTest.js";
 
+import {
+    runMultiplayerLobbyTest
+}
+from "./test/MultiplayerLobbyTest.js";
+
+import {
+    runSocketTransportTest
+}
+from "./test/SocketTransportTest.js";
+
+import {
+    runMultiplayerSocketIntegrationTest
+}
+from "./test/MultiplayerSocketIntegrationTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -274,3 +289,6 @@ runLocalPlayIntegrationTest();
 runLocalPlayStabilityTest();
 runMultiplayerTransportTest();
 runMultiplayerActionTurnSyncTest();
+runMultiplayerLobbyTest();
+await runSocketTransportTest();
+await runMultiplayerSocketIntegrationTest();
