@@ -85,3 +85,20 @@ GAME_ENDED
 Payload: { scenarioId, winner, reason }
 
 由 VictoryController 在 SCENARIO_COMPLETED 後發送。
+
+---
+
+## Transport Boundary
+
+Transport messages are not EventBus gameplay events.
+
+The following are multiplayer transport message types and must remain outside this
+catalog's gameplay event namespace:
+
+- PLAYER_ACTION
+- STATE_UPDATED
+- CONNECTION_READY
+- ACTION_RESULT
+- TRANSPORT_ERROR
+
+See `MULTIPLAYER_TRANSPORT_CONTRACT.md`.

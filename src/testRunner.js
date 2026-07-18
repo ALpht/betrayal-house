@@ -218,6 +218,16 @@ import {
 }
 from "./test/LocalPlayStabilityTest.js";
 
+import {
+    runMultiplayerTransportTest
+}
+from "./test/MultiplayerTransportTest.js";
+
+import {
+    runMultiplayerActionTurnSyncTest
+}
+from "./test/MultiplayerActionTurnSyncTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -262,3 +272,5 @@ runPlayableScenarioPack01Test();
 runPlayableScenarioBalanceTest();
 runLocalPlayIntegrationTest();
 runLocalPlayStabilityTest();
+runMultiplayerTransportTest();
+runMultiplayerActionTurnSyncTest();
