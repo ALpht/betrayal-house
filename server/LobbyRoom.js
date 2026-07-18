@@ -43,6 +43,22 @@ export class LobbyRoom {
         }
     }
 
+    markGuestReconnecting() {
+        if (this.status !== LobbyRoomStatus.ACTIVE) {
+            throw new Error("Room must be ACTIVE before reconnecting");
+        }
+
+        this.status = LobbyRoomStatus.RECONNECTING;
+    }
+
+    markGuestResumed() {
+        if (this.status !== LobbyRoomStatus.RECONNECTING) {
+            throw new Error("Room must be RECONNECTING before resume");
+        }
+
+        this.status = LobbyRoomStatus.ACTIVE;
+    }
+
     activate(sessionId) {
         if (this.status !== LobbyRoomStatus.READY) {
             throw new Error("Room must be READY before activation");

@@ -12,6 +12,8 @@ export class GuestTransportClient {
     #sequence;
     #revision;
     #pendingAction;
+    #recoveryBaseline;
+    #minimumRecoveryRevision;
     #connectionState;
     #destroyed;
 
@@ -22,7 +24,10 @@ export class GuestTransportClient {
         onStateUpdated = () => {},
         onActionResult = () => {},
         onPendingActionChanged = () => {},
-        onConnectionChanged = () => {}
+        onConnectionChanged = () => {},
+        initialSequence = 0,
+        initialRevision = 0,
+        recoveryBaseline = false
     }) {
         this.#transport = transport;
         this.#sessionId = sessionId;
@@ -32,9 +37,11 @@ export class GuestTransportClient {
         this.#onPendingActionChanged = onPendingActionChanged;
         this.#onConnectionChanged = onConnectionChanged;
         this.#unsubscribe = null;
-        this.#sequence = 0;
-        this.#revision = 0;
+        this.#sequence = initialSequence;
+        this.#revision = initialRevision;
         this.#pendingAction = null;
+        this.#recoveryBaseline = recoveryBaseline;
+        this.#minimumRecoveryRevision = initialRevision;
         this.#connectionState = "disconnected";
         this.#destroyed = false;
     }
@@ -105,6 +112,21 @@ export class GuestTransportClient {
         }
 
         if (message.type === TransportMessageType.STATE_UPDATED) {
+            if (this.#recoveryBaseline) {
+                if (message.revision < this.#minimumRecoveryRevision) {
+                    return;
+                }
+
+                this.#recoveryBaseline = false;
+                this.#revision = message.revision;
+                this.#onStateUpdated({
+                    revision: this.#revision,
+                    projection: structuredClone(message.payload?.projection || null),
+                    recoveryBaseline: true
+                });
+                return;
+            }
+
             if (message.revision <= this.#revision) {
                 return;
             }
@@ -148,6 +170,23 @@ export class GuestTransportClient {
         this.#unsubscribe?.();
         this.#unsubscribe = null;
         this.#onConnectionChanged(this.#connectionState);
+    }
+
+    clearPendingForConnectionLost() {
+        if (!this.#pendingAction) {
+            return null;
+        }
+
+        const result = {
+            sequence: this.#pendingAction.sequence,
+            accepted: false,
+            reasonCode: "CONNECTION_LOST",
+            source: "LOCAL_TRANSPORT"
+        };
+        this.#pendingAction = null;
+        this.#onPendingActionChanged(null);
+        this.#onActionResult(result);
+        return result;
     }
 
     destroy() {

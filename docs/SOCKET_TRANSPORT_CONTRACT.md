@@ -154,3 +154,21 @@ no duplicate gameplay execution
 ```
 
 Network delivery failure must not change gameplay result.
+
+---
+
+## M16D Reconnect Addendum
+
+Reconnect orchestration remains outside `SocketTransportEndpoint`.
+
+```text
+Guest Bootstrap = socket replacement and resume lifecycle
+LobbyClient = lobby/session listeners
+SocketTransportEndpoint = single-connection gameplay transport listener
+```
+
+During resume, the server continues to relay trusted `clientId` metadata resolved from
+server state. Guest-supplied identity is never trusted.
+
+Old socket mappings are revoked during atomic resume claim. Late messages from old
+sockets must be rejected before gameplay dispatch.

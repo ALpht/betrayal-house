@@ -81,6 +81,13 @@ export class LobbyClient {
         return this.#sendRequest(LobbyMessageType.JOIN_ROOM, { roomCode });
     }
 
+    resumeRoom({ roomCode, resumeToken }) {
+        return this.#sendRequest(LobbyMessageType.RESUME_ROOM, {
+            roomCode,
+            resumeToken
+        });
+    }
+
     activateSession(sessionId) {
         return this.#sendRequest(SessionControlMessageType.ACTIVATE_SESSION, {
             sessionId
@@ -100,6 +107,32 @@ export class LobbyClient {
                     ? binding.toJSON()
                     : binding
             }
+        });
+        return true;
+    }
+
+    sendResumeSession(sessionId) {
+        if (this.destroyed || !this.socket) {
+            return false;
+        }
+
+        this.socket.emit(LOBBY_REQUEST_EVENT, {
+            type: SessionControlMessageType.RESUME_SESSION,
+            requestId: null,
+            payload: { sessionId }
+        });
+        return true;
+    }
+
+    sendSessionResumed(sessionId) {
+        if (this.destroyed || !this.socket) {
+            return false;
+        }
+
+        this.socket.emit(LOBBY_REQUEST_EVENT, {
+            type: SessionControlMessageType.SESSION_RESUMED,
+            requestId: null,
+            payload: { sessionId }
         });
         return true;
     }
@@ -182,9 +215,22 @@ export class LobbyClient {
             this.state.roomId = room.roomId || null;
             this.state.roomCode = room.roomCode || null;
             this.state.peerConnected = Boolean(room.guestClientId);
+            this.state.resumeToken = payload.resumeToken || this.state.resumeToken;
             this.state.connectionState = room.status === "READY"
                 ? LobbyConnectionState.READY
                 : LobbyConnectionState.IN_ROOM;
+            this.state.error = null;
+        }
+
+        if (message.type === LobbyMessageType.ROOM_RESUMED) {
+            this.state.clientId = payload.clientId || this.state.clientId;
+            this.state.role = payload.role || this.state.role;
+            this.state.roomId = payload.roomId || room.roomId || this.state.roomId;
+            this.state.roomCode = payload.roomCode || room.roomCode || this.state.roomCode;
+            this.state.sessionId = payload.sessionId || this.state.sessionId;
+            this.state.resumeToken = payload.resumeToken || this.state.resumeToken;
+            this.state.peerConnected = true;
+            this.state.connectionState = LobbyConnectionState.RESUMING;
             this.state.error = null;
         }
 
@@ -209,8 +255,28 @@ export class LobbyClient {
             this.state.error = payload.reasonCode || "SESSION_CLOSED";
         }
 
+        if (message.type === SessionControlMessageType.PEER_RECONNECTING) {
+            this.state.peerConnected = false;
+            this.state.connectionState = LobbyConnectionState.RECONNECTING;
+        }
+
+        if (message.type === SessionControlMessageType.PEER_RESUMED) {
+            this.state.peerConnected = true;
+            this.state.connectionState = LobbyConnectionState.ACTIVE;
+        }
+
         if (message.type === LobbyMessageType.ROOM_REJECTED) {
             this.#setError(payload.code || "LOBBY_REJECTED");
+            return;
+        }
+
+        if (message.type === LobbyMessageType.RESUME_REJECTED) {
+            this.#setError(payload.reasonCode || "RESUME_REJECTED");
+            return;
+        }
+
+        if (message.type === SessionControlMessageType.RESUME_FAILED) {
+            this.#setError(payload.reasonCode || "RESUME_FAILED");
             return;
         }
 

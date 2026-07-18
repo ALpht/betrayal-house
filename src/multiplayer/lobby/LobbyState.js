@@ -5,6 +5,8 @@ export const LobbyConnectionState = Object.freeze({
     IN_ROOM: "IN_ROOM",
     READY: "READY",
     ACTIVE: "ACTIVE",
+    RECONNECTING: "RECONNECTING",
+    RESUMING: "RESUMING",
     CLOSED: "CLOSED",
     ERROR: "ERROR"
 });
@@ -18,6 +20,7 @@ export function createInitialLobbyState() {
         role: null,
         peerConnected: false,
         sessionId: null,
+        resumeToken: null,
         error: null
     };
 }

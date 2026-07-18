@@ -3,13 +3,16 @@ import { GuestTransportClient } from "../transport/GuestTransportClient.js";
 export function createGuestGameSession({
     transport,
     sessionId = "local-session",
-    playerId
+    playerId,
+    initialSequence = 0,
+    initialRevision = 0,
+    recoveryBaseline = false
 } = {}) {
     const subscribers = new Set();
     const state = {
         connectionState: "disconnected",
         playerId,
-        revision: 0,
+        revision: initialRevision,
         projection: null,
         pendingAction: null,
         lastActionResult: null
@@ -51,7 +54,10 @@ export function createGuestGameSession({
             if (destroyed) return;
             state.connectionState = connectionState;
             notify();
-        }
+        },
+        initialSequence,
+        initialRevision,
+        recoveryBaseline
     });
 
     return {
@@ -62,8 +68,17 @@ export function createGuestGameSession({
         sendAction(action) {
             return client.sendAction(action);
         },
+        clearPendingForConnectionLost() {
+            return client.clearPendingForConnectionLost();
+        },
         getState() {
             return structuredClone(state);
+        },
+        getSequence() {
+            return client.getSequence();
+        },
+        getPendingAction() {
+            return client.getPendingAction();
         },
         subscribe(handler) {
             subscribers.add(handler);
