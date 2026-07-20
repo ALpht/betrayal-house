@@ -183,3 +183,204 @@ EventDefinition `event_cold_wind` 的 `amount: 1` 結合 `stat: 'might'`，
 
 File:
 `src/data/EventDefinitions.js` — `event_cold_wind` entry
+
+---
+
+## TECH-DEBT-039
+
+Title:
+Real Socket Adapter deferred
+
+Priority:
+LOW
+
+Description:
+M16A intentionally proves the transport contract with InMemoryTransport only. A real
+socket adapter is deferred until the contract, authority boundary, sequence rule, and
+viewer-safe projection are stable.
+
+---
+
+## TECH-DEBT-040
+
+Title:
+Multi-guest routing deferred
+
+Priority:
+LOW
+
+Description:
+M16A supports a minimal host/guest flow. Routing multiple guest viewers, per-client
+fanout, and room membership are deferred.
+
+---
+
+## TECH-DEBT-041
+
+Title:
+Authentication deferred
+
+Priority:
+LOW
+
+Description:
+M16A uses local sender identity checks only. Authentication and trusted identity
+establishment are deferred.
+
+---
+
+## TECH-DEBT-042
+
+Title:
+Reconnect deferred
+
+Priority:
+LOW
+
+Description:
+Reconnect, resume session, host migration, and snapshot recovery are intentionally
+deferred to later multiplayer milestones.
+
+---
+
+## TECH-DEBT-043
+
+Title:
+Full guest presentation wiring deferred
+
+Priority:
+LOW
+
+Description:
+M16A guest sessions consume projection state but do not implement full browser UI
+wiring. Full guest presentation integration is deferred until the transport foundation
+is reviewed.
+
+---
+
+## TECH-DEBT-044
+
+Title:
+Real turn legality remains gameplay-owned
+
+Priority:
+LOW
+
+Description:
+M16B does not add turn validation in multiplayer. Any future stricter turn enforcement
+must be implemented or exposed by the existing gameplay pipeline, not by duplicating
+TurnManager rules in multiplayer integration.
+
+---
+
+## TECH-DEBT-045
+
+Title:
+Action projection target metadata deferred
+
+Priority:
+LOW
+
+Description:
+M16B intentionally whitelists action projection to type, label, and enabled. Rich target
+or option metadata for the current viewer is deferred until a viewer-safe payload
+metadata contract exists.
+
+---
+
+## TECH-DEBT-046
+
+Title:
+Reconnect and session resume deferred
+
+Priority:
+LOW
+
+Description:
+M16C closes active rooms on disconnect. Reconnect, missed message replay, session resume,
+and recovery after network interruption are deferred.
+
+---
+
+## TECH-DEBT-047
+
+Title:
+Host migration deferred
+
+Priority:
+LOW
+
+Description:
+If the host disconnects, the room closes and guest session is destroyed. Host migration
+is intentionally out of scope.
+
+---
+
+## TECH-DEBT-048
+
+Title:
+Multi-guest room routing deferred
+
+Priority:
+LOW
+
+Description:
+M16C supports one host and one guest. Multiple guests, spectators, per-viewer fanout,
+and room capacity management are deferred.
+
+---
+
+## TECH-DEBT-049
+
+Title:
+Persistent lobby storage deferred
+
+Priority:
+LOW
+
+Description:
+Room registry is in-memory and process-local. Database storage, durable room codes, and
+cross-process room recovery are deferred.
+
+---
+
+## TECH-DEBT-050
+
+Title:
+Real authentication deferred
+
+Priority:
+LOW
+
+Description:
+M16C uses server-assigned local socket client identity. Account login, authentication,
+authorization, and internet deployment security are deferred.
+
+---
+
+## TECH-DEBT-051
+
+Title:
+Network delivery recovery deferred
+
+Priority:
+LOW
+
+Description:
+Socket publish failure records connection failure and does not rollback gameplay.
+Automatic retry, ack replay, delta recovery, rollback, and guaranteed delivery are
+deferred.
+
+---
+
+## TECH-DEBT-052
+
+Title:
+Guest full browser presentation deferred
+
+Priority:
+LOW
+
+Description:
+M16C verifies guest render-only projection flow and minimal browser bootstrap. Full
+guest UI polish remains deferred until socket lifecycle is reviewed.

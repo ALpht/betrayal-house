@@ -475,3 +475,155 @@ Content（預設）
 | M14A Card UI | Card Presentation | 已完成（M13D） |
 | M14B Player Info | Character Presentation | 已完成（M13E） |
 | M14C UI Polish | UI Polish | 改為 Continuous Improvement |
+
+---
+
+# M16A Addendum - Local Multiplayer Transport Foundation
+
+Branch: `feature/local-multiplayer-transport`
+
+Status: COMPLETE
+
+Mission:
+Establish the local multiplayer transport contract without adding lobby, room registry,
+socket server, reconnect, full guest UI, gameplay rules, scenario framework, or
+presentation framework changes.
+
+Authority boundary:
+
+```text
+Host Execute
+Guest Render
+PlayerAction Up
+Viewer-safe Projection Down
+```
+
+M16A deliverables:
+
+- InMemoryTransport with serialize / deserialize / deliver boundary
+- HostTransportGateway
+- GuestTransportClient
+- MultiplayerProjectionBuilder
+- MultiplayerStatePublisher
+- createHostGameSession composition wrapper
+- createGuestGameSession render-only wrapper
+- MultiplayerTransportTest
+- Multiplayer transport contract documentation
+
+M16A explicitly defers:
+
+- real socket adapter
+- socket server process
+- lobby / room registry
+- reconnect / resume
+- multi-guest routing
+- full guest browser UI wiring
+
+Next multiplayer numbering remains:
+
+```text
+M16A  Local Multiplayer Transport Foundation
+M16B  Action / Turn Synchronization
+M16C  Snapshot Recovery
+```
+
+---
+
+# M16B Addendum - Action / Turn Synchronization
+
+Branch: `feature/multiplayer-action-turn-sync`
+
+Status: COMPLETE
+
+Mission:
+Synchronize fixed player identity, action ownership, action result feedback, pending
+action lifecycle, turn-aware projection, and guest projection publishing on top of the
+M16A transport contract.
+
+Boundary:
+
+```text
+Host Execute
+Guest Render
+PlayerAction Up
+Viewer-safe Projection Down
+```
+
+M16B deliverables:
+
+- MultiplayerPlayerBinding
+- MultiplayerActionCoordinator
+- ACTION_RESULT
+- Shared authoritative action adapter
+- Guest pending action lifecycle
+- Turn-aware projection
+- Viewer-safe action whitelist
+- Host local accepted action publishes guest projection
+- MultiplayerActionTurnSyncTest
+- Multiplayer session contract documentation
+
+M16B explicitly defers:
+
+- socket adapter
+- lobby / room registry
+- reconnect
+- authentication
+- multi-guest routing
+- full guest browser UI
+- turn framework rewrite
+- gameplay error taxonomy
+
+---
+
+# M16C Addendum - Local Multiplayer Lobby & Socket Transport
+
+Branch: `feature/local-multiplayer-lobby-socket`
+
+Status: IMPLEMENTED - READY FOR REVIEW
+
+Mission:
+Add a real localhost socket server, single-room lobby, server-assigned client identity,
+host-owned player binding, payload-blind transport relay, and basic disconnect cleanup
+while preserving the M16A/M16B authority boundary.
+
+Boundary:
+
+```text
+Host Execute
+Guest Render
+PlayerAction Up
+Viewer-safe Projection Down
+```
+
+M16C deliverables:
+
+- Local socket server
+- Lobby registry and one-host/one-guest room model
+- Room code generation
+- Lobby / session control / gameplay protocol split
+- SocketTransportEndpoint
+- LobbyClient
+- Socket host / guest session bootstrap
+- Trusted sender relay metadata
+- Initial projection revision 1
+- Active disconnect lifecycle
+- MultiplayerLobbyTest
+- SocketTransportTest
+- MultiplayerSocketIntegrationTest
+- Lobby and socket transport contract documentation
+
+M16C explicitly defers:
+
+- reconnect and session resume
+- host migration
+- multi-guest routing
+- persistent lobby storage
+- real authentication
+- network delivery recovery
+- full guest presentation polish
+
+Next milestone:
+
+```text
+M16D  Disconnect, Reconnect & Session Recovery
+```

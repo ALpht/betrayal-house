@@ -586,3 +586,194 @@ runtime.getScenarioMetadata()（非秘密資訊）
 runtime.getVictoryResult()（由 Runtime 公開的唯讀介面）
 ```
 
+
+---
+
+# CONSTRAINT-049
+
+Host Authority
+
+The host is the only gameplay authority in multiplayer transport. Guest clients must
+not own or mutate Gameplay Runtime, Scenario Controller, Victory Controller, or
+ScenarioActionHandler state.
+
+---
+
+# CONSTRAINT-050
+
+Guest Render Only
+
+Guest sessions may connect, send PlayerAction messages, receive viewer-safe state, and
+render projection data. They must not validate gameplay rules or execute gameplay.
+
+---
+
+# CONSTRAINT-051
+
+PlayerAction Transport Reuse
+
+Network transport must reuse the existing PlayerAction domain contract. Do not create
+NetworkAction, RemoteAction, SocketAction, or MultiplayerAction.
+
+---
+
+# CONSTRAINT-052
+
+Transport Blind to Gameplay
+
+Transport may validate envelope shape, session, identity, sequence, serialization, and
+message type. It must not decide action legality, victory, scenario progress, or rule
+outcomes.
+
+---
+
+# CONSTRAINT-053
+
+Visibility Before Transport
+
+Host must filter information for the target viewer before sending state. Do not send a
+full InformationRouter snapshot or private scenario state to the guest for client-side
+filtering.
+
+---
+
+# CONSTRAINT-054
+
+No Platform Modification
+
+M16A multiplayer transport must not modify ScenarioRuntime, Scenario Framework,
+Victory Framework, InformationRouter, ActionType, ActionValidator,
+ScenarioActionHandler, GraphMap, Save / Load core, Bundle System, scenario content, or
+scenario definition contracts.
+
+---
+
+# CONSTRAINT-055
+
+Fixed Player Binding
+
+Each multiplayer client must have exactly one fixed playerId and viewerId in M16B.
+Action payloads must not be allowed to choose a different player identity.
+
+---
+
+# CONSTRAINT-056
+
+Ownership Before Gameplay
+
+Multiplayer identity and action ownership checks must pass before a remote action enters
+the gameplay pipeline.
+
+---
+
+# CONSTRAINT-057
+
+Turn Rules Remain Gameplay-owned
+
+The multiplayer layer must not implement TurnManager rules or decide turn legality.
+Turn legality belongs to the existing gameplay pipeline.
+
+---
+
+# CONSTRAINT-058
+
+Projection-owned Guest UI
+
+Guest UI state must be derived from host-provided viewer-safe projection. Guest code must
+not query Gameplay Runtime or presentation query/model/panel core.
+
+---
+
+# CONSTRAINT-059
+
+Single Authoritative Action Path
+
+Host local actions and guest remote actions must share the same authoritative gameplay
+execution adapter. Source metadata must not alter gameplay behavior.
+
+---
+
+# CONSTRAINT-060
+
+Action Result Is Non-domain
+
+ACTION_RESULT is multiplayer delivery feedback. It must not become a gameplay EventBus
+event, scenario rule contract, or domain outcome taxonomy.
+
+---
+
+# CONSTRAINT-061
+
+Server Is Not Gameplay Authority
+
+The M16C socket server owns connection, lobby, routing, and lifecycle metadata only. It
+must not import or own ScenarioRuntime, ActionValidator, TurnManager,
+ScenarioActionHandler, VictoryEvaluator, projection builder, save/load state, game
+snapshots, or InformationRouter internals.
+
+---
+
+# CONSTRAINT-062
+
+Socket Adapter Reuses Transport Contract
+
+Socket transport must use the existing transport envelope and `TransportSerializer`.
+Do not create SocketPlayerAction, NetworkActionResult, RemoteStateSnapshot, or a second
+gameplay transport protocol.
+
+---
+
+# CONSTRAINT-063
+
+Connection Identity Is Server-owned
+
+Socket `clientId` and role are assigned by the server. Client-provided sender identity
+is not trusted. Trusted sender source is socket connection metadata relayed to host.
+
+---
+
+# CONSTRAINT-064
+
+Lobby State Is Not Game State
+
+Lobby rooms may store room identity, room code, client membership, role, status, and
+sessionId. Lobby rooms must not store runtime, graph, player domain objects, action
+history, projection history, snapshot, victory, scenario state, or router data.
+
+---
+
+# CONSTRAINT-065
+
+Gameplay Relay Is Payload-blind
+
+Server may inspect transport metadata required for identity, direction enforcement,
+session validation, and routing. Server must not interpret or mutate gameplay payload
+content.
+
+---
+
+# CONSTRAINT-066
+
+Disconnect Does Not Mutate Gameplay
+
+Socket disconnect closes lobby/session lifecycle according to room state. It must not
+alter scenario state, player state, turn state, victory state, or save/load state.
+
+---
+
+# CONSTRAINT-067
+
+One Client One Room / One Host One Guest
+
+M16C supports one host and one guest per room. A socket client may belong to at most
+one room. Multi-guest routing, spectators, host election, and host migration are
+deferred.
+
+---
+
+# CONSTRAINT-068
+
+Room and Session Identities Are Separate
+
+`roomId`, `roomCode`, and `sessionId` have different meanings and must remain distinct.
+Lobby lookup uses `roomId` / `roomCode`; gameplay transport routing uses `sessionId`.

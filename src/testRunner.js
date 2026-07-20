@@ -218,6 +218,31 @@ import {
 }
 from "./test/LocalPlayStabilityTest.js";
 
+import {
+    runMultiplayerTransportTest
+}
+from "./test/MultiplayerTransportTest.js";
+
+import {
+    runMultiplayerActionTurnSyncTest
+}
+from "./test/MultiplayerActionTurnSyncTest.js";
+
+import {
+    runMultiplayerLobbyTest
+}
+from "./test/MultiplayerLobbyTest.js";
+
+import {
+    runSocketTransportTest
+}
+from "./test/SocketTransportTest.js";
+
+import {
+    runMultiplayerSocketIntegrationTest
+}
+from "./test/MultiplayerSocketIntegrationTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -262,3 +287,8 @@ runPlayableScenarioPack01Test();
 runPlayableScenarioBalanceTest();
 runLocalPlayIntegrationTest();
 runLocalPlayStabilityTest();
+runMultiplayerTransportTest();
+runMultiplayerActionTurnSyncTest();
+runMultiplayerLobbyTest();
+await runSocketTransportTest();
+await runMultiplayerSocketIntegrationTest();

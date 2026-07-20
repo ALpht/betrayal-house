@@ -85,3 +85,37 @@ GAME_ENDED
 Payload: { scenarioId, winner, reason }
 
 由 VictoryController 在 SCENARIO_COMPLETED 後發送。
+
+---
+
+## Transport Boundary
+
+Transport messages are not EventBus gameplay events.
+
+The following are multiplayer transport message types and must remain outside this
+catalog's gameplay event namespace:
+
+- PLAYER_ACTION
+- STATE_UPDATED
+- CONNECTION_READY
+- ACTION_RESULT
+- TRANSPORT_ERROR
+
+See `MULTIPLAYER_TRANSPORT_CONTRACT.md`.
+
+M16C lobby and session control messages are also not EventBus gameplay events:
+
+- CLIENT_ASSIGNED
+- CREATE_ROOM
+- ROOM_CREATED
+- JOIN_ROOM
+- ROOM_JOINED
+- ROOM_REJECTED
+- PEER_CONNECTED
+- PEER_DISCONNECTED
+- ACTIVATE_SESSION
+- SESSION_STARTED
+- PLAYER_BINDING_ASSIGNED
+- SESSION_CLOSED
+
+See `MULTIPLAYER_LOBBY_CONTRACT.md` and `SOCKET_TRANSPORT_CONTRACT.md`.

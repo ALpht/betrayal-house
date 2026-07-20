@@ -351,3 +351,110 @@ Victory
 Game End
 
 ---
+
+---
+
+# M16A Multiplayer Transport Boundary
+
+M16A adds a transport boundary beside local play. It does not change the gameplay
+platform.
+
+```text
+Guest Render Session
+    |
+    | PLAYER_ACTION
+    v
+Transport Boundary
+    |
+    v
+HostTransportGateway
+    |
+    v
+Existing LocalGameSession / PlayerAction Pipeline
+    |
+    v
+MultiplayerProjectionBuilder
+    |
+    | viewer-safe STATE_UPDATED
+    v
+Guest Render Session
+```
+
+Rules:
+
+- Host is the only gameplay authority.
+- Guest does not own runtime, controllers, validators, victory, card, or scenario state.
+- Transport validates envelope, session, identity, sequence, and serialization only.
+- Existing ActionValidator remains the gameplay action contract validator.
+- Visibility filtering happens before transport.
+- Transport messages are not gameplay EventBus events.
+
+Contract details live in `docs/MULTIPLAYER_TRANSPORT_CONTRACT.md`.
+
+---
+
+# M16B Multiplayer Session Boundary
+
+M16B adds session-level synchronization above transport and below gameplay.
+
+```text
+HostTransportGateway
+    |
+    | transport message shape / session
+    v
+MultiplayerActionCoordinator
+    |
+    | binding / ownership / sequence / action result
+    v
+AuthoritativeActionExecutor
+    |
+    | existing local gameplay pipeline
+    v
+MultiplayerProjectionBuilder
+    |
+    | viewer-safe turn/action projection
+    v
+GuestTransportClient
+```
+
+Responsibilities:
+
+- Transport validates message shape and session.
+- Multiplayer integration validates fixed client identity, player ownership, and sequence.
+- Gameplay owns action legality, turn legality, and state mutation.
+- Projection converts host state into viewer-safe UI data.
+
+Session details live in `docs/MULTIPLAYER_SESSION_CONTRACT.md`.
+
+---
+
+# M16C Socket Lobby Boundary
+
+M16C adds a local socket server and one-host/one-guest lobby around the existing
+multiplayer transport boundary.
+
+```text
+Host Browser
+    |
+    | lobby/session control
+    v
+Local Socket Server
+    |
+    | payload-blind transport relay
+    v
+Guest Browser
+```
+
+The server owns connection identity, room membership, role assignment, direction
+enforcement, and lifecycle notifications. It does not own gameplay authority.
+
+```text
+Server = connection/router/lobby lifecycle
+Host   = gameplay authority and player binding authority
+Guest  = action producer and projection consumer
+```
+
+Socket details live in:
+
+- `docs/MULTIPLAYER_LOBBY_CONTRACT.md`
+- `docs/SOCKET_TRANSPORT_CONTRACT.md`
