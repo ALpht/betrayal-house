@@ -384,3 +384,113 @@ LOW
 Description:
 M16C verifies guest render-only projection flow and minimal browser bootstrap. Full
 guest UI polish remains deferred until socket lifecycle is reviewed.
+
+---
+
+## TECH-DEBT-053
+
+Title:
+Persistent Resume Tokens
+
+Priority:
+LOW
+
+Description:
+M16D resume tokens are memory-only and lost on browser refresh or server restart.
+
+---
+
+## TECH-DEBT-054
+
+Title:
+Server Restart Session Recovery
+
+Priority:
+LOW
+
+Description:
+Server restart recovery is deferred. Room registry, token registry, and transport
+routing are process-local.
+
+---
+
+## TECH-DEBT-055
+
+Title:
+Reliable Action Delivery
+
+Priority:
+LOW
+
+Description:
+M16D does not retry uncertain actions after disconnect. Reliable delivery and
+idempotent action recovery are deferred.
+
+---
+
+## TECH-DEBT-056
+
+Title:
+Action Acknowledgement Replay
+
+Priority:
+LOW
+
+Description:
+Lost ACTION_RESULT replay is deferred. Resume uses latest projection as authoritative
+state.
+
+---
+
+## TECH-DEBT-057
+
+Title:
+Projection Delta Replay
+
+Priority:
+LOW
+
+Description:
+Projection queues, deltas, and missed-state replay are deferred. Resume sends one latest
+full projection.
+
+---
+
+## TECH-DEBT-058
+
+Title:
+Host Reconnect
+
+Priority:
+LOW
+
+Description:
+Host disconnect remains terminal in M16D. Host recovery and migration are deferred.
+
+---
+
+## TECH-DEBT-059
+
+Title:
+Cross-device Identity Authentication
+
+Priority:
+LOW
+
+Description:
+Resume token proves same in-memory browser participant only. Account authentication and
+cross-device recovery are deferred.
+
+---
+
+## TECH-DEBT-060
+
+Title:
+Multi-guest Reconnect Coordination
+
+Priority:
+LOW
+
+Description:
+M16D supports one guest reservation. Multi-guest recovery and per-viewer reconnect
+coordination are deferred.

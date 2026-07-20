@@ -627,3 +627,43 @@ Next milestone:
 ```text
 M16D  Disconnect, Reconnect & Session Recovery
 ```
+
+---
+
+# M16D Addendum - Reconnect & Session Resume
+
+Branch: `feature/multiplayer-reconnect-session-resume`
+
+Status: IMPLEMENTED - READY FOR REVIEW
+
+Mission:
+Allow a temporarily disconnected Guest to recover stable client identity, room
+membership, host-owned player binding, and latest viewer-safe projection without
+replaying uncertain actions or changing gameplay authority.
+
+M16D deliverables:
+
+- RECONNECTING room state
+- reconnect grace reservation
+- opaque resume token issue and rotation
+- stable clientId recovery across socket replacement
+- old socket authority revocation
+- RESUME_ROOM / ROOM_RESUMED / RESUME_REJECTED
+- PEER_RECONNECTING / PEER_RESUMED
+- RESUME_SESSION / SESSION_RESUMED / RESUME_FAILED
+- pending action clears with local CONNECTION_LOST
+- sequence continuity across reconnect
+- one-time recovery baseline revision gate
+- latest full projection recovery
+- reconnect and resume tests
+
+M16D explicitly defers:
+
+- host reconnect
+- host migration
+- server restart recovery
+- persistent resume token storage
+- reliable action delivery
+- action/result replay
+- projection delta replay
+- multi-guest reconnect coordination

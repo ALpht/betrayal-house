@@ -326,3 +326,7 @@ Server must not inspect gameplay payload meaning, ActionType semantics, turn leg
 scenario state, projection content, or victory meaning.
 
 Socket ownership lives in `docs/SOCKET_TRANSPORT_CONTRACT.md`.
+
+M16D reconnect does not add new gameplay transport messages. Resume uses lobby/session
+control messages and then continues with the existing `PLAYER_ACTION`, `ACTION_RESULT`,
+`STATE_UPDATED`, and `TRANSPORT_ERROR` contract.

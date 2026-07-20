@@ -3,6 +3,7 @@ import { Server } from "socket.io";
 import { TransportMessageType } from "../src/multiplayer/transport/TransportMessageType.js";
 import { TransportSerializer } from "../src/multiplayer/transport/TransportSerializer.js";
 import { LobbyRegistry } from "./LobbyRegistry.js";
+import { ReconnectReservationManager } from "./ReconnectReservationManager.js";
 import {
     LobbyErrorCode,
     LobbyMessageType,
@@ -40,7 +41,9 @@ export class MultiplayerSocketServer {
         port = 3001,
         registry = new LobbyRegistry(),
         clientIdFactory = createClientId,
-        sessionIdFactory = createSessionId
+        sessionIdFactory = createSessionId,
+        reconnectGraceMs = 30000,
+        scheduler = undefined
     } = {}) {
         this.port = port;
         this.registry = registry;
@@ -49,6 +52,14 @@ export class MultiplayerSocketServer {
         this.httpServer = null;
         this.io = null;
         this.clients = new Map();
+        this.socketIdsByClientId = new Map();
+        this.clientIdsBySocketId = new Map();
+        this.reconnectManager = new ReconnectReservationManager({
+            registry,
+            reconnectGraceMs,
+            scheduler,
+            onExpired: ({ room }) => this.#handleReconnectExpired(room)
+        });
         this.running = false;
         this.stopping = false;
         this.stopPromise = null;
@@ -126,6 +137,9 @@ export class MultiplayerSocketServer {
         this.io = null;
         this.httpServer = null;
         this.clients.clear();
+        this.socketIdsByClientId.clear();
+        this.clientIdsBySocketId.clear();
+        this.reconnectManager.clear();
         this.registry.clear();
     }
 
@@ -149,7 +163,7 @@ export class MultiplayerSocketServer {
             clientId,
             role: null
         };
-        this.clients.set(clientId, connection);
+        this.#bindConnection(connection);
 
         socket.emit(LOBBY_RESPONSE_EVENT, response(
             LobbyMessageType.CLIENT_ASSIGNED,
@@ -183,12 +197,26 @@ export class MultiplayerSocketServer {
             return;
         }
 
+        if (type === LobbyMessageType.RESUME_ROOM) {
+            this.#resumeRoom(connection, requestId, payload);
+            return;
+        }
+
         if (type === SessionControlMessageType.ACTIVATE_SESSION) {
             this.#activateSession(connection, requestId, payload.sessionId);
             return;
         }
 
         if (type === SessionControlMessageType.PLAYER_BINDING_ASSIGNED) {
+            this.#relaySessionControl(connection, message);
+            return;
+        }
+
+        if (
+            type === SessionControlMessageType.RESUME_SESSION ||
+            type === SessionControlMessageType.SESSION_RESUMED ||
+            type === SessionControlMessageType.RESUME_FAILED
+        ) {
             this.#relaySessionControl(connection, message);
             return;
         }
@@ -238,13 +266,19 @@ export class MultiplayerSocketServer {
 
         connection.role = LobbyRole.GUEST;
         const room = result.room;
+        const resumeToken = this.reconnectManager.issueToken({
+            clientId: connection.clientId,
+            roomId: room.roomId,
+            role: LobbyRole.GUEST
+        });
         connection.socket.emit(LOBBY_RESPONSE_EVENT, response(
             LobbyMessageType.ROOM_JOINED,
             requestId,
             {
                 clientId: connection.clientId,
                 role: LobbyRole.GUEST,
-                room: room.toJSON()
+                room: room.toJSON(),
+                resumeToken
             }
         ));
         this.#emitToClient(room.hostClientId, LOBBY_RESPONSE_EVENT, response(
@@ -273,6 +307,12 @@ export class MultiplayerSocketServer {
         }
 
         const room = result.room;
+        if (room.guestClientId) {
+            this.reconnectManager.updateSession({
+                clientId: room.guestClientId,
+                sessionId: room.sessionId
+            });
+        }
         const payload = {
             sessionId: room.sessionId,
             room: room.toJSON()
@@ -291,7 +331,36 @@ export class MultiplayerSocketServer {
 
     #relaySessionControl(connection, message) {
         const room = this.registry.findByClientId(connection.clientId);
-        if (!room || room.hostClientId !== connection.clientId) {
+        if (!room || !this.#isCurrentConnection(connection)) {
+            connection.socket.emit(
+                LOBBY_RESPONSE_EVENT,
+                reject(message.requestId, LobbyErrorCode.STALE_CONNECTION)
+            );
+            return;
+        }
+
+        const role = room.getRole(connection.clientId);
+        if (message.type === SessionControlMessageType.RESUME_SESSION) {
+            if (role !== LobbyRole.GUEST || room.status !== LobbyRoomStatus.ACTIVE) {
+                connection.socket.emit(
+                    LOBBY_RESPONSE_EVENT,
+                    reject(message.requestId, LobbyErrorCode.INVALID_REQUEST)
+                );
+                return;
+            }
+
+            this.#emitToClient(room.hostClientId, LOBBY_RESPONSE_EVENT, {
+                type: SessionControlMessageType.RESUME_SESSION,
+                requestId: message.requestId || null,
+                payload: {
+                    sessionId: message.payload?.sessionId,
+                    senderId: connection.clientId
+                }
+            });
+            return;
+        }
+
+        if (role !== LobbyRole.HOST) {
             connection.socket.emit(
                 LOBBY_RESPONSE_EVENT,
                 reject(message.requestId, LobbyErrorCode.NOT_HOST)
@@ -300,15 +369,61 @@ export class MultiplayerSocketServer {
         }
 
         this.#emitToClient(room.guestClientId, LOBBY_RESPONSE_EVENT, {
-            type: SessionControlMessageType.PLAYER_BINDING_ASSIGNED,
+            type: message.type,
             requestId: message.requestId || null,
             payload: structuredClone(message.payload || {})
         });
     }
 
+    #resumeRoom(connection, requestId, payload = {}) {
+        const result = this.reconnectManager.claimResume({
+            roomCode: String(payload.roomCode || "").toUpperCase(),
+            resumeToken: payload.resumeToken
+        });
+
+        if (!result.accepted) {
+            connection.socket.emit(LOBBY_RESPONSE_EVENT, {
+                type: LobbyMessageType.RESUME_REJECTED,
+                requestId: requestId || null,
+                payload: {
+                    reasonCode: result.reasonCode
+                }
+            });
+            return;
+        }
+
+        this.#unbindConnection(connection.clientId);
+        connection.clientId = result.clientId;
+        connection.role = LobbyRole.GUEST;
+        this.#bindConnection(connection);
+
+        connection.socket.emit(LOBBY_RESPONSE_EVENT, response(
+            LobbyMessageType.ROOM_RESUMED,
+            requestId,
+            {
+                roomId: result.roomId,
+                roomCode: result.room.roomCode,
+                sessionId: result.sessionId,
+                clientId: result.clientId,
+                role: LobbyRole.GUEST,
+                resumeToken: result.rotatedToken,
+                room: result.room.toJSON()
+            }
+        ));
+        this.#emitToClient(result.room.hostClientId, LOBBY_RESPONSE_EVENT, response(
+            SessionControlMessageType.PEER_RESUMED,
+            null,
+            {
+                roomId: result.roomId,
+                clientId: result.clientId,
+                sessionId: result.sessionId
+            }
+        ));
+    }
+
     #handleTransportMessage(connection, packet = {}) {
         const room = this.registry.findByClientId(connection.clientId);
-        if (!room || room.status !== LobbyRoomStatus.ACTIVE) {
+        if (!room || room.status !== LobbyRoomStatus.ACTIVE || !this.#isCurrentConnection(connection)) {
             this.#emitConnectionError(connection, LobbyErrorCode.INVALID_REQUEST);
             return;
         }
@@ -362,13 +477,33 @@ export class MultiplayerSocketServer {
     }
 
     #handleDisconnect(connection) {
-        this.clients.delete(connection.clientId);
-        const result = this.registry.leaveClient(connection.clientId);
+        this.#unbindConnection(connection.clientId);
+        const result = this.registry.leaveClient(connection.clientId, {
+            allowReconnect: connection.role === LobbyRole.GUEST
+        });
         if (!result) {
             return;
         }
 
         const room = result.room;
+        if (connection.role === LobbyRole.GUEST && result.reconnecting) {
+            const reservation = this.reconnectManager.reserveDisconnectedGuest({
+                room,
+                clientId: connection.clientId
+            });
+            this.#emitToClient(room.hostClientId, LOBBY_RESPONSE_EVENT, response(
+                SessionControlMessageType.PEER_RECONNECTING,
+                null,
+                {
+                    roomId: room.roomId,
+                    clientId: connection.clientId,
+                    graceExpiresAt: reservation?.expiresAt || null,
+                    room: room.toJSON()
+                }
+            ));
+            return;
+        }
+
         if (connection.role === LobbyRole.GUEST && !result.closed) {
             this.#emitToClient(room.hostClientId, LOBBY_RESPONSE_EVENT, response(
                 LobbyMessageType.PEER_DISCONNECTED,
@@ -413,5 +548,38 @@ export class MultiplayerSocketServer {
     #emitToClient(clientId, event, payload) {
         const connection = this.clients.get(clientId);
         connection?.socket.emit(event, payload);
+    }
+
+    #bindConnection(connection) {
+        this.clients.set(connection.clientId, connection);
+        this.socketIdsByClientId.set(connection.clientId, connection.socket.id);
+        this.clientIdsBySocketId.set(connection.socket.id, connection.clientId);
+    }
+
+    #unbindConnection(clientId) {
+        const socketId = this.socketIdsByClientId.get(clientId);
+        this.clients.delete(clientId);
+        this.socketIdsByClientId.delete(clientId);
+        if (socketId) {
+            this.clientIdsBySocketId.delete(socketId);
+        }
+    }
+
+    #isCurrentConnection(connection) {
+        return this.socketIdsByClientId.get(connection.clientId) === connection.socket.id;
+    }
+
+    #handleReconnectExpired(room) {
+        room.close("RECONNECT_TIMEOUT");
+        this.reconnectManager.clear();
+        this.registry.closeRoom(room.roomId, "RECONNECT_TIMEOUT");
+        this.#emitToClient(room.hostClientId, LOBBY_RESPONSE_EVENT, response(
+            SessionControlMessageType.SESSION_CLOSED,
+            null,
+            {
+                reasonCode: "RECONNECT_TIMEOUT",
+                room: room.toJSON()
+            }
+        ));
     }
 }

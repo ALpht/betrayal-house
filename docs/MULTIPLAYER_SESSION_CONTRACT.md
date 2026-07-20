@@ -303,3 +303,56 @@ transport state and does not increment revision.
 If an active guest disconnects, the host local gameplay session is not rolled back or
 mutated. Host transport is closed for the guest, and later accepted local gameplay may
 record publish failure without undoing gameplay state.
+
+---
+
+## M16D Resume Addendum
+
+Host remains session and binding authority after guest reconnect.
+
+Resume confirmation order:
+
+```text
+ROOM_RESUMED
+RESUME_SESSION
+SESSION_RESUMED
+PLAYER_BINDING_ASSIGNED
+STATE_UPDATED recovery baseline
+```
+
+Guest must not become active until:
+
+```text
+binding valid
+recovery baseline accepted
+```
+
+Sequence continuity:
+
+```text
+pendingAction clears on disconnect
+nextSequence remains allocated
+host duplicate tracking remains keyed by stable clientId
+```
+
+Synthetic local result:
+
+```js
+{
+    sequence,
+    accepted: false,
+    reasonCode: "CONNECTION_LOST",
+    source: "LOCAL_TRANSPORT"
+}
+```
+
+This is not a host `ACTION_RESULT`.
+
+Recovery projection rule:
+
+```text
+first recovery STATE_UPDATED revision >= previousLastRevision
+```
+
+The recovery exception is one-time only. Normal monotonic revision checks resume after
+the baseline is accepted.

@@ -93,7 +93,7 @@ export class LobbyRegistry {
         return { ok: true, room };
     }
 
-    leaveClient(clientId) {
+    leaveClient(clientId, { allowReconnect = false } = {}) {
         const room = this.findByClientId(clientId);
         if (!room) {
             return null;
@@ -105,6 +105,16 @@ export class LobbyRegistry {
             return { room, closed: true, reasonCode: "HOST_DISCONNECTED" };
         }
 
+        if (allowReconnect && room.status === LobbyRoomStatus.ACTIVE) {
+            room.markGuestReconnecting();
+            return {
+                room,
+                closed: false,
+                reconnecting: true,
+                reasonCode: "GUEST_RECONNECTING"
+            };
+        }
+
         this.roomIdsByClientId.delete(clientId);
         room.markGuestLeft();
 
@@ -113,7 +123,12 @@ export class LobbyRegistry {
             return { room, closed: true, reasonCode: "GUEST_DISCONNECTED" };
         }
 
-        return { room, closed: false, reasonCode: "GUEST_DISCONNECTED" };
+        return {
+            room,
+            closed: false,
+            reconnecting: false,
+            reasonCode: "GUEST_DISCONNECTED"
+        };
     }
 
     closeRoom(roomId, reasonCode = "ROOM_CLOSED") {

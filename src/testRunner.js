@@ -243,6 +243,21 @@ import {
 }
 from "./test/MultiplayerSocketIntegrationTest.js";
 
+import {
+    runMultiplayerReconnectTest
+}
+from "./test/MultiplayerReconnectTest.js";
+
+import {
+    runMultiplayerResumeIntegrationTest
+}
+from "./test/MultiplayerResumeIntegrationTest.js";
+
+import {
+    runMultiplayerReconnectLifecycleTest
+}
+from "./test/MultiplayerReconnectLifecycleTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -292,3 +307,6 @@ runMultiplayerActionTurnSyncTest();
 runMultiplayerLobbyTest();
 await runSocketTransportTest();
 await runMultiplayerSocketIntegrationTest();
+runMultiplayerReconnectTest();
+await runMultiplayerResumeIntegrationTest();
+runMultiplayerReconnectLifecycleTest();

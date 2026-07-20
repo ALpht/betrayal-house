@@ -35,6 +35,9 @@ Lobby protocol:
 - `ROOM_REJECTED`
 - `PEER_CONNECTED`
 - `PEER_DISCONNECTED`
+- `RESUME_ROOM`
+- `ROOM_RESUMED`
+- `RESUME_REJECTED`
 
 Session control protocol:
 
@@ -42,6 +45,11 @@ Session control protocol:
 - `SESSION_STARTED`
 - `PLAYER_BINDING_ASSIGNED`
 - `SESSION_CLOSED`
+- `PEER_RECONNECTING`
+- `PEER_RESUMED`
+- `RESUME_SESSION`
+- `SESSION_RESUMED`
+- `RESUME_FAILED`
 
 Gameplay transport protocol:
 
@@ -85,6 +93,7 @@ Allowed states:
 - `WAITING`
 - `READY`
 - `ACTIVE`
+- `RECONNECTING`
 - `CLOSED`
 
 Allowed transitions:
@@ -93,6 +102,9 @@ Allowed transitions:
 WAITING -> READY
 READY   -> WAITING
 READY   -> ACTIVE
+ACTIVE  -> RECONNECTING
+RECONNECTING -> ACTIVE
+RECONNECTING -> CLOSED
 WAITING -> CLOSED
 READY   -> CLOSED
 ACTIVE  -> CLOSED
@@ -102,6 +114,8 @@ Forbidden transitions:
 
 ```text
 ACTIVE -> READY
+RECONNECTING -> READY
+RECONNECTING -> WAITING
 CLOSED -> anything
 ```
 
@@ -163,10 +177,18 @@ room remains open
 Guest disconnect while `ACTIVE`:
 
 ```text
-ACTIVE -> CLOSED
-host receives SESSION_CLOSED
+ACTIVE -> RECONNECTING
+host receives PEER_RECONNECTING
 no gameplay mutation
-no reconnect
+guest membership reserved for reconnect grace
+```
+
+If reconnect grace expires:
+
+```text
+RECONNECTING -> CLOSED
+host receives SESSION_CLOSED
+resume token invalidated
 ```
 
 Host disconnect:

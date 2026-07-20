@@ -28,6 +28,23 @@ export function createMultiplayerHostBrowser({
         if (message?.type === SessionControlMessageType.SESSION_CLOSED) {
             transport?.destroy();
         }
+
+        if (message?.type === SessionControlMessageType.RESUME_SESSION) {
+            const senderId = message.payload?.senderId;
+            const sessionId = message.payload?.sessionId;
+            if (!hostSession || sessionId !== hostSession.sessionId || !hostSession.getPlayerBinding(senderId)) {
+                lobby.socket.emit("lobby:request", {
+                    type: SessionControlMessageType.RESUME_FAILED,
+                    requestId: null,
+                    payload: { reasonCode: "SESSION_ID_MISMATCH" }
+                });
+                return;
+            }
+
+            lobby.sendSessionResumed(hostSession.sessionId);
+            lobby.sendPlayerBinding(hostSession.getPlayerBinding(senderId));
+            hostSession.publishGuestState();
+        }
     });
 
     return {

@@ -777,3 +777,75 @@ Room and Session Identities Are Separate
 
 `roomId`, `roomCode`, and `sessionId` have different meanings and must remain distinct.
 Lobby lookup uses `roomId` / `roomCode`; gameplay transport routing uses `sessionId`.
+
+---
+
+# CONSTRAINT-069
+
+Resume Restores Connection, Not Gameplay
+
+Reconnect may recover connection identity, room membership, binding, and projection. It
+must not reconstruct or mutate gameplay state outside the host runtime.
+
+---
+
+# CONSTRAINT-070
+
+Resume Token Is Server-owned
+
+Resume identity must be validated against server-held opaque token state. Client-supplied
+identity fields are not trusted.
+
+---
+
+# CONSTRAINT-071
+
+Host Remains Binding Authority After Resume
+
+Server may restore client membership, but host must reissue the existing player binding
+before guest gameplay resumes.
+
+---
+
+# CONSTRAINT-072
+
+No Automatic Action Replay
+
+Actions with uncertain delivery status must not be retried automatically after reconnect.
+
+---
+
+# CONSTRAINT-073
+
+Sequence State Survives Reconnect
+
+Sequence allocation and duplicate-consumption state must survive socket replacement.
+Pending-action cleanup must never reuse an uncertain sequence.
+
+---
+
+# CONSTRAINT-074
+
+Resume Uses Latest Full Projection
+
+Recovery must use one newly built latest viewer-safe projection. Server and guest must
+not retain runtime snapshot, event log, projection replay queue, or missed gameplay
+message queue.
+
+---
+
+# CONSTRAINT-075
+
+Host Disconnect Is Terminal
+
+M16D does not support host reconnect or host migration. Host disconnect closes the
+transport session.
+
+---
+
+# CONSTRAINT-076
+
+Reconnect Timers Have Explicit Ownership
+
+Reconnect timers must be cancellable, cleared during resume, closure and server stop,
+and must not remain as open handles.

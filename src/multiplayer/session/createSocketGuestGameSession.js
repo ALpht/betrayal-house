@@ -33,7 +33,10 @@ export function createSocketGuestGameSession({
     transport,
     binding,
     ownClientId,
-    expectedSessionId
+    expectedSessionId,
+    initialSequence = 0,
+    initialRevision = 0,
+    recoveryBaseline = false
 } = {}) {
     const validation = validateGuestBinding({
         binding,
@@ -52,7 +55,10 @@ export function createSocketGuestGameSession({
     const session = createGuestGameSession({
         transport,
         sessionId: playerBinding.sessionId,
-        playerId: playerBinding.playerId
+        playerId: playerBinding.playerId,
+        initialSequence,
+        initialRevision,
+        recoveryBaseline
     }).connect();
 
     return {

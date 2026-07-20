@@ -158,7 +158,7 @@ export async function runMultiplayerSocketIntegrationTest() {
         );
 
         guestBrowser.destroy();
-        await waitUntil(() => hostBrowser.lobby.getState().connectionState === "CLOSED");
+        await waitUntil(() => hostBrowser.lobby.getState().connectionState === "RECONNECTING");
         const dispatchAfterDisconnect = hostSession.localSession.getDispatchCount();
         hostSession.executeAndPublish({
             action: createCollectAction(hostBinding.playerId, "relic_2")
@@ -166,8 +166,8 @@ export async function runMultiplayerSocketIntegrationTest() {
 
         assert(
             hostSession.localSession.getDispatchCount() === dispatchAfterDisconnect + 1 &&
-                hostSession.getPublishFailure()?.code === "PUBLISH_FAILED",
-            "Case 3: Host publish failure after guest disconnect does not rollback gameplay"
+                hostBrowser.lobby.getState().connectionState === "RECONNECTING",
+            "Case 3: Active guest disconnect enters RECONNECTING and host gameplay does not rollback"
         );
     } catch (e) {
         failed++;
