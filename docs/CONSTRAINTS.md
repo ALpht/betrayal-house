@@ -849,3 +849,68 @@ Reconnect Timers Have Explicit Ownership
 
 Reconnect timers must be cancellable, cleared during resume, closure and server stop,
 and must not remain as open handles.
+
+---
+
+# CONSTRAINT-077
+
+Multiplayer UI Is Not Gameplay Authority
+
+Multiplayer UI must not decide gameplay legality, query runtime internals, or mutate
+session lifecycle. It renders derived state from lobby, transport, session, and
+viewer-safe projection sources.
+
+---
+
+# CONSTRAINT-078
+
+Disabled State Must Be Explainable
+
+Disabled multiplayer actions must show a viewer-safe reason. UI must not leave a
+disabled action unexplained.
+
+---
+
+# CONSTRAINT-079
+
+Socket Ownership Belongs to Bootstrap
+
+Panels and presentation components must not own Socket.io clients, LobbyClient,
+SocketTransportEndpoint, or multiplayer sessions. Bootstrap owns these external effects.
+
+---
+
+# CONSTRAINT-080
+
+Reconnect Never Replays PlayerAction
+
+Reconnect UI must never automatically replay an uncertain PlayerAction, roll back
+sequence state, or perform action-result reconciliation.
+
+---
+
+# CONSTRAINT-081
+
+Destroy Removes All External Effects
+
+Multiplayer app, controller, and panel destroy paths must remove DOM listeners, socket
+listeners, transport subscriptions, session subscriptions, timers, and late callback
+authority. Destroy must be idempotent.
+
+---
+
+# CONSTRAINT-082
+
+UI Uses Viewer-safe State Only
+
+Guest UI must not receive runtime objects, raw snapshots, InformationRouter internals,
+raw transport envelopes, resume tokens, socket ids, or internal client ids.
+
+---
+
+# CONSTRAINT-083
+
+Multiplayer Infrastructure Expansion Requires Observed Blocker
+
+New protocol, delivery state, or network framework work requires an observed LAN
+playability blocker. The default M16E fix is UI or lifecycle hardening.

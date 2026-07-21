@@ -31,6 +31,8 @@ Lobby protocol:
 - `CREATE_ROOM`
 - `ROOM_CREATED`
 - `JOIN_ROOM`
+- `LEAVE_ROOM`
+- `CLOSE_ROOM`
 - `ROOM_JOINED`
 - `ROOM_REJECTED`
 - `PEER_CONNECTED`
@@ -202,3 +204,36 @@ no host migration
 
 `SESSION_CLOSED` is a lifecycle message. It must not be represented as
 `TRANSPORT_ERROR`.
+
+---
+
+## M16E Leave And Close Addendum
+
+M16E adds explicit user-driven room lifecycle controls:
+
+- `LEAVE_ROOM`
+- `CLOSE_ROOM`
+
+These messages are not a generic presence, kick, ban, or disconnect-reason framework.
+They exist only to distinguish intentional browser UI actions from unexpected socket
+disconnect.
+
+Guest `LEAVE_ROOM`:
+
+```text
+Intentional Guest leave
+-> no reconnect grace
+-> host receives PEER_DISCONNECTED or SESSION_CLOSED depending on room state
+```
+
+Host `CLOSE_ROOM`:
+
+```text
+Host sends close request
+-> server closes room
+-> guest receives SESSION_CLOSED
+-> host receives SESSION_CLOSED acknowledgement
+-> browser app may clean up locally
+```
+
+Close requests must be sent before local socket destruction.

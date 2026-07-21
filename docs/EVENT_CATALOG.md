@@ -109,6 +109,8 @@ M16C lobby and session control messages are also not EventBus gameplay events:
 - CREATE_ROOM
 - ROOM_CREATED
 - JOIN_ROOM
+- LEAVE_ROOM
+- CLOSE_ROOM
 - ROOM_JOINED
 - ROOM_REJECTED
 - PEER_CONNECTED

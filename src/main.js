@@ -1,5 +1,5 @@
 import "./style.css";
-import { createLocalGameDom } from "./bootstrap/createLocalGameDom.js";
+import { createGameApplication } from "./bootstrap/createGameApplication.js";
 
 const app = document.getElementById("app");
 
@@ -7,4 +7,4 @@ if (!app) {
     throw new Error("Missing #app root");
 }
 
-createLocalGameDom({ root: app });
+createGameApplication({ root: app });

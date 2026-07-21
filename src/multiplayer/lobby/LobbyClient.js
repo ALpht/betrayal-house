@@ -81,6 +81,14 @@ export class LobbyClient {
         return this.#sendRequest(LobbyMessageType.JOIN_ROOM, { roomCode });
     }
 
+    leaveRoom() {
+        return this.#sendRequest(LobbyMessageType.LEAVE_ROOM, {});
+    }
+
+    closeRoom() {
+        return this.#sendRequest(LobbyMessageType.CLOSE_ROOM, {});
+    }
+
     resumeRoom({ roomCode, resumeToken }) {
         return this.#sendRequest(LobbyMessageType.RESUME_ROOM, {
             roomCode,

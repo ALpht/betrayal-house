@@ -197,6 +197,16 @@ export class MultiplayerSocketServer {
             return;
         }
 
+        if (type === LobbyMessageType.LEAVE_ROOM) {
+            this.#leaveRoom(connection, requestId);
+            return;
+        }
+
+        if (type === LobbyMessageType.CLOSE_ROOM) {
+            this.#closeRoom(connection, requestId);
+            return;
+        }
+
         if (type === LobbyMessageType.RESUME_ROOM) {
             this.#resumeRoom(connection, requestId, payload);
             return;
@@ -289,6 +299,75 @@ export class MultiplayerSocketServer {
                 role: LobbyRole.GUEST,
                 room: room.toJSON()
             }
+        ));
+    }
+
+    #leaveRoom(connection, requestId) {
+        const result = this.registry.leaveClient(connection.clientId, {
+            allowReconnect: false
+        });
+        if (!result) {
+            connection.socket.emit(
+                LOBBY_RESPONSE_EVENT,
+                reject(requestId, LobbyErrorCode.INVALID_REQUEST)
+            );
+            return;
+        }
+
+        connection.socket.emit(LOBBY_RESPONSE_EVENT, response(
+            SessionControlMessageType.SESSION_CLOSED,
+            requestId,
+            {
+                reasonCode: "GUEST_LEFT",
+                room: result.room.toJSON()
+            }
+        ));
+
+        if (connection.role === LobbyRole.GUEST) {
+            const messageType = result.closed
+                ? SessionControlMessageType.SESSION_CLOSED
+                : LobbyMessageType.PEER_DISCONNECTED;
+            this.#emitToClient(result.room.hostClientId, LOBBY_RESPONSE_EVENT, response(
+                messageType,
+                null,
+                {
+                    clientId: connection.clientId,
+                    reasonCode: "GUEST_LEFT",
+                    room: result.room.toJSON()
+                }
+            ));
+        }
+
+        this.#unbindConnection(connection.clientId);
+        connection.role = null;
+    }
+
+    #closeRoom(connection, requestId) {
+        const room = this.registry.findByClientId(connection.clientId);
+        if (!room || room.hostClientId !== connection.clientId) {
+            connection.socket.emit(
+                LOBBY_RESPONSE_EVENT,
+                reject(requestId, LobbyErrorCode.NOT_HOST)
+            );
+            return;
+        }
+
+        this.registry.closeRoom(room.roomId, "ROOM_CLOSED_BY_HOST");
+        const payload = {
+            reasonCode: "ROOM_CLOSED_BY_HOST",
+            room: room.toJSON()
+        };
+        if (room.guestClientId) {
+            this.#emitToClient(room.guestClientId, LOBBY_RESPONSE_EVENT, response(
+                SessionControlMessageType.SESSION_CLOSED,
+                null,
+                payload
+            ));
+        }
+        connection.socket.emit(LOBBY_RESPONSE_EVENT, response(
+            SessionControlMessageType.SESSION_CLOSED,
+            requestId,
+            payload
         ));
     }
 

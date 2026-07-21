@@ -5,7 +5,8 @@ body {
 }
 
 button,
-select {
+select,
+input {
     font: inherit;
 }
 
@@ -107,4 +108,42 @@ select {
     padding: 8px;
     border: 1px dashed #8a8f99;
     background: #20242c;
+}
+
+.multiplayer-shell {
+    grid-template-rows: auto 1fr;
+}
+
+.multiplayer-entry {
+    flex-wrap: wrap;
+}
+
+.multiplayer-room-code {
+    display: inline-block;
+    min-width: 92px;
+    padding: 8px 10px;
+    margin: 4px;
+    border: 1px solid #687084;
+    background: #0f1218;
+    color: #f4c95d;
+    user-select: all;
+}
+
+.multiplayer-status,
+.multiplayer-session,
+.multiplayer-host,
+.multiplayer-guest {
+    margin: 0;
+}
+
+.multiplayer-gameplay {
+    overflow: auto;
+    border-left: 1px solid #333842;
+}
+
+.local-error {
+    min-height: 18px;
+    margin: 4px;
+    color: #ffb3a7;
+    font-size: 13px;
 }
