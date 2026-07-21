@@ -667,3 +667,48 @@ M16D explicitly defers:
 - action/result replay
 - projection delta replay
 - multi-guest reconnect coordination
+
+---
+
+# M16E Addendum - LAN Multiplayer Playability Hardening
+
+Branch: `feature/lan-multiplayer-playability`
+
+Status: IMPLEMENTED - READY FOR REVIEW
+
+Mission:
+Make the existing LAN multiplayer system usable from browser UI without console or
+debug helper access. M16E is browser playability, UX integration, and lifecycle
+hardening, not multiplayer infrastructure expansion.
+
+M16E deliverables:
+
+- Local / Host LAN / Join LAN entry flow
+- Host room creation UI
+- Guest join UI
+- Room code presentation with optional clipboard copy
+- Role, player, current-turn, and status presentation
+- Viewer-safe disabled reason presentation
+- Reconnect progress and pending-action uncertainty warning
+- Explicit guest leave
+- Host close room
+- New LAN Game as close-and-create-new-room
+- Single active app ownership and lifecycle generation guard
+- Idempotent destroy and stale callback protection
+- LAN multiplayer playability documentation
+- M16E focused UI and lifecycle tests
+
+M16E explicitly defers:
+
+- same-room restart
+- reliable delivery
+- action replay
+- projection replay
+- page refresh resume
+- host reconnect
+- host migration
+- persistent token storage
+- multi-guest
+- authentication
+- matchmaking
+- server gameplay authority

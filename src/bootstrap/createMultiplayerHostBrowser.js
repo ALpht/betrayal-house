@@ -52,6 +52,9 @@ export function createMultiplayerHostBrowser({
         async createRoom() {
             return lobby.createRoom();
         },
+        async closeRoom() {
+            return lobby.closeRoom();
+        },
         async activateSession() {
             const lobbyState = lobby.getState();
             if (!guestClientId) {

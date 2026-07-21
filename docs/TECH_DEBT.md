@@ -494,3 +494,111 @@ LOW
 Description:
 M16D supports one guest reservation. Multi-guest recovery and per-viewer reconnect
 coordination are deferred.
+
+---
+
+## TECH-DEBT-069
+
+Title:
+Full visual polish
+
+Priority:
+LOW
+
+Description:
+M16E focuses on LAN usability and lifecycle stability. Full visual design polish remains
+deferred.
+
+---
+
+## TECH-DEBT-070
+
+Title:
+Mobile LAN UI
+
+Priority:
+LOW
+
+Description:
+M16E targets desktop browser LAN play first. Mobile layout polish remains deferred.
+
+---
+
+## TECH-DEBT-071
+
+Title:
+Browser refresh resume
+
+Priority:
+LOW
+
+Description:
+Resume tokens are not persisted across page refresh. Refresh recovery remains deferred.
+
+---
+
+## TECH-DEBT-072
+
+Title:
+Persistent user preferences
+
+Priority:
+LOW
+
+Description:
+Host address, room preferences, and player UI preferences are not persisted.
+
+---
+
+## TECH-DEBT-073
+
+Title:
+Multi-guest lobby UI
+
+Priority:
+LOW
+
+Description:
+M16E keeps the one-host and one-guest baseline. Multi-guest lobby presentation remains
+deferred.
+
+---
+
+## TECH-DEBT-074
+
+Title:
+Accessibility audit
+
+Priority:
+LOW
+
+Description:
+M16E uses basic labels, buttons, and readable status text. A fuller accessibility audit
+remains deferred.
+
+---
+
+## TECH-DEBT-075
+
+Title:
+Automatic reconnect retry policy
+
+Priority:
+LOW
+
+Description:
+Automatic reconnect timing and UI retry tuning are deferred. This does not imply
+reliable action delivery.
+
+---
+
+## TECH-DEBT-076
+
+Title:
+Host reconnect UI
+
+Priority:
+LOW
+
+Description:
+Host disconnect remains terminal. Host reconnect UI remains deferred.

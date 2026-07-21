@@ -105,6 +105,9 @@ export function createMultiplayerGuestBrowser({ url } = {}) {
         joinRoom(roomCode) {
             return lobby.joinRoom(roomCode);
         },
+        leaveRoom() {
+            return lobby?.leaveRoom?.();
+        },
         async resumeRoom() {
             const state = lobby?.getState?.() || {};
             const roomCode = state.roomCode;

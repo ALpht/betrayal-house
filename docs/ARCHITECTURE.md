@@ -458,3 +458,34 @@ Socket details live in:
 
 - `docs/MULTIPLAYER_LOBBY_CONTRACT.md`
 - `docs/SOCKET_TRANSPORT_CONTRACT.md`
+
+---
+
+# M16E LAN Playability UI Boundary
+
+M16E adds browser ownership and passive UI around the existing M16C/D LAN multiplayer
+baseline. It does not add gameplay authority or a new multiplayer framework.
+
+```text
+createGameApplication
+    |
+    | exactly one active app instance
+    v
+Host / Guest LAN Bootstrap
+    |
+    | owns socket, lobby, transport, session, cleanup
+    v
+MultiplayerUiController
+    |
+    | derives presentation model from external state
+    v
+Passive DOM Panels
+```
+
+Rules:
+
+- UI state is derived presentation state only.
+- Panels do not own socket, lobby, transport, session, or runtime.
+- Guest UI consumes viewer-safe projection only.
+- Reconnect UI never replays uncertain PlayerAction.
+- New LAN Game means close current room and create a fresh room.
