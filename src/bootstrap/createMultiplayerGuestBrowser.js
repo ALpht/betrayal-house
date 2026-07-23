@@ -6,8 +6,12 @@ import {
 } from "../multiplayer/lobby/LobbyMessageType.js";
 import { SocketTransportEndpoint } from "../multiplayer/socket/SocketTransportEndpoint.js";
 import { createSocketGuestGameSession } from "../multiplayer/session/createSocketGuestGameSession.js";
+import { createGuestResumeStore } from "../multiplayer/lobby/GuestResumeStore.js";
 
-export function createMultiplayerGuestBrowser({ url } = {}) {
+export function createMultiplayerGuestBrowser({
+    url,
+    resumeStore = createGuestResumeStore({ serverUrl: url })
+} = {}) {
     let socket = null;
     let lobby = null;
     let transport = null;
@@ -17,6 +21,9 @@ export function createMultiplayerGuestBrowser({ url } = {}) {
     let lastSequence = 0;
     let lastRevision = 0;
     let resumeAttemptId = 0;
+    let displayName = "";
+    let guestSessionProgressUnsubscribe = null;
+    const lobbySubscribers = new Set();
 
     function createSocket() {
         return io(url, {
@@ -29,6 +36,9 @@ export function createMultiplayerGuestBrowser({ url } = {}) {
     }
 
     function cleanupConnection() {
+        saveProgress();
+        guestSessionProgressUnsubscribe?.();
+        guestSessionProgressUnsubscribe = null;
         guestSession?.destroy();
         transport?.destroy();
         lobby?.destroy();
@@ -43,13 +53,32 @@ export function createMultiplayerGuestBrowser({ url } = {}) {
     function createLobbyConnection() {
         socket = createSocket();
         lobby = new LobbyClient({ url, socket }).connect();
-        lobby.onMessage(message => handleMessage(message, resumeAttemptId));
+        lobby.onMessage((message, state) => {
+            handleMessage(message, resumeAttemptId);
+            for (const subscriber of [...lobbySubscribers]) {
+                subscriber(message, state);
+            }
+        });
         return lobby;
     }
 
     function handleMessage(message, attemptId) {
         if (attemptId !== resumeAttemptId) {
             return;
+        }
+
+        if (
+            message?.type === LobbyMessageType.ROOM_JOINED ||
+            message?.type === LobbyMessageType.ROOM_RESUMED
+        ) {
+            const state = lobby.getState();
+            resumeStore.save({
+                roomCode: state.roomCode,
+                resumeToken: state.resumeToken,
+                displayName,
+                lastSequence,
+                lastRevision
+            });
         }
 
         if (message?.type === SessionControlMessageType.SESSION_STARTED) {
@@ -87,13 +116,34 @@ export function createMultiplayerGuestBrowser({ url } = {}) {
             if (result.ok) {
                 guestSession = result.session;
                 lastSequence = guestSession.getSequence();
+                guestSessionProgressUnsubscribe?.();
+                guestSessionProgressUnsubscribe = guestSession.subscribe(() => saveProgress());
+                saveProgress();
             }
         }
 
         if (message?.type === SessionControlMessageType.SESSION_CLOSED) {
+            resumeStore.clear(lobby.getState().roomCode);
             guestSession?.destroy();
             guestSession = null;
         }
+    }
+
+    function saveProgress() {
+        if (guestSession) {
+            lastSequence = guestSession.getSequence();
+            lastRevision = guestSession.getState().revision;
+        }
+        const state = lobby?.getState?.() || {};
+        const credential = resumeStore.read(state.roomCode);
+        if (!credential) return;
+        resumeStore.save({
+            ...credential,
+            resumeToken: state.resumeToken || credential.resumeToken,
+            displayName: displayName || credential.displayName,
+            lastSequence,
+            lastRevision
+        });
     }
 
     createLobbyConnection();
@@ -102,16 +152,37 @@ export function createMultiplayerGuestBrowser({ url } = {}) {
         get lobby() {
             return lobby;
         },
-        joinRoom(roomCode) {
-            return lobby.joinRoom(roomCode);
+        onLobbyMessage(handler) {
+            lobbySubscribers.add(handler);
+            return () => lobbySubscribers.delete(handler);
         },
-        leaveRoom() {
-            return lobby?.leaveRoom?.();
+        getStoredResume(roomCode) {
+            return resumeStore.read(roomCode);
         },
-        async resumeRoom() {
+        clearStoredResume(roomCode) {
+            return resumeStore.clear(roomCode);
+        },
+        joinRoom(input) {
+            displayName = input?.displayName || displayName;
+            return lobby.joinRoom(input);
+        },
+        setReady(ready = true) {
+            return lobby.setReady(ready);
+        },
+        async leaveRoom() {
+            const roomCode = lobby?.getState?.().roomCode;
+            const result = await lobby?.leaveRoom?.();
+            resumeStore.clear(roomCode);
+            return result;
+        },
+        async resumeRoom(override = null) {
             const state = lobby?.getState?.() || {};
-            const roomCode = state.roomCode;
-            const resumeToken = state.resumeToken;
+            const saved = override || resumeStore.read(state.roomCode);
+            const roomCode = override?.roomCode || state.roomCode || saved?.roomCode;
+            const resumeToken = override?.resumeToken || state.resumeToken || saved?.resumeToken;
+            displayName = override?.displayName || saved?.displayName || displayName;
+            lastSequence = override?.lastSequence ?? saved?.lastSequence ?? lastSequence;
+            lastRevision = override?.lastRevision ?? saved?.lastRevision ?? lastRevision;
             resumeAttemptId++;
             cleanupConnection();
             createLobbyConnection();
@@ -130,7 +201,11 @@ export function createMultiplayerGuestBrowser({ url } = {}) {
                 };
                 tick();
             });
-            return lobby.resumeRoom({ roomCode, resumeToken });
+            const result = await lobby.resumeRoom({ roomCode, resumeToken });
+            if (result.type === LobbyMessageType.RESUME_REJECTED) {
+                resumeStore.clear(roomCode);
+            }
+            return result;
         },
         disconnectForReconnect() {
             if (guestSession) {
@@ -150,6 +225,7 @@ export function createMultiplayerGuestBrowser({ url } = {}) {
         },
         destroy() {
             cleanupConnection();
+            lobbySubscribers.clear();
         }
     };
 }

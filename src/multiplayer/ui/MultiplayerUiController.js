@@ -8,7 +8,6 @@ import {
 } from "./MultiplayerUiState.js";
 import { HostLobbyPanel } from "./HostLobbyPanel.js";
 import { GuestJoinPanel } from "./GuestJoinPanel.js";
-import { MultiplayerStatusPanel } from "./MultiplayerStatusPanel.js";
 import { SessionControlPanel } from "./SessionControlPanel.js";
 
 export class MultiplayerUiController {
@@ -23,7 +22,6 @@ export class MultiplayerUiController {
         this.state = createMultiplayerUiModel({ mode });
         this.hostPanel = new HostLobbyPanel(actions);
         this.guestPanel = new GuestJoinPanel(actions);
-        this.statusPanel = new MultiplayerStatusPanel();
         this.sessionPanel = new SessionControlPanel({
             onAction: actions.onAction
         });
@@ -75,9 +73,15 @@ export class MultiplayerUiController {
         }
         if (this.state.mode === MultiplayerMode.GUEST) {
             children.push(this.guestPanel.render(this.state));
+            if (
+                this.state.projection ||
+                this.state.sessionState === MultiplayerSessionState.ACTIVE ||
+                this.state.sessionState === MultiplayerSessionState.GAME_ENDED ||
+                this.state.sessionState === MultiplayerSessionState.RESUMING
+            ) {
+                children.push(this.sessionPanel.render(this.state));
+            }
         }
-        children.push(this.statusPanel.render(this.state));
-        children.push(this.sessionPanel.render(this.state));
         this.root.replaceChildren(...children);
     }
 
@@ -86,7 +90,6 @@ export class MultiplayerUiController {
         this.destroyed = true;
         this.hostPanel.destroy();
         this.guestPanel.destroy();
-        this.statusPanel.destroy();
         this.sessionPanel.destroy();
         this.root?.replaceChildren?.();
     }

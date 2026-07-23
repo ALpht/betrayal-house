@@ -43,13 +43,16 @@ export class SocketTransportEndpoint {
         return this;
     }
 
-    send(message) {
+    send(message, options = {}) {
         if (this.destroyed || !this.socket || !this.socket.connected) {
             return false;
         }
 
         const serializedEnvelope = TransportSerializer.serialize(message);
-        this.socket.emit(TRANSPORT_EVENT, { serializedEnvelope });
+        this.socket.emit(TRANSPORT_EVENT, {
+            serializedEnvelope,
+            targetClientId: options.targetClientId || message.targetClientId || null
+        });
         return true;
     }
 

@@ -36,6 +36,9 @@ if (typeof document === "undefined") {
                     this.children = this.children.filter(c => c !== child);
                     child.parentNode = null;
                 },
+                remove() {
+                    this.parentNode?.removeChild?.(this);
+                },
                 replaceChildren(...children) {
                     this.children = [];
                     children.forEach(child => this.appendChild(child));

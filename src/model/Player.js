@@ -1,12 +1,13 @@
 // src/model/Player.js
 
 import { PlayerStats } from './PlayerStats.js';
+import { createRuntimeId } from '../core/RuntimeId.js';
 
 export class Player {
 
     constructor(character) {
 
-        this.id = crypto.randomUUID();
+        this.id = createRuntimeId();
 
         this.character = character;
 

@@ -914,3 +914,59 @@ Multiplayer Infrastructure Expansion Requires Observed Blocker
 
 New protocol, delivery state, or network framework work requires an observed LAN
 playability blocker. The default M16E fix is UI or lifecycle hardening.
+
+---
+
+# CONSTRAINT-084
+
+Dedicated Host Has No Player Identity
+
+LAN Host must not own playerId, viewerId, assignedPlayer, MultiplayerPlayerBinding,
+PlayerAction controls, private objectives, inventory details, or pending player action.
+
+---
+
+# CONSTRAINT-085
+
+Multi-Guest Rooms Use Fixed Player Count
+
+M16F rooms choose playerCount before creation. The value is both required player count
+and capacity. M16F allows only 2 or 3 Guest players.
+
+---
+
+# CONSTRAINT-086
+
+Roster State Dimensions Are Independent
+
+Roster membership, connection, and readiness must be separate fields. Ready state must
+not be overwritten by reconnect state.
+
+---
+
+# CONSTRAINT-087
+
+Public Roster Must Be Rebuilt
+
+ROOM_ROSTER_UPDATED must be built from an allowlisted public mapper. It must not expose
+resume tokens, raw bindings, socket metadata, runtime, router, snapshot, projection, or
+private player data.
+
+---
+
+# CONSTRAINT-088
+
+Projection Fanout Is Per Viewer
+
+Host must build one viewer-safe projection per connected bound Guest. Reconnecting
+Guests receive no queued history and receive the latest rebuilt projection only after
+resume.
+
+---
+
+# CONSTRAINT-089
+
+Active Guest Leave Is Terminal
+
+Active explicit leave closes the multiplayer session with PLAYER_LEFT_ACTIVE_SESSION.
+It is not a gameplay VictoryResult and must not start reconnect grace.

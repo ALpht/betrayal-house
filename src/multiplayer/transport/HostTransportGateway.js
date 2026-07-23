@@ -105,7 +105,7 @@ export class HostTransportGateway {
                 sequence: message.sequence,
                 actionPayload: message.payload
             });
-            this.#sendActionResult(result);
+            this.#sendActionResult(result, message.senderId);
 
             if (result.shouldPublish) {
                 this.#publishState(message.senderId);
@@ -145,20 +145,20 @@ export class HostTransportGateway {
         }
     }
 
-    #sendTransportError(message) {
+    #sendTransportError(message, targetClientId = null) {
         this.#transport.send(createTransportError({
             sessionId: this.#sessionId,
             message
-        }));
+        }), targetClientId ? { targetClientId } : {});
     }
 
-    #sendActionResult(result) {
+    #sendActionResult(result, targetClientId = null) {
         this.#transport.send(createActionResult({
             sessionId: this.#sessionId,
             sequence: result.sequence,
             accepted: result.accepted,
             reasonCode: result.reasonCode
-        }));
+        }), targetClientId ? { targetClientId } : {});
     }
 
     getLastAcceptedSequence(senderId) {

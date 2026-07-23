@@ -9,29 +9,11 @@ import {
 import { getMultiplayerErrorMessage } from "../multiplayer/ui/MultiplayerErrorMessage.js";
 
 const DEFAULT_SERVER_ADDRESS = "http://localhost:3001";
-
-function createPanelContainers(parent) {
-    const names = ["turn", "character", "action", "scenario", "card", "victory", "status"];
-    const containers = {};
-    const section = document.createElement("section");
-    section.className = "local-panels multiplayer-gameplay";
-    for (const name of names) {
-        const node = name === "action"
-            ? document.createElement("div")
-            : document.createElement("pre");
-        node.className = name === "action"
-            ? "local-panel local-actions"
-            : "local-panel";
-        containers[name] = node;
-        section.appendChild(node);
-    }
-    parent.appendChild(section);
-    return containers;
-}
+const GUEST_MODE_QUERY = "guest";
 
 export function createHostLanGameApp({
     root,
-    url = DEFAULT_SERVER_ADDRESS,
+    url = getDefaultServerAddress(),
     hostFactory = createMultiplayerHostBrowser,
     isCurrent = () => true,
     onReturnToEntry = () => {},
@@ -39,25 +21,26 @@ export function createHostLanGameApp({
 } = {}) {
     let destroyed = false;
     let startPending = false;
+    let playerCount = 2;
     const cleanup = [];
 
     root.innerHTML = "";
     root.className = "local-play-shell multiplayer-shell";
     const uiRoot = document.createElement("section");
-    const gameplayRoot = document.createElement("main");
-    gameplayRoot.className = "local-board";
-    root.append(uiRoot, gameplayRoot);
+    root.append(uiRoot);
 
-    const containers = createPanelContainers(gameplayRoot);
     const host = hostFactory({
-        url,
-        localSessionOptions: { containers }
+        url
     });
     const controller = new MultiplayerUiController({
         root: uiRoot,
         mode: MultiplayerMode.HOST,
         actions: {
-            onCreateRoom: () => createRoom(),
+            onCreateRoom: value => createRoom(value),
+            onPlayerCountChanged: value => {
+                playerCount = value;
+                safeUpdate({ playerCount });
+            },
             onStartSession: () => startSession(),
             onCloseRoom: () => closeRoom(),
             onNewLanGame,
@@ -102,12 +85,21 @@ export function createHostLanGameApp({
             lobbyState,
             sessionState,
             roomCode: state.roomCode,
+            joinUrl: buildJoinUrl({
+                roomCode: state.roomCode,
+                lanAddress: state.lanAddress
+            }),
+            playerCount: state.playerCount || playerCount,
+            capacity: state.capacity || state.playerCount || playerCount,
+            roster: state.roster || [],
+            canStart: Boolean(state.canStart),
+            startDisabledReason: state.startDisabledReason,
             role: state.role || "HOST",
             projection: hostSession?.getProjection?.(clientId) || null,
             statusMessage: state.connectionState === "RECONNECTING"
                 ? "Guest is reconnecting."
-                : peerConnected
-                    ? "Guest connected."
+                : state.roster?.length
+                    ? `${state.roster.length}/${state.playerCount || playerCount} players joined.`
                     : state.roomCode
                         ? "Waiting for Guest."
                         : "Create a room to begin.",
@@ -116,15 +108,45 @@ export function createHostLanGameApp({
         });
     }
 
+    function buildJoinUrl({ roomCode, lanAddress }) {
+        if (!roomCode || typeof window === "undefined") return "";
+        const pageUrl = getJoinPageUrl(lanAddress);
+        if (!pageUrl) return "";
+        const serverUrl = new URL(url, pageUrl.origin);
+        serverUrl.hostname = pageUrl.hostname;
+        pageUrl.search = "";
+        pageUrl.hash = "";
+        pageUrl.searchParams.set("mode", GUEST_MODE_QUERY);
+        pageUrl.searchParams.set("s", serverUrl.toString().replace(/\/$/, ""));
+        pageUrl.searchParams.set("r", String(roomCode).toUpperCase());
+        return pageUrl.toString();
+    }
+
+    function getJoinPageUrl(lanAddress) {
+        const pageUrl = new URL(window.location.href);
+        if (!isLoopbackHost(pageUrl.hostname)) return pageUrl;
+        if (!lanAddress) return null;
+        pageUrl.hostname = lanAddress;
+        return pageUrl;
+    }
+
+    function isLoopbackHost(hostname) {
+        return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+    }
+
     cleanup.push(host.lobby.onMessage((message, state) => updateFromLobby(message, state)));
     updateFromLobby();
 
-    async function createRoom() {
+    async function createRoom(nextPlayerCount = null) {
+        if (nextPlayerCount) {
+            playerCount = nextPlayerCount;
+        }
         safeUpdate({
+            playerCount,
             lobbyState: MultiplayerLobbyState.CREATING,
             statusMessage: "Creating room..."
         });
-        const result = await host.createRoom();
+        const result = await host.createRoom({ playerCount });
         if (!isCurrent() || destroyed) return result;
         updateFromLobby(result, host.lobby.getState());
         return result;
@@ -132,7 +154,7 @@ export function createHostLanGameApp({
 
     async function startSession() {
         const state = host.lobby.getState();
-        if (startPending || state.connectionState === "ACTIVE") return null;
+        if (startPending || state.connectionState === "ACTIVE" || !state.canStart) return null;
         startPending = true;
         safeUpdate({
             startPending,
@@ -195,4 +217,13 @@ export function createHostLanGameApp({
         closeRoom,
         destroy: destroyLocal
     };
+}
+
+function getDefaultServerAddress() {
+    if (typeof window === "undefined") return DEFAULT_SERVER_ADDRESS;
+    const pageUrl = new URL(window.location.href);
+    if (pageUrl.hostname === "localhost" || pageUrl.hostname === "127.0.0.1" || pageUrl.hostname === "::1") {
+        return DEFAULT_SERVER_ADDRESS;
+    }
+    return `${pageUrl.protocol}//${pageUrl.hostname}:3001`;
 }

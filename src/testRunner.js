@@ -278,6 +278,41 @@ import {
 }
 from "./test/MultiplayerUiLifecycleTest.js";
 
+import {
+    runDedicatedHostSeparationTest
+}
+from "./test/DedicatedHostSeparationTest.js";
+
+import {
+    runMultiGuestLobbyTest
+}
+from "./test/MultiGuestLobbyTest.js";
+
+import {
+    runMultiGuestActionSyncTest
+}
+from "./test/MultiGuestActionSyncTest.js";
+
+import {
+    runMultiGuestBrowserSmokeRegressionTest
+}
+from "./test/MultiGuestBrowserSmokeRegressionTest.js";
+
+import {
+    runLanAddressResolverTest
+}
+from "./test/LanAddressResolverTest.js";
+
+import {
+    runRuntimeIdTest
+}
+from "./test/RuntimeIdTest.js";
+
+import {
+    runGuestResumeStoreTest
+}
+from "./test/GuestResumeStoreTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -334,3 +369,10 @@ await runMultiplayerLobbyUiTest();
 runMultiplayerSessionUiTest();
 await runMultiplayerReconnectUiTest();
 runMultiplayerUiLifecycleTest();
+runDedicatedHostSeparationTest();
+runMultiGuestLobbyTest();
+runMultiGuestActionSyncTest();
+await runMultiGuestBrowserSmokeRegressionTest();
+runLanAddressResolverTest();
+runRuntimeIdTest();
+runGuestResumeStoreTest();

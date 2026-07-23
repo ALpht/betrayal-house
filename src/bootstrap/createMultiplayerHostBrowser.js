@@ -3,10 +3,12 @@ import { LobbyClient } from "../multiplayer/lobby/LobbyClient.js";
 import { SessionControlMessageType } from "../multiplayer/lobby/LobbyMessageType.js";
 import { SocketTransportEndpoint } from "../multiplayer/socket/SocketTransportEndpoint.js";
 import { createSocketHostGameSession } from "../multiplayer/session/createSocketHostGameSession.js";
+import { createRuntimeId } from "../core/RuntimeId.js";
 
 export function createMultiplayerHostBrowser({
     url,
-    localSessionOptions = {}
+    localSessionOptions = {},
+    initialScenarioId = "relicEscape"
 } = {}) {
     const socket = io(url, {
         transports: ["websocket"],
@@ -18,15 +20,55 @@ export function createMultiplayerHostBrowser({
     const lobby = new LobbyClient({ url, socket }).connect();
     let transport = null;
     let hostSession = null;
-    let guestClientId = null;
+    let guestRoster = [];
+    const connectionIdsByGuestId = new Map();
 
     lobby.onMessage(message => {
         if (message?.type === "PEER_CONNECTED") {
-            guestClientId = message.payload?.clientId || null;
+            const guestId = message.payload?.guestId;
+            const connectionId = message.payload?.clientId;
+            if (guestId && connectionId) {
+                connectionIdsByGuestId.set(guestId, connectionId);
+            }
+        }
+
+        if (
+            message?.type === "PEER_CONNECTED" ||
+            message?.type === "ROOM_ROSTER_UPDATED"
+        ) {
+            const roster = message.payload?.room?.roster || guestRoster;
+            guestRoster = roster.map(member => ({
+                ...member,
+                currentConnectionId: connectionIdsByGuestId.get(member.guestId) ||
+                    member.currentConnectionId ||
+                    null
+            }));
+        }
+
+        if (message?.type === SessionControlMessageType.PEER_RESUMED) {
+            const guestId = message.payload?.guestId;
+            const oldConnectionId = message.payload?.previousConnectionId;
+            const newConnectionId = message.payload?.clientId;
+            hostSession?.restoreGuestConnection?.({
+                guestId,
+                oldConnectionId,
+                newConnectionId
+            });
+            if (guestId && newConnectionId) {
+                connectionIdsByGuestId.set(guestId, newConnectionId);
+            }
+            guestRoster = guestRoster.map(member =>
+                member.guestId === guestId
+                    ? { ...member, currentConnectionId: newConnectionId }
+                    : member
+            );
         }
 
         if (message?.type === SessionControlMessageType.SESSION_CLOSED) {
             transport?.destroy();
+            hostSession?.destroy();
+            hostSession = null;
+            transport = null;
         }
 
         if (message?.type === SessionControlMessageType.RESUME_SESSION) {
@@ -42,26 +84,28 @@ export function createMultiplayerHostBrowser({
             }
 
             lobby.sendSessionResumed(hostSession.sessionId);
-            lobby.sendPlayerBinding(hostSession.getPlayerBinding(senderId));
-            hostSession.publishGuestState();
+            const binding = hostSession.getPlayerBinding(senderId);
+            lobby.sendPlayerBinding(binding, { targetClientId: senderId });
+            hostSession.publishGuestState(senderId);
         }
     });
 
     return {
         lobby,
-        async createRoom() {
-            return lobby.createRoom();
+        async createRoom(options = {}) {
+            return lobby.createRoom(options);
         },
         async closeRoom() {
             return lobby.closeRoom();
         },
         async activateSession() {
             const lobbyState = lobby.getState();
-            if (!guestClientId) {
-                throw new Error("Guest must join before session activation");
+            const roster = guestRoster.length ? guestRoster : lobbyState.roster || [];
+            if (!Array.isArray(roster) || roster.length < 1) {
+                throw new Error("Guest roster must be complete before session activation");
             }
 
-            const sessionId = `session-${crypto.randomUUID()}`;
+            const sessionId = createRuntimeId("session");
             transport = new SocketTransportEndpoint({
                 url,
                 socket: lobby.socket,
@@ -71,15 +115,37 @@ export function createMultiplayerHostBrowser({
                 transport,
                 sessionId,
                 hostClientId: lobbyState.clientId,
-                guestClientId,
+                guestRoster: roster.map(member => ({
+                    guestId: member.guestId,
+                    currentConnectionId: member.currentConnectionId,
+                    displayName: member.displayName,
+                    joinOrder: member.joinOrder
+                })),
                 localSessionOptions
             }).start();
-            const activation = await lobby.activateSession(sessionId);
+            const publicAssignments = hostSession.getPublicAssignments();
+            for (const assignment of publicAssignments) {
+                const member = roster.find(candidate => candidate.guestId === assignment.guestId);
+                if (member) {
+                    member.playerId = assignment.playerId;
+                    member.publicPlayerName = assignment.publicPlayerName;
+                    member.publicCharacterName = assignment.publicCharacterName;
+                }
+            }
+            const activation = await lobby.activateSession(sessionId, publicAssignments);
             if (activation.type !== SessionControlMessageType.SESSION_STARTED) {
+                hostSession.destroy();
+                hostSession = null;
                 throw new Error("Session activation rejected");
             }
 
-            lobby.sendPlayerBinding(hostSession.getGuestBinding());
+            for (const member of roster) {
+                const binding = hostSession.getPlayerBinding(member.currentConnectionId);
+                lobby.sendPlayerBinding(binding, { targetClientId: member.currentConnectionId });
+            }
+            if (initialScenarioId) {
+                hostSession.localSession.startScenario(initialScenarioId);
+            }
             hostSession.publishInitialGuestState();
             return { activation, hostSession };
         },

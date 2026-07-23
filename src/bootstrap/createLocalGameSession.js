@@ -194,9 +194,9 @@ export function createLocalGameSession({
     }
 
     function createPlayers(entrance) {
-        const uniqueIds = [...new Set(characterIds)].slice(0, 2);
-        if (uniqueIds.length !== 2) {
-            throw new Error("Local play requires two unique characters");
+        const uniqueIds = [...new Set(characterIds)];
+        if (uniqueIds.length < 2) {
+            throw new Error("Local play requires at least two unique characters");
         }
 
         for (const id of uniqueIds) {

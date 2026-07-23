@@ -1,4 +1,5 @@
 import { createButton, createElement } from "./MultiplayerDom.js";
+import { getDisabledReasonText } from "./MultiplayerDisabledReason.js";
 
 export class SessionControlPanel {
     constructor({
@@ -12,18 +13,37 @@ export class SessionControlPanel {
         const actionButtons = model.actions.map(action => createButton(
             action.label,
             () => this.onAction(action),
-            { disabled: !action.enabled || Boolean(model.disabledReason) }
+            {
+                disabled: !action.enabled || Boolean(model.disabledReason),
+                className: "local-command multiplayer-action-button"
+            }
         ));
-        const latestCard = Array.isArray(model.projection?.cards) && model.projection.cards.length > 0
-            ? JSON.stringify(model.projection.cards[model.projection.cards.length - 1], null, 2)
-            : "No visible card";
-
-        this.container.replaceChildren(
-            createElement("h2", "", "Session"),
-            createElement("pre", "local-panel", model.projection?.scenario?.title || "Waiting for session"),
-            createElement("pre", "local-panel", `Latest visible card:\n${latestCard}`),
+        const cards = Array.isArray(model.projection?.cards) ? model.projection.cards : [];
+        const latestCard = cards.at(-1);
+        const actionSection = createElement("section", "multiplayer-action-list");
+        actionSection.replaceChildren(
+            createElement("h3", "", model.actions.length ? "Your Actions" : "Waiting"),
+            ...(model.disabledReason
+                ? [createElement("p", "multiplayer-turn-note", getDisabledReasonText(model.disabledReason))]
+                : []),
             ...actionButtons
         );
+
+        const children = [
+            createElement("p", "multiplayer-public-kicker", "Personal Controller"),
+            createElement("h2", "", model.projection?.scenario?.title || "Game Session"),
+            actionSection
+        ];
+        if (latestCard) {
+            const card = createElement("section", "multiplayer-visible-card");
+            card.replaceChildren(
+                createElement("h3", "", "Latest Card"),
+                createElement("pre", "", JSON.stringify(latestCard, null, 2))
+            );
+            children.push(card);
+        }
+
+        this.container.replaceChildren(...children);
         return this.container;
     }
 

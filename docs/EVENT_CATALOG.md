@@ -129,3 +129,11 @@ M16C lobby and session control messages are also not EventBus gameplay events:
 - RESUME_FAILED
 
 See `MULTIPLAYER_LOBBY_CONTRACT.md` and `SOCKET_TRANSPORT_CONTRACT.md`.
+
+M16F adds these socket lobby/session messages. They are not gameplay EventBus events:
+
+- PLAYER_READY
+- ROOM_ROSTER_UPDATED
+
+M16F reason codes such as ROOM_FULL, ROSTER_INCOMPLETE, PLAYER_DISCONNECTED, and
+PLAYER_LEFT_ACTIVE_SESSION are lobby/session result reasons, not gameplay events.

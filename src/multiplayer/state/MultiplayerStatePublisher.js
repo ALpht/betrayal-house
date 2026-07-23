@@ -17,7 +17,7 @@ export class MultiplayerStatePublisher {
         this.#revision = 0;
     }
 
-    publish(viewerId) {
+    publish(viewerId, { targetClientId = null } = {}) {
         this.#revision += 1;
         const message = {
             type: TransportMessageType.STATE_UPDATED,
@@ -28,12 +28,12 @@ export class MultiplayerStatePublisher {
             }
         };
 
-        this.#sendState(message);
+        this.#sendState(message, { targetClientId });
         return message;
     }
 
-    publishGuestState(viewerId) {
-        return this.publish(viewerId);
+    publishGuestState(viewerId, options = {}) {
+        return this.publish(viewerId, options);
     }
 
     getRevision() {
