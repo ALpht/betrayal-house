@@ -356,3 +356,18 @@ first recovery STATE_UPDATED revision >= previousLastRevision
 
 The recovery exception is one-time only. Normal monotonic revision checks resume after
 the baseline is accepted.
+
+## M16F Dedicated Host And Multi-Guest Addendum
+
+M16F removes Host player binding from LAN multiplayer. Host remains gameplay authority
+but is not a player and cannot submit PlayerAction.
+
+Bindings are created for Guests only:
+
+```text
+guestId -> playerId
+```
+
+The authoritative Host session creates one local runtime and publishes one viewer-safe
+projection per connected bound Guest. Accepted Guest action publishes updated state to
+all connected Guests.

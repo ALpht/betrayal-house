@@ -58,10 +58,6 @@ export class MultiplayerActionCoordinator {
             return rejectedResult(sequence, ActionResultReasonCode.IDENTITY_MISMATCH);
         }
 
-        if (senderId !== binding.clientId) {
-            return rejectedResult(sequence, ActionResultReasonCode.IDENTITY_MISMATCH);
-        }
-
         if (actionPayload?.playerId !== binding.playerId) {
             return rejectedResult(sequence, ActionResultReasonCode.IDENTITY_MISMATCH);
         }

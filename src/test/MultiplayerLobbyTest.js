@@ -33,7 +33,7 @@ export function runMultiplayerLobbyTest() {
             created.ok &&
                 created.room.roomId === "room-1" &&
                 created.room.roomCode === "AAAA" &&
-                created.room.status === LobbyRoomStatus.WAITING,
+                created.room.status === LobbyRoomStatus.WAITING_FOR_PLAYERS,
             "Case 1: Host creates waiting room with roomId and roomCode"
         );
         assert(
@@ -75,24 +75,26 @@ export function runMultiplayerLobbyTest() {
         const room = registry.createRoom("host").room;
         const joined = registry.joinRoom({
             roomCode: room.roomCode,
-            guestClientId: "guest"
+            guestClientId: "guest",
+            displayName: "Guest"
         });
         const full = registry.joinRoom({
             roomCode: room.roomCode,
-            guestClientId: "late-guest"
+            guestClientId: "late-guest",
+            displayName: "Late Guest"
         });
         const duplicate = registry.createRoom("guest");
 
         assert(
             joined.ok &&
-                room.status === LobbyRoomStatus.READY &&
-                room.guestClientId === "guest",
-            "Case 4: Guest join marks room READY"
+                room.status === LobbyRoomStatus.WAITING_FOR_PLAYERS &&
+                room.getOrderedActiveMembers().some(member => member.displayName === "Guest"),
+            "Case 4: Guest join adds roster member without stored READY state"
         );
         assert(
-            full.code === LobbyErrorCode.ROOM_FULL &&
+            full.ok === true &&
                 duplicate.code === LobbyErrorCode.ALREADY_IN_ROOM,
-            "Case 5: Room full and one-client/one-room are enforced"
+            "Case 5: Default 2-player room accepts second Guest and one-client/one-room is enforced"
         );
     } catch (e) {
         failed++;
@@ -103,7 +105,8 @@ export function runMultiplayerLobbyTest() {
         const registry = new LobbyRegistry();
         const missing = registry.joinRoom({
             roomCode: "NOPE",
-            guestClientId: "guest"
+            guestClientId: "guest",
+            displayName: "Guest"
         });
 
         assert(
@@ -121,19 +124,18 @@ export function runMultiplayerLobbyTest() {
             roomCode: "ABCD",
             hostClientId: "host"
         });
-        room.markGuestJoined("guest");
+        room.addGuest({ connectionId: "guest-a", displayName: "A" });
+        room.addGuest({ connectionId: "guest-b", displayName: "B" });
+        room.markReady("guest-a", true);
+        room.markReady("guest-b", true);
         room.activate("session-1");
-        let activeToReadyRejected = false;
-        try {
-            room.markGuestLeft();
-        } catch (_error) {
-            activeToReadyRejected = true;
-        }
+        const left = room.markGuestLeft("guest-a");
 
         assert(
             room.status === LobbyRoomStatus.CLOSED &&
-                activeToReadyRejected === false,
-            "Case 7: ACTIVE guest leave closes room instead of returning READY"
+                left.membershipState === "LEFT" &&
+                room.closeReasonCode === "PLAYER_LEFT_ACTIVE_SESSION",
+            "Case 7: ACTIVE guest leave closes room with terminal reason"
         );
     } catch (e) {
         failed++;
@@ -146,7 +148,10 @@ export function runMultiplayerLobbyTest() {
             roomCode: "ABCD",
             hostClientId: "host"
         });
-        room.markGuestJoined("guest");
+        room.addGuest({ connectionId: "guest-a", displayName: "A" });
+        room.addGuest({ connectionId: "guest-b", displayName: "B" });
+        room.markReady("guest-a", true);
+        room.markReady("guest-b", true);
         let rejected = false;
         try {
             room.activate("same-id");
@@ -166,14 +171,14 @@ export function runMultiplayerLobbyTest() {
     try {
         const registry = new LobbyRegistry();
         const room = registry.createRoom("host").room;
-        registry.joinRoom({ roomCode: room.roomCode, guestClientId: "guest" });
+        registry.joinRoom({ roomCode: room.roomCode, guestClientId: "guest", displayName: "Guest" });
         const left = registry.leaveClient("guest");
 
         assert(
             left.closed === false &&
-                room.status === LobbyRoomStatus.WAITING &&
-                room.guestClientId === null,
-            "Case 9: READY guest disconnect returns room to WAITING"
+                room.status === LobbyRoomStatus.WAITING_FOR_PLAYERS &&
+                room.getOrderedActiveMembers().length === 0,
+            "Case 9: Waiting-room guest disconnect removes roster member"
         );
     } catch (e) {
         failed++;

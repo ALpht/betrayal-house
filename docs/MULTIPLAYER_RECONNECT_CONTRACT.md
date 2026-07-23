@@ -231,3 +231,17 @@ state.
 
 Host disconnect is terminal: room closes, reservation invalidates, token invalidates,
 and Guest ends closed if reachable.
+
+## M16F Per-Guest Reconnect Addendum
+
+Reconnect is member-level, not room-level:
+
+```text
+Guest B RECONNECTING
+Guest A/C remain CONNECTED
+Room remains ACTIVE
+```
+
+Resume restores the stable guestId and existing player binding while replacing the
+current connection identity. Reconnecting Guests receive no projection history; the Host
+rebuilds and sends the latest viewer-safe projection after resume.

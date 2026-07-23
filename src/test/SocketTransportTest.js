@@ -7,8 +7,18 @@ import {
 import { TransportMessageType } from "../multiplayer/transport/TransportMessageType.js";
 import { SocketTransportEndpoint } from "../multiplayer/socket/SocketTransportEndpoint.js";
 
-function once(socket, event) {
-    return new Promise(resolve => socket.once(event, resolve));
+function once(socket, event, timeoutMs = 1000) {
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+            socket.off(event, handler);
+            reject(new Error(`Timed out waiting for ${event}`));
+        }, timeoutMs);
+        function handler(message) {
+            clearTimeout(timer);
+            resolve(message);
+        }
+        socket.once(event, handler);
+    });
 }
 
 function connectClient(url) {
@@ -19,11 +29,15 @@ function connectClient(url) {
         forceNew: true,
         multiplex: false
     });
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
         let assigned = null;
         let connected = false;
+        const timer = setTimeout(() => {
+            reject(new Error("Timed out waiting for socket connection"));
+        }, 1000);
         function maybeResolve() {
             if (connected && assigned) {
+                clearTimeout(timer);
                 resolve({ socket, assigned });
             }
         }
@@ -78,25 +92,37 @@ export async function runSocketTransportTest() {
     let server;
     let hostSocket;
     let guestSocket;
+    let guestSocketB;
 
     try {
         server = await new MultiplayerSocketServer({ port: 0 }).start();
         const url = `http://localhost:${server.getPort()}`;
         const hostConnection = await connectClient(url);
         const guestConnection = await connectClient(url);
+        const guestConnectionB = await connectClient(url);
         hostSocket = hostConnection.socket;
         guestSocket = guestConnection.socket;
+        guestSocketB = guestConnectionB.socket;
         const hostAssigned = hostConnection.assigned;
         const guestAssigned = guestConnection.assigned;
         const hostClientId = hostAssigned.payload.clientId;
         const guestClientId = guestAssigned.payload.clientId;
 
-        const created = await lobbyRequest(hostSocket, LobbyMessageType.CREATE_ROOM);
+        const created = await lobbyRequest(hostSocket, LobbyMessageType.CREATE_ROOM, {
+            playerCount: 2
+        });
         const joinedPromise = lobbyRequest(guestSocket, LobbyMessageType.JOIN_ROOM, {
-            roomCode: created.payload.room.roomCode
+            roomCode: created.payload.room.roomCode,
+            displayName: "A"
         });
         await once(hostSocket, "lobby:response");
         await joinedPromise;
+        await lobbyRequest(guestSocketB, LobbyMessageType.JOIN_ROOM, {
+            roomCode: created.payload.room.roomCode,
+            displayName: "B"
+        });
+        await lobbyRequest(guestSocket, LobbyMessageType.PLAYER_READY, { ready: true });
+        await lobbyRequest(guestSocketB, LobbyMessageType.PLAYER_READY, { ready: true });
         const started = await lobbyRequest(hostSocket, SessionControlMessageType.ACTIVATE_SESSION, {
             sessionId: "session-socket-test"
         });
@@ -144,7 +170,7 @@ export async function runSocketTransportTest() {
                 accepted: true,
                 reasonCode: null
             }
-        });
+        }, { targetClientId: guestClientId });
         await new Promise(resolve => setTimeout(resolve, 20));
 
         assert(
@@ -170,12 +196,14 @@ export async function runSocketTransportTest() {
 
         hostEndpoint.destroy();
         guestEndpoint.destroy();
+        guestSocketB.disconnect();
     } catch (e) {
         failed++;
         console.log("[FAIL] Socket transport cases threw", e.message);
     } finally {
         hostSocket?.disconnect();
         guestSocket?.disconnect();
+        guestSocketB?.disconnect();
         await server?.stop();
         await server?.stop();
     }

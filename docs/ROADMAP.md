@@ -712,3 +712,103 @@ M16E explicitly defers:
 - authentication
 - matchmaking
 - server gameplay authority
+
+# M16F Addendum - Dedicated Host & Multi-Guest LAN Foundation
+
+Status: ✓ COMPLETE
+
+Mission:
+
+```text
+Dedicated Host PC
++ 2-3 Guest player devices
++ one authoritative session
++ per-Guest viewer-safe projections
+```
+
+M16F deliverables:
+
+- Fixed 2/3 Guest room player count
+- Multi-Guest public roster
+- Dedicated Host with no player identity
+- Stable guestId separated from connection identity
+- Immediate character assignment on QR join; no Ready confirmation step
+- Guest-to-Player binding registry
+- Per-viewer projection fanout
+- Independent Guest reconnect lifecycle
+- Persistent device resume token with page-refresh identity recovery
+- Live Host PLAYING / RECONNECTING / OFFLINE monitoring
+- Active leave terminal reason
+- Automatic private LAN IPv4 detection and QR hostname injection
+- LAN-accessible Vite development server
+- Host switches from QR lobby to the public map stage after session start
+- Multi-Guest LAN manual test plan
+
+M16F explicitly defers:
+
+- same-room restart
+- mid-game player replacement
+- spectators
+- AI takeover
+- host reconnect or migration
+- reliable delivery
+- action replay
+- projection replay
+- internet matchmaking
+- authentication
+- chat
+
+## M16 Series Closure
+
+Status: ✓ COMPLETE
+
+Final review conclusion:
+
+```text
+M16F POST-DEVELOPMENT REPORT: APPROVED
+IMPLEMENTATION: COMPLETE
+AUTOMATED VALIDATION: PASS
+LAN BROWSER FLOW: PASS
+PHYSICAL DEVICE VALIDATION: ACCEPTED
+REMAINING M16 CODE BLOCKERS: NONE
+```
+
+M16 is formally closed. There is no planned M16G.
+
+The completed M16 platform owns:
+
+- Dedicated authoritative Host
+- Fixed 2/3-Guest LAN rooms
+- LAN IP detection and QR joining
+- Stable guestId / connectionId / playerId identity layers
+- Per-viewer private projections
+- Player binding and action ownership
+- Independent Guest reconnect and page-refresh resume
+- Host public map mode and live connection monitoring
+
+Future work must extend this platform rather than reopen Lobby, Binding, Reconnect,
+or Session foundations without a new verified architectural requirement.
+
+## Proposed M17 - Multiplayer Game Experience
+
+Status: PROPOSED
+
+```text
+M17A  HostMapProjection
+      Public map DTO
+
+M17B  Host Tile Renderer
+      Render the discovered House on the Host
+
+M17C  Player Position Projection
+      Public player markers and positions
+
+M17D  Movement / Explore Rendering
+      Live public movement and exploration updates
+
+M17E  End Game / Result / Rematch UI
+      Multiplayer completion and next-game lifecycle
+```
+
+M17 uses the completed M16 multiplayer platform. It is not an extension of the M16
+foundation milestone.

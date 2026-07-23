@@ -237,3 +237,37 @@ Host sends close request
 ```
 
 Close requests must be sent before local socket destruction.
+
+## M16F Multi-Guest Lobby Addendum
+
+M16F replaces the one-Guest slot with a fixed-size public roster.
+
+```text
+playerCount = required player count = capacity
+allowed values: 2 or 3
+```
+
+Stored lifecycle:
+
+```text
+WAITING_FOR_PLAYERS
+ACTIVE
+CLOSED
+```
+
+Start eligibility is derived from roster count, connection state, readiness, and unique
+member identity. READY is not stored as a room lifecycle state.
+
+Public roster updates must exclude resume tokens, socket metadata, raw binding
+credentials, runtime, router, snapshot, projection, and private player state.
+
+The initial `CLIENT_ASSIGNED` handshake may include public Host connection metadata:
+
+```text
+lanAddress       -> detected private Host IPv4 address, or null
+socketServerPort -> listening Socket.IO port
+```
+
+This metadata is routing information only. It is used by the Host browser to build a
+mobile-reachable QR join URL when the Host page itself was opened through `localhost`.
+It does not identify a player and must not be stored in the public roster.

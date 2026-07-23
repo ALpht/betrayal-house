@@ -24,6 +24,9 @@ export function installTestDom() {
                 this.children = this.children.filter(node => node !== child);
                 child.parentNode = null;
             },
+            remove() {
+                this.parentNode?.removeChild?.(this);
+            },
             replaceChildren(...nodes) {
                 this.children.forEach(child => { child.parentNode = null; });
                 this.children = [];

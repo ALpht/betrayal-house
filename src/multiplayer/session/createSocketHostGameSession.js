@@ -1,4 +1,5 @@
 import { createLocalGameSession } from "../../bootstrap/createLocalGameSession.js";
+import { CharacterDefinitions } from "../../data/CharacterDefinitions.js";
 import { HostTransportGateway } from "../transport/HostTransportGateway.js";
 import { MultiplayerProjectionBuilder } from "../state/MultiplayerProjectionBuilder.js";
 import { MultiplayerStatePublisher } from "../state/MultiplayerStatePublisher.js";
@@ -7,24 +8,52 @@ import {
     MultiplayerPlayerBinding,
     MultiplayerPlayerRole
 } from "./MultiplayerPlayerBinding.js";
+import { MultiplayerPlayerBindingRegistry } from "./MultiplayerPlayerBindingRegistry.js";
+import { createRuntimeId } from "../../core/RuntimeId.js";
 
 function createSessionId() {
-    return `session-${crypto.randomUUID()}`;
+    return createRuntimeId("session");
+}
+
+function normalizeRoster(roster = []) {
+    return [...roster]
+        .filter(member => member?.guestId && member?.currentConnectionId)
+        .sort((a, b) => a.joinOrder - b.joinOrder);
+}
+
+function defaultCharacterIds(count) {
+    return CharacterDefinitions.slice(0, count).map(character => character.id);
 }
 
 export function createSocketHostGameSession({
     transport,
     sessionId = createSessionId(),
     hostClientId,
-    guestClientId,
+    guestClientId = null,
+    guestRoster = null,
     localSessionOptions = {}
 } = {}) {
-    if (!hostClientId || !guestClientId) {
-        throw new Error("Socket host session requires hostClientId and guestClientId");
+    const roster = normalizeRoster(
+        guestRoster ||
+        (guestClientId
+            ? [{
+                guestId: guestClientId,
+                currentConnectionId: guestClientId,
+                displayName: "Guest",
+                joinOrder: 1
+            }]
+            : [])
+    );
+
+    if (!hostClientId || roster.length < 1) {
+        throw new Error("Socket host session requires hostClientId and at least one guest");
     }
 
-    const localSession = createLocalGameSession(localSessionOptions);
-    const bindings = new Map();
+    const localSession = createLocalGameSession({
+        ...localSessionOptions,
+        characterIds: localSessionOptions.characterIds || defaultCharacterIds(roster.length)
+    });
+    const bindingRegistry = new MultiplayerPlayerBindingRegistry();
     let destroyed = false;
     let publishFailure = null;
 
@@ -40,30 +69,27 @@ export function createSocketHostGameSession({
     }
 
     function createBindings() {
-        bindings.clear();
+        bindingRegistry.clear();
         const players = localSession.getPlayerManager().getAllPlayers();
-        const hostPlayer = players[0] || null;
-        const guestPlayer = players[1] || null;
-        if (!hostPlayer || !guestPlayer) {
-            throw new Error("Socket host session requires two local players");
+        if (players.length < roster.length) {
+            throw new Error("Socket host session could not create enough players");
         }
 
-        const hostBinding = new MultiplayerPlayerBinding({
-            sessionId,
-            clientId: hostClientId,
-            playerId: hostPlayer.id,
-            viewerId: hostPlayer.id,
-            role: MultiplayerPlayerRole.HOST
+        roster.forEach((member, index) => {
+            const player = players[index];
+            const binding = new MultiplayerPlayerBinding({
+                sessionId,
+                clientId: member.guestId,
+                playerId: player.id,
+                viewerId: player.id,
+                role: MultiplayerPlayerRole.GUEST
+            });
+            bindingRegistry.bind({
+                guestId: member.guestId,
+                connectionId: member.currentConnectionId,
+                binding
+            });
         });
-        const guestBinding = new MultiplayerPlayerBinding({
-            sessionId,
-            clientId: guestClientId,
-            playerId: guestPlayer.id,
-            viewerId: guestPlayer.id,
-            role: MultiplayerPlayerRole.GUEST
-        });
-        bindings.set(hostBinding.clientId, hostBinding);
-        bindings.set(guestBinding.clientId, guestBinding);
     }
 
     const projectionBuilder = new MultiplayerProjectionBuilder({
@@ -77,8 +103,10 @@ export function createSocketHostGameSession({
     const publisher = new MultiplayerStatePublisher({
         sessionId,
         getProjection: viewerId => projectionBuilder.build(viewerId),
-        sendState: message => {
-            const sent = transport.send(message);
+        sendState: (message, options = {}) => {
+            const sent = transport.send(message, {
+                targetClientId: options.targetClientId
+            });
             if (!sent) {
                 publishFailure = {
                     code: "PUBLISH_FAILED",
@@ -88,7 +116,8 @@ export function createSocketHostGameSession({
         }
     });
     const coordinator = new MultiplayerActionCoordinator({
-        getPlayerBinding: clientId => bindings.get(clientId) || null,
+        getPlayerBinding: connectionId =>
+            bindingRegistry.resolveByConnectionId(connectionId) || null,
         executeAuthoritativeAction,
         isGameEnded: () => localSession.isGameEnded()
     });
@@ -96,20 +125,18 @@ export function createSocketHostGameSession({
         transport,
         sessionId,
         executeAction: action => localSession.dispatchScenarioAction(action),
-        publishState: viewerClientId => {
-            const binding = bindings.get(viewerClientId);
-            if (binding) {
-                publisher.publishGuestState(binding.viewerId);
-            }
+        publishState: () => {
+            session.publishAllGuestStates();
         },
         actionCoordinator: coordinator
     }).init();
 
-    return {
+    const session = {
         localSession,
         gateway,
         publisher,
         coordinator,
+        bindingRegistry,
         sessionId,
         start() {
             if (destroyed) {
@@ -119,32 +146,71 @@ export function createSocketHostGameSession({
             createBindings();
             return this;
         },
-        getPlayerBinding(clientId) {
-            return bindings.get(clientId) || null;
+        getPlayerBinding(connectionOrGuestId) {
+            return bindingRegistry.resolveByConnectionId(connectionOrGuestId) ||
+                bindingRegistry.resolveByGuestId(connectionOrGuestId);
         },
         getPlayerBindings() {
-            return [...bindings.values()];
+            return bindingRegistry.getAll();
         },
-        getGuestBinding() {
-            return bindings.get(guestClientId) || null;
+        getGuestBinding(connectionOrGuestId = guestClientId) {
+            return this.getPlayerBinding(connectionOrGuestId);
+        },
+        restoreGuestConnection({ guestId, oldConnectionId, newConnectionId }) {
+            const member = roster.find(candidate => candidate.guestId === guestId);
+            if (member) {
+                member.currentConnectionId = newConnectionId;
+            }
+            return bindingRegistry.replaceConnection({
+                guestId,
+                oldConnectionId,
+                newConnectionId
+            });
+        },
+        getPublicAssignments() {
+            const players = localSession.getPlayerManager().getAllPlayers();
+            return roster.map((member, index) => {
+                const player = players[index] || null;
+                return {
+                    guestId: member.guestId,
+                    connectionId: member.currentConnectionId,
+                    playerId: player?.id || null,
+                    publicPlayerName: player?.name || null,
+                    publicCharacterName: player?.character?.name || player?.name || null
+                };
+            });
         },
         publishInitialGuestState() {
-            const binding = bindings.get(guestClientId);
-            return binding ? publisher.publishGuestState(binding.viewerId) : null;
+            return this.publishAllGuestStates();
         },
-        publishGuestState() {
-            const binding = bindings.get(guestClientId);
-            return binding ? publisher.publishGuestState(binding.viewerId) : null;
+        publishGuestState(connectionOrGuestId = guestClientId) {
+            const binding = this.getPlayerBinding(connectionOrGuestId);
+            const member = roster.find(candidate =>
+                candidate.guestId === connectionOrGuestId ||
+                candidate.currentConnectionId === connectionOrGuestId ||
+                candidate.guestId === binding?.clientId
+            );
+            const targetClientId = member?.currentConnectionId || connectionOrGuestId;
+            return binding
+                ? publisher.publishGuestState(binding.viewerId, { targetClientId })
+                : null;
+        },
+        publishAllGuestStates({ connectedClientIds = null } = {}) {
+            const allowed = connectedClientIds ? new Set(connectedClientIds) : null;
+            return roster
+                .filter(member => !allowed || allowed.has(member.currentConnectionId))
+                .map(member => this.publishGuestState(member.currentConnectionId))
+                .filter(Boolean);
         },
         executeAndPublish({ action }) {
             const result = executeAuthoritativeAction(action);
             if (result.accepted) {
-                this.publishGuestState();
+                this.publishAllGuestStates();
             }
             return result;
         },
-        getProjection(clientId) {
-            const binding = bindings.get(clientId);
+        getProjection(connectionOrGuestId) {
+            const binding = this.getPlayerBinding(connectionOrGuestId);
             return binding ? projectionBuilder.build(binding.viewerId) : null;
         },
         getPublishFailure() {
@@ -156,9 +222,11 @@ export function createSocketHostGameSession({
             }
             destroyed = true;
             gateway.destroy();
-            bindings.clear();
+            bindingRegistry.clear();
             localSession.destroy();
             transport.destroy?.();
         }
     };
+
+    return session;
 }

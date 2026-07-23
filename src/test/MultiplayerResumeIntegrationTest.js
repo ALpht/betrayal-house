@@ -93,6 +93,7 @@ export async function runMultiplayerResumeIntegrationTest() {
     let server;
     let hostBrowser;
     let guestBrowser;
+    let guestBrowserB;
 
     try {
         server = await new MultiplayerSocketServer({ port: 0, reconnectGraceMs: 2000 }).start();
@@ -105,33 +106,39 @@ export async function runMultiplayerResumeIntegrationTest() {
             }
         });
         guestBrowser = createMultiplayerGuestBrowser({ url });
+        guestBrowserB = createMultiplayerGuestBrowser({ url });
 
         await waitUntil(() => hostBrowser.lobby.getState().clientId);
         await waitUntil(() => guestBrowser.lobby.getState().clientId);
-        const created = await hostBrowser.createRoom();
-        await guestBrowser.joinRoom(created.payload.room.roomCode);
-        await waitUntil(() => hostBrowser.lobby.getState().peerConnected);
+        await waitUntil(() => guestBrowserB.lobby.getState().clientId);
+        const created = await hostBrowser.createRoom({ playerCount: 2 });
+        await guestBrowser.joinRoom({
+            roomCode: created.payload.room.roomCode,
+            displayName: "A"
+        });
+        await guestBrowserB.joinRoom({
+            roomCode: created.payload.room.roomCode,
+            displayName: "B"
+        });
+        await guestBrowser.setReady(true);
+        await guestBrowserB.setReady(true);
+        await waitUntil(() => hostBrowser.lobby.getState().canStart);
         const { hostSession } = await hostBrowser.activateSession();
-        await waitUntil(() => guestBrowser.getGuestSession()?.getState().revision === 1);
+        await waitUntil(() => guestBrowser.getGuestSession()?.getState().revision >= 1);
+        await waitUntil(() => guestBrowserB.getGuestSession()?.getState().revision >= 1);
 
         const guestSession = guestBrowser.getGuestSession();
-        const guestBinding = hostSession.getGuestBinding();
-        const hostBinding = hostSession.getPlayerBindings()
-            .find(binding => binding.role === "HOST");
+        const guestSessionB = guestBrowserB.getGuestSession();
+        const guestBinding = hostSession.getPlayerBindings()
+            .find(binding => binding.playerId === guestSession.getState().playerId);
+        const guestBindingB = hostSession.getPlayerBindings()
+            .find(binding => binding.playerId === guestSessionB.getState().playerId);
         const oldClientId = guestBrowser.lobby.getState().clientId;
         const oldToken = guestBrowser.lobby.getState().resumeToken;
 
         hostSession.localSession.startScenario("relicEscape");
-        hostSession.publishGuestState();
-        await waitUntil(() => guestSession.getState().revision === 2);
-        hostSession.executeAndPublish({
-            action: createAction({
-                type: ActionType.END_TURN,
-                playerId: hostBinding.playerId,
-                id: "resume-end-turn-host"
-            })
-        });
-        await waitUntil(() => guestSession.getState().revision === 3);
+        hostSession.publishAllGuestStates();
+        await waitUntil(() => guestSession.getState().projection.scenario?.title);
         guestSession.sendAction(createAction({
             type: ActionType.COLLECT,
             playerId: guestBinding.playerId,
@@ -143,16 +150,19 @@ export async function runMultiplayerResumeIntegrationTest() {
         const previousSequence = guestSession.getSequence();
 
         guestBrowser.disconnectForReconnect();
-        await waitUntil(() => hostBrowser.lobby.getState().connectionState === "RECONNECTING");
+        await waitUntil(() => hostBrowser.lobby.getState().roster.some(member =>
+            member.guestId === oldClientId &&
+            member.connectionState === "RECONNECTING" &&
+            member.readiness === "READY"
+        ));
 
-        hostSession.executeAndPublish({
-            action: createAction({
-                type: ActionType.COLLECT,
-                playerId: hostBinding.playerId,
-                payload: { itemId: "relic", targetId: "relic_2" },
-                id: "resume-host-offline-action"
-            })
-        });
+        guestSessionB.sendAction(createAction({
+            type: ActionType.COLLECT,
+            playerId: guestBindingB.playerId,
+            payload: { itemId: "relic", targetId: "relic_2" },
+            id: "resume-guest-b-offline-action"
+        }));
+        await waitUntil(() => guestSessionB.getState().lastActionResult?.sequence === 1);
         const resumeResult = await guestBrowser.resumeRoom();
         await waitUntil(() => guestBrowser.getGuestSession()?.getState().revision >= previousRevision);
 
@@ -199,6 +209,7 @@ export async function runMultiplayerResumeIntegrationTest() {
         console.log("[FAIL] Resume integration cases threw", e.message);
     } finally {
         guestBrowser?.destroy();
+        guestBrowserB?.destroy();
         hostBrowser?.destroy();
         await server?.stop();
     }

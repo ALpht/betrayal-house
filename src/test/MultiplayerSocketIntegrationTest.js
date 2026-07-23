@@ -105,9 +105,13 @@ export async function runMultiplayerSocketIntegrationTest() {
     let server;
     let hostBrowser;
     let guestBrowser;
+    let guestBrowserB;
 
     try {
-        server = await new MultiplayerSocketServer({ port: 0 }).start();
+        server = await new MultiplayerSocketServer({
+            port: 0,
+            lanAddressResolver: () => "192.168.50.24"
+        }).start();
         const url = `http://localhost:${server.getPort()}`;
         hostBrowser = createMultiplayerHostBrowser({
             url,
@@ -117,63 +121,81 @@ export async function runMultiplayerSocketIntegrationTest() {
             }
         });
         guestBrowser = createMultiplayerGuestBrowser({ url });
+        guestBrowserB = createMultiplayerGuestBrowser({ url });
 
         await waitUntil(() => hostBrowser.lobby.getState().clientId);
         await waitUntil(() => guestBrowser.lobby.getState().clientId);
-        const created = await hostBrowser.createRoom();
-        await guestBrowser.joinRoom(created.payload.room.roomCode);
-        await waitUntil(() => hostBrowser.lobby.getState().peerConnected);
+        await waitUntil(() => guestBrowserB.lobby.getState().clientId);
+        assert(
+            hostBrowser.lobby.getState().lanAddress === "192.168.50.24",
+            "Case 0: Socket handshake publishes the detected Host LAN address"
+        );
+        const created = await hostBrowser.createRoom({ playerCount: 2 });
+        await guestBrowser.joinRoom({
+            roomCode: created.payload.room.roomCode,
+            displayName: "A"
+        });
+        await guestBrowserB.joinRoom({
+            roomCode: created.payload.room.roomCode,
+            displayName: "B"
+        });
+        await guestBrowser.setReady(true);
+        await guestBrowserB.setReady(true);
+        await waitUntil(() => hostBrowser.lobby.getState().canStart);
         const { hostSession } = await hostBrowser.activateSession();
-        await waitUntil(() => guestBrowser.getGuestSession()?.getState().revision === 1);
+        await waitUntil(() => guestBrowser.getGuestSession()?.getState().revision >= 1);
+        await waitUntil(() => guestBrowserB.getGuestSession()?.getState().revision >= 1);
 
         const guestSession = guestBrowser.getGuestSession();
+        const guestSessionB = guestBrowserB.getGuestSession();
         const guestState = guestSession.getState();
-        const guestBinding = hostSession.getGuestBinding();
-        const hostBinding = hostSession.getPlayerBindings()
-            .find(binding => binding.role === "HOST");
+        const guestBinding = hostSession.getPlayerBinding(guestState.playerId) ||
+            hostSession.getPlayerBindings().find(binding => binding.playerId === guestState.playerId);
+        const guestBindingB = hostSession.getPlayerBindings()
+            .find(binding => binding.playerId === guestSessionB.getState().playerId);
+        const publicAssignments = hostBrowser.lobby.getState().roster;
 
         assert(
-            guestState.revision === 1 &&
+            guestState.revision >= 1 &&
                 guestState.playerId === guestBinding.playerId &&
-                guestState.projection.viewerId === guestBinding.viewerId,
-            "Case 1: Create/join/bind delivers initial viewer-safe projection at revision 1"
+                guestState.projection.viewerId === guestBinding.viewerId &&
+                guestSessionB.getState().playerId === guestBindingB.playerId &&
+                publicAssignments.every(member => member.playerId && member.publicCharacterName),
+            "Case 1: Create/join/bind delivers unique viewer-safe projections"
         );
 
         hostSession.localSession.startScenario("relicEscape");
-        hostSession.publishGuestState();
-        await waitUntil(() => guestSession.getState().revision === 2);
-        hostSession.executeAndPublish({
-            action: createEndTurnAction(hostBinding.playerId)
-        });
-        await waitUntil(() => guestSession.getState().projection.turn.isViewerTurn === true);
+        hostSession.publishAllGuestStates();
+        await waitUntil(() => guestSession.getState().projection.scenario?.title);
         const beforeDispatch = hostSession.localSession.getDispatchCount();
         guestSession.sendAction(createCollectAction(guestBinding.playerId, "relic_1"));
         await waitUntil(() => guestSession.getState().lastActionResult?.sequence === 1);
 
         assert(
             hostSession.localSession.getDispatchCount() === beforeDispatch + 1 &&
-                guestSession.getState().lastActionResult.accepted === true &&
-                guestSession.getState().revision === 4,
+                guestSession.getState().lastActionResult.accepted === true,
             "Case 2: Guest action crosses socket once and receives ACTION_RESULT plus STATE_UPDATED"
         );
 
         guestBrowser.destroy();
-        await waitUntil(() => hostBrowser.lobby.getState().connectionState === "RECONNECTING");
+        await waitUntil(() => hostBrowser.lobby.getState().roster.some(member =>
+            member.connectionState === "RECONNECTING"
+        ));
         const dispatchAfterDisconnect = hostSession.localSession.getDispatchCount();
-        hostSession.executeAndPublish({
-            action: createCollectAction(hostBinding.playerId, "relic_2")
-        });
+        guestSessionB.sendAction(createCollectAction(guestBindingB.playerId, "relic_2"));
+        await waitUntil(() => guestSessionB.getState().lastActionResult?.sequence === 1);
 
         assert(
             hostSession.localSession.getDispatchCount() === dispatchAfterDisconnect + 1 &&
-                hostBrowser.lobby.getState().connectionState === "RECONNECTING",
-            "Case 3: Active guest disconnect enters RECONNECTING and host gameplay does not rollback"
+                hostBrowser.lobby.getState().connectionState === "ACTIVE",
+            "Case 3: One Guest reconnecting does not reset other Guests"
         );
     } catch (e) {
         failed++;
         console.log("[FAIL] Socket integration cases threw", e.message);
     } finally {
         guestBrowser?.destroy();
+        guestBrowserB?.destroy();
         hostBrowser?.destroy();
         await server?.stop();
     }

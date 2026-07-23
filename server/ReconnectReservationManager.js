@@ -37,46 +37,47 @@ export class ReconnectReservationManager {
         this.reservationsByToken = new Map();
         this.tokensByClientId = new Map();
         this.timersByRoomId = new Map();
-        this.generationByRoomId = new Map();
+        this.generationByReservationKey = new Map();
     }
 
-    issueToken({ clientId, roomId, role, sessionId = null }) {
+    issueToken({ clientId, guestId = clientId, roomId, role, sessionId = null }) {
         const resumeToken = this.tokenFactory();
         const reservation = {
             clientId,
+            guestId,
             roomId,
             role,
             sessionId,
             expiresAt: null,
-            generation: this.#nextGeneration(roomId)
+            generation: this.#nextGeneration(roomId, guestId)
         };
         this.#store(resumeToken, reservation);
         return resumeToken;
     }
 
-    updateSession({ clientId, sessionId }) {
-        const token = this.tokensByClientId.get(clientId);
+    updateSession({ clientId, guestId = clientId, sessionId }) {
+        const token = this.tokensByClientId.get(guestId) || this.tokensByClientId.get(clientId);
         const reservation = token ? this.reservationsByToken.get(token) : null;
         if (reservation) {
             reservation.sessionId = sessionId;
         }
     }
 
-    reserveDisconnectedGuest({ room, clientId }) {
-        const token = this.tokensByClientId.get(clientId);
+    reserveDisconnectedGuest({ room, clientId, guestId = clientId }) {
+        const token = this.tokensByClientId.get(guestId) || this.tokensByClientId.get(clientId);
         const reservation = token ? this.reservationsByToken.get(token) : null;
         if (!reservation) {
             return null;
         }
 
         reservation.expiresAt = this.scheduler.now() + this.reconnectGraceMs;
-        reservation.generation = this.#nextGeneration(room.roomId);
+        reservation.generation = this.#nextGeneration(room.roomId, reservation.guestId);
         const generation = reservation.generation;
-        this.#clearTimer(room.roomId);
+        this.#clearTimer(room.roomId, reservation.guestId);
         const timer = this.scheduler.schedule(() => {
-            this.#expireIfCurrent(room.roomId, generation);
+            this.#expireIfCurrent(room.roomId, reservation.guestId, generation);
         }, this.reconnectGraceMs);
-        this.timersByRoomId.set(room.roomId, timer);
+        this.timersByRoomId.set(`${room.roomId}:${reservation.guestId}`, timer);
         return structuredClone(reservation);
     }
 
@@ -96,19 +97,20 @@ export class ReconnectReservationManager {
             return { accepted: false, reasonCode: LobbyErrorCode.ROOM_NOT_FOUND };
         }
 
-        if (room.status === LobbyRoomStatus.ACTIVE) {
-            return { accepted: false, reasonCode: LobbyErrorCode.ALREADY_CONNECTED };
-        }
-
-        if (room.status !== LobbyRoomStatus.RECONNECTING) {
+        if (room.status !== LobbyRoomStatus.ACTIVE) {
             return { accepted: false, reasonCode: LobbyErrorCode.ROOM_NOT_RECONNECTING };
         }
 
-        this.#clearTimer(room.roomId);
+        const member = room.getMemberByGuestId?.(reservation.guestId);
+        if (!member || member.connectionState !== "RECONNECTING") {
+            return { accepted: false, reasonCode: LobbyErrorCode.ALREADY_CONNECTED };
+        }
+
+        this.#clearTimer(room.roomId, reservation.guestId);
         this.invalidateToken(resumeToken);
-        room.markGuestResumed();
         const rotatedToken = this.issueToken({
             clientId: reservation.clientId,
+            guestId: reservation.guestId,
             roomId: reservation.roomId,
             role: reservation.role,
             sessionId: reservation.sessionId
@@ -118,6 +120,7 @@ export class ReconnectReservationManager {
             accepted: true,
             reasonCode: null,
             clientId: reservation.clientId,
+            guestId: reservation.guestId,
             roomId: reservation.roomId,
             sessionId: reservation.sessionId,
             role: reservation.role,
@@ -133,8 +136,8 @@ export class ReconnectReservationManager {
         }
 
         this.reservationsByToken.delete(resumeToken);
-        if (this.tokensByClientId.get(reservation.clientId) === resumeToken) {
-            this.tokensByClientId.delete(reservation.clientId);
+        if (this.tokensByClientId.get(reservation.guestId) === resumeToken) {
+            this.tokensByClientId.delete(reservation.guestId);
         }
     }
 
@@ -145,43 +148,45 @@ export class ReconnectReservationManager {
         this.timersByRoomId.clear();
         this.reservationsByToken.clear();
         this.tokensByClientId.clear();
-        this.generationByRoomId.clear();
+        this.generationByReservationKey.clear();
     }
 
     #store(token, reservation) {
-        const oldToken = this.tokensByClientId.get(reservation.clientId);
+        const oldToken = this.tokensByClientId.get(reservation.guestId);
         if (oldToken) {
             this.reservationsByToken.delete(oldToken);
         }
-        this.tokensByClientId.set(reservation.clientId, token);
+        this.tokensByClientId.set(reservation.guestId, token);
         this.reservationsByToken.set(token, reservation);
     }
 
-    #nextGeneration(roomId) {
-        const generation = (this.generationByRoomId.get(roomId) || 0) + 1;
-        this.generationByRoomId.set(roomId, generation);
+    #nextGeneration(roomId, guestId) {
+        const key = `${roomId}:${guestId}`;
+        const generation = (this.generationByReservationKey.get(key) || 0) + 1;
+        this.generationByReservationKey.set(key, generation);
         return generation;
     }
 
-    #clearTimer(roomId) {
-        const timer = this.timersByRoomId.get(roomId);
+    #clearTimer(roomId, guestId = null) {
+        const key = guestId ? `${roomId}:${guestId}` : roomId;
+        const timer = this.timersByRoomId.get(key);
         if (timer) {
             this.scheduler.cancel(timer);
-            this.timersByRoomId.delete(roomId);
+            this.timersByRoomId.delete(key);
         }
     }
 
-    #expireIfCurrent(roomId, generation) {
-        if (this.generationByRoomId.get(roomId) !== generation) {
+    #expireIfCurrent(roomId, guestId, generation) {
+        if (this.generationByReservationKey.get(`${roomId}:${guestId}`) !== generation) {
             return;
         }
 
         const room = this.registry.roomsById.get(roomId);
-        if (!room || room.status !== LobbyRoomStatus.RECONNECTING) {
+        if (!room || room.status !== LobbyRoomStatus.ACTIVE) {
             return;
         }
 
-        this.#clearTimer(roomId);
-        this.onExpired({ room, generation });
+        this.#clearTimer(roomId, guestId);
+        this.onExpired({ room, guestId, generation });
     }
 }

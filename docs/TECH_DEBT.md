@@ -602,3 +602,45 @@ LOW
 
 Description:
 Host disconnect remains terminal. Host reconnect UI remains deferred.
+
+---
+
+## TECH-DEBT-077
+
+Title:
+Mobile LAN layout polish
+
+Priority:
+LOW
+
+Description:
+M16F establishes multi-Guest LAN foundations but does not complete mobile visual polish
+for every phone/tablet viewport.
+
+---
+
+## TECH-DEBT-078
+
+Title:
+Mid-game player replacement
+
+Priority:
+LOW
+
+Description:
+Active explicit leave closes the session in M16F. Replacement, AI takeover, and
+spectator promotion remain deferred.
+
+---
+
+## TECH-DEBT-079
+
+Title:
+Host reconnect and migration
+
+Priority:
+LOW
+
+Description:
+Dedicated Host remains terminal authority. Host reconnect and host migration are still
+out of scope.

@@ -489,3 +489,26 @@ Rules:
 - Guest UI consumes viewer-safe projection only.
 - Reconnect UI never replays uncertain PlayerAction.
 - New LAN Game means close current room and create a fresh room.
+
+# M16F Dedicated Host And Multi-Guest Boundary
+
+M16F changes LAN multiplayer from a Host-plus-one-Guest prototype to a Dedicated Host
+with 2-3 Guest players.
+
+The Host owns lobby, roster, authoritative local session, binding registry, and
+projection fanout. The Host owns no player identity and cannot submit PlayerAction.
+
+Guest identity is split:
+
+```text
+guestId = stable logical Guest
+currentConnectionId = replaceable socket connection
+```
+
+Authoritative gameplay remains one Host-owned local runtime:
+
+```text
+One authoritative runtime
++ N Guest bindings
++ N viewer-safe projections
+```

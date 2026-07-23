@@ -60,7 +60,7 @@ export function createGameApplication({
         activeApp = entry;
     }
 
-    switchMode(MultiplayerMode.ENTRY);
+    switchMode(getInitialMode());
 
     return {
         getActiveMode() {
@@ -79,4 +79,10 @@ export function createGameApplication({
             root.innerHTML = "";
         }
     };
+}
+
+function getInitialMode() {
+    if (typeof window === "undefined") return MultiplayerMode.ENTRY;
+    const mode = new URL(window.location.href).searchParams.get("mode");
+    return mode === "guest" ? MultiplayerMode.GUEST : MultiplayerMode.ENTRY;
 }

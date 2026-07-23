@@ -12,50 +12,60 @@ gameplay.
 Host computer:
 
 ```text
-npm run server
+Terminal A: npm run server
+Terminal B: npm run dev
 ```
 
 Same-computer test:
 
 ```text
-http://localhost:3001
+http://localhost:5173
 ```
 
 Two-device LAN test:
 
 ```text
-http://<HOST_LAN_IP>:3001
+http://<HOST_LAN_IP>:5173
 ```
 
-`localhost` means this device. A second computer must enter the Host computer's LAN
-address. The local firewall may need to allow the configured server port.
+The socket server detects `<HOST_LAN_IP>` and prints the browser and socket URLs at
+startup. Vite listens on the LAN interface. The Host can remain on `localhost`; the
+room QR code automatically replaces it with the detected LAN address and embeds the
+Socket.IO endpoint on port 3001. Guests should scan the QR instead of entering an
+address manually.
+
+If multiple adapters make automatic selection ambiguous, set `LAN_HOST` to the desired
+private IPv4 address before `npm run server`. The local firewall may need to allow TCP
+ports 5173 and 3001.
 
 ## Host Flow
 
 ```text
 Host LAN Game
--> Create Room
--> Share visible Room Code
--> Wait for Guest
+-> Choose player count
+-> QR join code appears
+-> Wait for Guests
 -> Start Session
--> Play as Host
+-> Observe as Dedicated Host
 ```
 
-Room Code remains selectable even if clipboard copy is unavailable.
+The QR join code opens the browser in Guest mode and carries the hidden room
+routing token. Players do not enter Host addresses or room codes.
 
 ## Guest Flow
 
 ```text
 Join LAN Game
--> Enter Host Server Address
--> Enter Room Code
--> Join Room
+-> Scan Host QR code
+-> Enter display name
+-> Join Game
 -> Wait for Host
 -> Receive player binding and projection
 -> Play as Guest
 ```
 
-Invalid room codes display a readable error and keep the join UI usable.
+Manual Host Server Address and Room Code entry are not part of the public player
+flow. The Host screen is the only intended entry point for mobile Guests.
 
 ## Reconnect
 
@@ -80,7 +90,7 @@ New LAN Game means:
 ```text
 Close current room
 Create a fresh room
-Use a new room code
+Use a new hidden room token
 ```
 
 Same-room restart remains deferred.
@@ -88,7 +98,7 @@ Same-room restart remains deferred.
 ## Supported Limits
 
 - One Host
-- One Guest
+- Two or three Guests for M16F dedicated-host rooms
 - One active app instance per browser page
 - Browser UI consumes viewer-safe projection only
 - Local Hot-seat remains available and unchanged
