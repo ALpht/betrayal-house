@@ -644,3 +644,48 @@ LOW
 Description:
 Dedicated Host remains terminal authority. Host reconnect and host migration are still
 out of scope.
+
+---
+
+## TECH-DEBT-080
+
+Title:
+Incomplete Third-Edition Tile Placement Rules
+
+Priority:
+MEDIUM
+
+Description:
+M17C implements the third-edition core directional exploration loop but does not model
+region-backed Tile eligibility, mandatory open-region preservation, or minimal house
+adjustment when no normal placement is available. A no-placeable-Tile result currently
+rejects with zero authoritative mutation.
+
+---
+
+## TECH-DEBT-081
+
+Title:
+Shared Pre-Haunt And Post-Haunt Base Movement
+
+Priority:
+MEDIUM
+
+Description:
+M17C routes exploration movement separately from existing Scenario actions. A complete
+shared base movement service for pre-Haunt and post-Haunt rules is deferred.
+
+---
+
+## TECH-DEBT-082
+
+Title:
+M17C Temporary Movement Economy
+
+Priority:
+MEDIUM
+
+Description:
+Each connected-room MOVE is one authoritative action, but M17C does not track or
+consume Speed-based movement points. The current player may continue moving until
+voluntarily ending the turn or discovering a new room.

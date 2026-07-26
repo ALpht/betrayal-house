@@ -562,3 +562,44 @@ visibility.
 One authoritative publish cycle sends the latest viewer projection to its eligible
 Guests and notifies the Host public-map subscriber once. Host notification does not
 depend on the number of connected Guest targets.
+
+---
+
+# M17C Exploration Gameplay Boundary
+
+M17C introduces one canonical authoritative action entry for Local Play and Multiplayer:
+
+```text
+PlayerAction
+        |
+        v
+AuthoritativeGameplayActionRouter
+        |
+        +-- EXPLORATION + no Runtime --> ExplorationActionHandler
+        |
+        +-- HAUNT + Runtime ----------> existing ScenarioActionHandler
+```
+
+The phase comes from `GameStateManager`. A Runtime is an invariant of the Haunt phase,
+not a substitute phase detector. Invalid phase/Runtime combinations reject without
+fallback.
+
+Unknown-room exploration is split into a pure `ExplorationPlacementPlanner` and a
+validated `ExploreController` commit. The commit owns TileDeck planned draw, GraphMap
+room and reciprocal edges, MovementController movement, and the existing reveal,
+card, and Haunt event pipeline.
+
+Availability and execution use the same planner. Availability cannot draw, shuffle,
+emit, consume random values, add temporary rooms, or change revision.
+
+Known-room movement requires an existing reciprocal GraphMap edge and reciprocal doors.
+It changes only player position and does not draw a Tile, reveal a room, or force the
+turn to end. Discovering a room resolves the existing card/Haunt pipeline and then
+advances the turn unless an observed Haunt lifecycle already changed it.
+
+Multiplayer Projection receives serialized action availability from the authoritative
+session. It does not read GraphMap, TileDeck, or RotationManager and does not infer
+direction legality.
+
+Detailed gameplay flow and deferred rules are documented in
+`docs/EXPLORATION_GAMEPLAY_FLOW.md`.

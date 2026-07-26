@@ -839,11 +839,39 @@ Final product decisions:
 M17A therefore fixes both the Shared House Map boundary and the simplified LAN product
 entry and Session restart flow.
 
-### Next: M17B - Exploration And Movement Visual Feedback
+### M17B - Exploration And Movement Visual Feedback
 
-M17B may improve feedback for already-authoritative exploration and movement. It must
-reuse the M17A projection and Panel boundary rather than introduce a client GraphMap,
-movement legality, or a second topology model.
+Status: COMPLETE
+
+M17B reuses the M17A projection and Panel boundary to show room reveal, movement, and
+turn-change feedback without introducing a client GraphMap or a second topology model.
+
+### M17C - Exploration Gameplay Rules
+
+Status: IMPLEMENTED - PHYSICAL LAN VALIDATION PENDING
+
+M17C establishes the third-edition core directional exploration loop:
+
+```text
+PlayerAction -> Phase-aware Gameplay Router -> Pure Placement Plan
+             -> Validated Authoritative Commit
+             -> Existing Reveal / Card / Haunt Pipeline
+             -> One Projection Publish Cycle
+```
+
+Completed scope:
+
+- Host-authoritative Connected, Unknown, Wall, and Blocked direction rules
+- Pure shared availability and placement planning
+- Versioned TileDeck planned-draw commit
+- Known-room movement without redraw or forced turn end
+- Unknown-room reveal, reciprocal-door edges, card trigger, and turn resolution
+- Exploration/Haunt action routing without an exploration ScenarioRuntime
+- Viewer-safe directional action availability from authoritative projection
+
+This is not the complete third-edition placement system. Region-backed tile
+eligibility, open-region preservation, house adjustment, and Speed-based movement
+remain deferred and are recorded in `docs/TECH_DEBT.md`.
 
 M17 uses the completed M16 multiplayer platform. It is not an extension of the M16
 foundation milestone.

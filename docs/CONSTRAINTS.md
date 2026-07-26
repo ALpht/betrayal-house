@@ -1000,3 +1000,17 @@ Host-side Visibility Enforcement
 Hidden rooms, hidden connections, private player information, and viewer-specific
 information must be removed before map projection leaves the authoritative Host
 boundary. Guest presentation must not be responsible for secrecy filtering.
+
+---
+
+# CONSTRAINT-098
+
+Gameplay-driven Milestones
+
+Starting with M17C, gameplay rules are the primary milestone target. Presentation
+exists to expose authoritative gameplay state. A gameplay milestone must not add a
+UI-only feature without corresponding gameplay behavior.
+
+Exploration legality, Tile selection, rotation, Graph edges, movement, card triggers,
+and turn resolution belong to the Host-authoritative gameplay pipeline. Clients and
+Panels must not derive or reconstruct those rules.

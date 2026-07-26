@@ -425,3 +425,31 @@ Projection construction rules:
 contain zero or more connected targets, but the Host public projection subscriber is
 notified exactly once per cycle. Targeted resume continues to receive one newly rebuilt
 latest viewer projection without history replay.
+
+## M17C Authoritative Exploration Addendum
+
+Guest directional input remains a canonical `PlayerAction`:
+
+```js
+{
+    type: "MOVE",
+    playerId,
+    payload: { direction }
+}
+```
+
+The Host validates phase, Runtime invariant, current player, topology, Tile
+availability, rotation, and deck version. Guest clients receive only viewer-safe
+direction availability. Projection does not derive enabled state from map coordinates;
+availability and execution share the Host's pure placement planner.
+
+Publication rules:
+
+- successful connected movement, reveal, and exploration END_TURN publish once;
+- rejected exploration actions do not publish or advance revision;
+- existing Haunt Scenario actions retain accepted-action publication semantics;
+- reconnect receives the latest rebuilt projection and never replays reveal or card
+  effects.
+
+The compatibility `session.move(direction)` wrapper creates a formal PlayerAction and
+enters the same router. It cannot invoke an Exploration handler directly.
