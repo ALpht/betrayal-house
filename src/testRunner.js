@@ -313,6 +313,16 @@ import {
 }
 from "./test/GuestResumeStoreTest.js";
 
+import {
+    runHouseMapPresentationTest
+}
+from "./test/HouseMapPresentationTest.js";
+
+import {
+    runMultiplayerHouseMapIntegrationTest
+}
+from "./test/MultiplayerHouseMapIntegrationTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -376,3 +386,5 @@ await runMultiGuestBrowserSmokeRegressionTest();
 runLanAddressResolverTest();
 runRuntimeIdTest();
 runGuestResumeStoreTest();
+runHouseMapPresentationTest();
+runMultiplayerHouseMapIntegrationTest();

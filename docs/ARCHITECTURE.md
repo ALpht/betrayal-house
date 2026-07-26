@@ -512,3 +512,53 @@ One authoritative runtime
 + N Guest bindings
 + N viewer-safe projections
 ```
+
+---
+
+# M17A Shared House Map Boundary
+
+M17A exposes public map presentation without copying GraphMap into a browser client.
+
+```text
+GraphMap / Players / TurnManager
+        |
+        | Host-session read adapter
+        v
+Primitive map snapshot
+        |
+        v
+MultiplayerProjectionBuilder
+        |
+        +-- build(viewerId) -> private viewer projection + public map
+        |
+        +-- buildPublic()   -> { map }
+        v
+HouseMapPresentationQuery
+        |
+        v
+Immutable HouseMapPresentationModel
+        |
+        v
+Shared passive HouseMapPanel
+```
+
+The projection builder receives `getMapState()` and does not own GraphMap,
+PlayerManager, or TurnManager. The adapter is composed inside the Host session and
+returns primitive read-only snapshot data.
+
+`map.currentPlayerId` is the only projected turn source. Presentation derives player
+highlighting from it. Connections come only from existing RoomNode edges and are never
+used to calculate movement legality.
+
+The Dedicated Host uses a native public-only projection. It does not borrow or strip a
+Guest projection and receives no viewer identity, character state, private packets, or
+actions.
+
+All Guests still receive the same public `map` DTO. Guest presentation narrows that DTO
+to the assigned character's current room and omits public player markers; this is a
+view-only transformation and does not create a client map cache or change projection
+visibility.
+
+One authoritative publish cycle sends the latest viewer projection to its eligible
+Guests and notifies the Host public-map subscriber once. Host notification does not
+depend on the number of connected Guest targets.

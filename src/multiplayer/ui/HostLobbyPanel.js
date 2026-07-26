@@ -1,5 +1,6 @@
 import { createButton, createElement } from "./MultiplayerDom.js";
 import { createQrCodeSvg } from "./QrCodeSvg.js";
+import { HouseMapPanel } from "../../presentation/panel/HouseMapPanel.js";
 
 export class HostLobbyPanel {
     constructor({
@@ -17,14 +18,20 @@ export class HostLobbyPanel {
         this.onNewLanGame = onNewLanGame;
         this.onCopyRoomCode = onCopyRoomCode;
         this.container = createElement("section", "local-panel multiplayer-host");
+        this.mapContainer = createElement("div", "multiplayer-map-viewport house-map-panel house-map-host");
+        this.mapPanel = new HouseMapPanel({
+            container: this.mapContainer
+        });
     }
 
     render(model) {
         if (model.sessionState === "ACTIVE" || model.sessionState === "GAME_ENDED") {
+            this.mapPanel.render(model.houseMapModel);
             this.container.replaceChildren(createActiveHostView(model, this));
             return this.container;
         }
 
+        this.mapPanel.destroy();
         const qr = createElement("div", "multiplayer-join-qr");
         if (model.joinUrl) {
             qr.innerHTML = createQrCodeSvg(model.joinUrl);
@@ -54,7 +61,6 @@ export class HostLobbyPanel {
 
         this.container.replaceChildren(
             createHostHeader(model),
-            ...(model.roomCode ? [] : [createSetupPanel(model, this)]),
             createHostControls(model, this, canStart),
             createLobbyStage(model, joinStage, rosterSlots)
         );
@@ -62,6 +68,7 @@ export class HostLobbyPanel {
     }
 
     destroy() {
+        this.mapPanel.destroy();
         this.container.replaceChildren();
     }
 }
@@ -89,14 +96,14 @@ function createActiveHostView(model, panel) {
 
     view.replaceChildren(
         createElement("p", "multiplayer-public-kicker", "Betrayal House · Public Map"),
-        createMapStage({ ended }),
+        createMapStage({ ended, mapContainer: panel.mapContainer }),
         roster,
         controls
     );
     return view;
 }
 
-function createMapStage({ ended = false } = {}) {
+function createMapStage({ ended = false, mapContainer } = {}) {
     const map = createElement("section", "multiplayer-public-map");
     const header = createElement("header", "multiplayer-map-header");
     header.replaceChildren(
@@ -105,19 +112,7 @@ function createMapStage({ ended = false } = {}) {
         createElement("p", "", ended ? "The game has ended." : "Shared rooms and player positions will appear here.")
     );
 
-    const viewport = createElement("div", "multiplayer-map-viewport");
-    const entrance = createElement("article", "multiplayer-map-tile");
-    entrance.replaceChildren(
-        createElement("span", "multiplayer-map-compass", "N"),
-        createElement("strong", "", "Entrance Hall"),
-        createElement("small", "", "Starting room")
-    );
-    viewport.replaceChildren(
-        entrance,
-        createElement("p", "multiplayer-map-placeholder", "Map renderer pending")
-    );
-
-    map.replaceChildren(header, viewport);
+    map.replaceChildren(header, mapContainer);
     return map;
 }
 
@@ -151,39 +146,17 @@ function createHostHeader(model) {
     header.replaceChildren(
         createElement("p", "multiplayer-public-kicker", "LAN Table Host"),
         createElement("h2", "multiplayer-host-title", "Betrayal House"),
-        createElement("p", "multiplayer-public-status", model.statusMessage || "Choose player count to open the room.")
+        createElement("p", "multiplayer-public-status", model.statusMessage || "Opening the LAN lobby.")
     );
     return header;
-}
-
-function createSetupPanel(model, panel) {
-    const setup = createElement("section", "multiplayer-host-setup");
-    const roomCreated = Boolean(model.roomCode);
-    setup.replaceChildren(
-        createElement("h3", "", roomCreated ? "Room Open" : "Choose Player Count"),
-        createButton("2 Players", () => {
-            panel.onCreateRoom(2);
-        }, {
-            disabled: roomCreated,
-            className: "local-command multiplayer-count-button"
-        }),
-        createButton("3 Players", () => {
-            panel.onCreateRoom(3);
-        }, {
-            disabled: roomCreated,
-            className: "local-command multiplayer-count-button"
-        }),
-        createElement("p", "local-help", roomCreated ? `${model.playerCount || 2} player room is ready for QR joining.` : "Selecting a count immediately creates the room and QR code.")
-    );
-    return setup;
 }
 
 function createLobbyStage(model, joinStage, rosterSlots) {
     const lobby = createElement("section", "multiplayer-public-lobby");
     if (!model.roomCode) {
         lobby.replaceChildren(
-            createElement("h3", "multiplayer-roster-title", "Waiting Room"),
-            createElement("p", "local-help", "Select 2 or 3 players above to generate the QR code.")
+            createElement("h3", "multiplayer-roster-title", "Opening Lobby"),
+            createElement("p", "local-help", "Preparing the QR code and player slots.")
         );
         return lobby;
     }
@@ -210,8 +183,7 @@ function createHostControls(model, panel, canStart) {
         createElement("p", "local-help", model.startDisabledReason || ""),
         createButton("Close Room", panel.onCloseRoom, {
             disabled: !model.roomCode || model.lobbyState === "CLOSED"
-        }),
-        createButton("New LAN Game", panel.onNewLanGame)
+        })
     );
     return controls;
 }

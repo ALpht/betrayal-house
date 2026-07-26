@@ -13,6 +13,10 @@ export function runMultiplayerUiLifecycleTest() {
     };
 
     try {
+        Object.defineProperty(global, "window", {
+            value: { location: { href: "http://localhost:5173/" } },
+            configurable: true
+        });
         const root = document.createElement("section");
         let activeCount = 0;
         let destroyedCount = 0;
@@ -47,23 +51,27 @@ export function runMultiplayerUiLifecycleTest() {
             guestAppFactory: makeFakeApp
         });
 
+        assert(
+            app.getActiveMode() === MultiplayerMode.HOST,
+            "Case 1: Root URL opens Host mode directly"
+        );
         app.switchMode(MultiplayerMode.LOCAL);
         app.switchMode(MultiplayerMode.HOST);
         app.switchMode(MultiplayerMode.GUEST);
         app.switchMode(MultiplayerMode.LOCAL);
-        assert(activeCount === 1, "Case 1: Local -> Host -> Guest -> Local keeps one active app");
-        assert(destroyedCount === 3, "Case 2: mode switching destroys old app");
+        assert(activeCount === 1, "Case 2: Host -> Local -> Host -> Guest -> Local keeps one active app");
+        assert(destroyedCount === 4, "Case 3: mode switching destroys old app");
 
         for (let i = 0; i < 10; i++) {
             app.switchMode(i % 2 === 0 ? MultiplayerMode.HOST : MultiplayerMode.GUEST);
         }
-        assert(activeCount === 1, "Case 3: ten lifecycle cycles keep one active app");
+        assert(activeCount === 1, "Case 4: ten lifecycle cycles keep one active app");
         findButton(root, "Effect")?.click();
-        assert(visibleEffects === 1, "Case 4: one event after ten cycles creates one visible effect");
+        assert(visibleEffects === 1, "Case 5: one event after ten cycles creates one visible effect");
 
         app.destroy();
         app.destroy();
-        assert(activeCount === 0, "Case 5: destroy is idempotent");
+        assert(activeCount === 0, "Case 6: destroy is idempotent");
     } catch (error) {
         failed++;
         console.log("[FAIL] Multiplayer UI Lifecycle threw", error.message);

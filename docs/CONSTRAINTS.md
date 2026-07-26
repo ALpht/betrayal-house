@@ -970,3 +970,33 @@ Active Guest Leave Is Terminal
 
 Active explicit leave closes the multiplayer session with PLAYER_LEFT_ACTIVE_SESSION.
 It is not a gameplay VictoryResult and must not start reconnect grace.
+
+---
+
+# CONSTRAINT-090
+
+Authoritative Map Source
+
+GraphMap is the sole authoritative source of room coordinates, revealed topology,
+rotation, and room connections. Multiplayer Projection and Presentation must not
+maintain a second authoritative map model.
+
+---
+
+# CONSTRAINT-091
+
+Projection-only Map Presentation
+
+Host and Guest map presentation may consume only serializable map projection data.
+Map presentation must not read or modify GraphMap, Runtime, Player, TurnManager,
+EventBus, or transport objects.
+
+---
+
+# CONSTRAINT-092
+
+Host-side Visibility Enforcement
+
+Hidden rooms, hidden connections, private player information, and viewer-specific
+information must be removed before map projection leaves the authoritative Host
+boundary. Guest presentation must not be responsible for secrecy filtering.

@@ -16,12 +16,14 @@ export function createHostLanGameApp({
     url = getDefaultServerAddress(),
     hostFactory = createMultiplayerHostBrowser,
     isCurrent = () => true,
-    onReturnToEntry = () => {},
+    onReturnToHost = () => {},
     onNewLanGame = () => {}
 } = {}) {
     let destroyed = false;
     let startPending = false;
+    let roomCreatePending = false;
     let playerCount = 2;
+    let publicProjectionUnsubscribe = null;
     const cleanup = [];
 
     root.innerHTML = "";
@@ -43,7 +45,7 @@ export function createHostLanGameApp({
             },
             onStartSession: () => startSession(),
             onCloseRoom: () => closeRoom(),
-            onNewLanGame,
+            onNewLanGame: () => newLanGame(),
             onCopyRoomCode: () => copyRoomCode()
         }
     });
@@ -79,7 +81,6 @@ export function createHostLanGameApp({
                     : MultiplayerSessionState.INACTIVE;
 
         const hostSession = host.getHostSession?.();
-        const clientId = state.clientId;
         safeUpdate({
             connectionState,
             lobbyState,
@@ -95,7 +96,7 @@ export function createHostLanGameApp({
             canStart: Boolean(state.canStart),
             startDisabledReason: state.startDisabledReason,
             role: state.role || "HOST",
-            projection: hostSession?.getProjection?.(clientId) || null,
+            projection: hostSession?.getPublicProjection?.() || null,
             statusMessage: state.connectionState === "RECONNECTING"
                 ? "Guest is reconnecting."
                 : state.roster?.length
@@ -136,20 +137,36 @@ export function createHostLanGameApp({
 
     cleanup.push(host.lobby.onMessage((message, state) => updateFromLobby(message, state)));
     updateFromLobby();
+    if (!host.lobby.getState().roomCode) {
+        void createRoom(playerCount);
+    }
 
     async function createRoom(nextPlayerCount = null) {
+        if (roomCreatePending) return null;
         if (nextPlayerCount) {
             playerCount = nextPlayerCount;
         }
+        roomCreatePending = true;
         safeUpdate({
             playerCount,
             lobbyState: MultiplayerLobbyState.CREATING,
             statusMessage: "Creating room..."
         });
-        const result = await host.createRoom({ playerCount });
-        if (!isCurrent() || destroyed) return result;
-        updateFromLobby(result, host.lobby.getState());
-        return result;
+        try {
+            const result = await host.createRoom({ playerCount });
+            if (!isCurrent() || destroyed) return result;
+            updateFromLobby(result, host.lobby.getState());
+            return result;
+        } catch (error) {
+            safeUpdate({
+                lobbyState: MultiplayerLobbyState.IDLE,
+                statusMessage: "Unable to open the LAN lobby.",
+                errorMessage: "Room creation failed. Check the LAN server and refresh."
+            });
+            return { ok: false, error };
+        } finally {
+            roomCreatePending = false;
+        }
     }
 
     async function startSession() {
@@ -164,6 +181,7 @@ export function createHostLanGameApp({
         try {
             const result = await host.activateSession();
             if (!isCurrent() || destroyed) return result;
+            attachPublicProjection(result?.hostSession || host.getHostSession?.());
             updateFromLobby(result?.activation, host.lobby.getState());
             return result;
         } catch (error) {
@@ -181,7 +199,14 @@ export function createHostLanGameApp({
     async function closeRoom() {
         const result = await host.closeRoom?.();
         destroyLocal();
-        onReturnToEntry();
+        onReturnToHost();
+        return result;
+    }
+
+    async function newLanGame() {
+        const result = await host.closeRoom?.();
+        destroyLocal();
+        onNewLanGame();
         return result;
     }
 
@@ -201,6 +226,8 @@ export function createHostLanGameApp({
     function destroyLocal() {
         if (destroyed) return;
         destroyed = true;
+        publicProjectionUnsubscribe?.();
+        publicProjectionUnsubscribe = null;
         for (const unsubscribe of cleanup.splice(0)) {
             unsubscribe?.();
         }
@@ -209,12 +236,22 @@ export function createHostLanGameApp({
         root.innerHTML = "";
     }
 
+    function attachPublicProjection(hostSession) {
+        publicProjectionUnsubscribe?.();
+        publicProjectionUnsubscribe = null;
+        if (!hostSession?.subscribePublicProjection) return;
+        publicProjectionUnsubscribe = hostSession.subscribePublicProjection(
+            projection => safeUpdate({ projection })
+        );
+    }
+
     return {
         getController: () => controller,
         getHost: () => host,
         createRoom,
         startSession,
         closeRoom,
+        newLanGame,
         destroy: destroyLocal
     };
 }

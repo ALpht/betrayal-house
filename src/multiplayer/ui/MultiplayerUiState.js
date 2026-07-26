@@ -1,5 +1,4 @@
 export const MultiplayerMode = Object.freeze({
-    ENTRY: "ENTRY",
     LOCAL: "LOCAL",
     HOST: "HOST",
     GUEST: "GUEST"

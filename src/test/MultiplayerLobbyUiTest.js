@@ -56,6 +56,31 @@ export async function runMultiplayerLobbyUiTest() {
         let createCount = 0;
         let startCount = 0;
         let closeCount = 0;
+        const publicSession = {
+            getPublicProjection() {
+                return {
+                    map: {
+                        rooms: [{
+                            roomId: 0,
+                            name: "Entrance Hall",
+                            x: 0,
+                            y: 0,
+                            rotation: 0,
+                            isRevealed: true,
+                            connections: []
+                        }],
+                        players: [
+                            { playerId: "brandon", displayName: "Brandon Jaspers", roomId: 0 },
+                            { playerId: "ox", displayName: "Ox Bellows", roomId: 0 }
+                        ],
+                        currentPlayerId: "brandon"
+                    }
+                };
+            },
+            subscribePublicProjection() {
+                return () => {};
+            }
+        };
         const host = {
             lobby,
             async createRoom() {
@@ -68,7 +93,10 @@ export async function runMultiplayerLobbyUiTest() {
                 startCount++;
                 lobby.state.connectionState = LobbyConnectionState.ACTIVE;
                 lobby.emit({ type: "SESSION_STARTED", payload: {} });
-                return { activation: { type: "SESSION_STARTED" } };
+                return {
+                    activation: { type: "SESSION_STARTED" },
+                    hostSession: publicSession
+                };
             },
             async closeRoom() {
                 closeCount++;
@@ -77,7 +105,9 @@ export async function runMultiplayerLobbyUiTest() {
                 return { type: "SESSION_CLOSED" };
             },
             getHostSession() {
-                return null;
+                return lobby.state.connectionState === LobbyConnectionState.ACTIVE
+                    ? publicSession
+                    : null;
             },
             destroy() {}
         };
@@ -85,12 +115,19 @@ export async function runMultiplayerLobbyUiTest() {
         const app = createHostLanGameApp({
             root,
             hostFactory: () => host,
-            onReturnToEntry: () => {}
+            onReturnToHost: () => {}
         });
-        assert(findButton(root, "2 Players") !== null, "Case 1: Host entry renders player-count room action");
+        assert(
+            createCount === 1 &&
+                findButton(root, "2 Players") === null &&
+                findButton(root, "3 Players") === null,
+            "Case 1: Host opens the default lobby without a setup page"
+        );
         assert(findButton(root, "Start Session")?.disabled === true, "Case 2: Start disabled before Room READY");
-        await app.createRoom(2);
-        assert(createCount === 1 && textOf(root).includes("Scan to Join"), "Case 3: QR join stage appears after room creation");
+        assert(
+            createCount === 1 && textOf(root).includes("Scan to Join"),
+            "Case 3: QR join stage appears from automatic room creation"
+        );
         assert(findButton(root, "Copy Room Code") === null, "Case 4: Room Code copy control is not rendered");
         const joinQr = findFirst(root, node => node.getAttribute?.("data-join-url")?.includes("mode=guest"));
         assert(
@@ -157,6 +194,39 @@ export async function runMultiplayerLobbyUiTest() {
         assert(closeCount === 1, "Case 9: Close Room sends close before cleanup");
         app.destroy();
 
+        const newGameRoot = document.createElement("section");
+        const newGameLobby = createFakeLobby();
+        let newGameCloseCount = 0;
+        let newGameCallbackCount = 0;
+        const newGameHost = {
+            lobby: newGameLobby,
+            async createRoom() {
+                newGameLobby.state.roomCode = "NEXT";
+                newGameLobby.emit({ type: "ROOM_CREATED", payload: {} });
+                return { type: "ROOM_CREATED" };
+            },
+            async closeRoom() {
+                newGameCloseCount++;
+                return { type: "SESSION_CLOSED" };
+            },
+            getHostSession() {
+                return null;
+            },
+            destroy() {}
+        };
+        const newGameApp = createHostLanGameApp({
+            root: newGameRoot,
+            hostFactory: () => newGameHost,
+            onNewLanGame: () => {
+                newGameCallbackCount++;
+            }
+        });
+        await newGameApp.newLanGame();
+        assert(
+            newGameCloseCount === 1 && newGameCallbackCount === 1,
+            "Case 10: New LAN Game closes the old room before opening a fresh Host lobby"
+        );
+
         Object.defineProperty(global, "window", {
             value: { location: { href: "http://localhost:5173/" } },
             configurable: true
@@ -181,18 +251,18 @@ export async function runMultiplayerLobbyUiTest() {
         const localhostApp = createHostLanGameApp({
             root: localhostRoot,
             hostFactory: () => localhostHost,
-            onReturnToEntry: () => {}
+            onReturnToHost: () => {}
         });
         await localhostApp.createRoom(2);
         assert(
             findFirst(localhostRoot, node => node.getAttribute?.("data-join-url")?.includes("localhost")) === null,
-            "Case 10: Host opened on localhost does not render unusable QR join URL"
+            "Case 11: Host opened on localhost does not render unusable QR join URL"
         );
         assert(
             findFirst(localhostRoot, node =>
                 node.getAttribute?.("data-join-url")?.includes("192.168.50.24")
             ) !== null,
-            "Case 11: Host opened on localhost uses the server-detected LAN address"
+            "Case 12: Host opened on localhost uses the server-detected LAN address"
         );
         localhostApp.destroy();
     } catch (error) {

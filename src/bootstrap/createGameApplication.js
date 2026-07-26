@@ -1,7 +1,6 @@
 import { createLocalGameDom } from "./createLocalGameDom.js";
 import { createHostLanGameApp } from "./createHostLanGameApp.js";
 import { createGuestLanGameApp } from "./createGuestLanGameApp.js";
-import { MultiplayerEntryPanel } from "../multiplayer/ui/MultiplayerEntryPanel.js";
 import { MultiplayerMode } from "../multiplayer/ui/MultiplayerUiState.js";
 
 export function createGameApplication({
@@ -11,53 +10,48 @@ export function createGameApplication({
     guestAppFactory = createGuestLanGameApp
 }) {
     let activeApp = null;
-    let activeMode = MultiplayerMode.ENTRY;
+    let activeMode = MultiplayerMode.HOST;
     let lifecycleGeneration = 0;
     let destroyed = false;
 
     function switchMode(mode) {
         if (destroyed) return;
+        const nextMode = mode === MultiplayerMode.LOCAL || mode === MultiplayerMode.GUEST
+            ? mode
+            : MultiplayerMode.HOST;
 
         activeApp?.destroy?.();
         activeApp = null;
-        activeMode = mode;
+        activeMode = nextMode;
         lifecycleGeneration++;
         root.innerHTML = "";
 
         const generation = lifecycleGeneration;
         const isCurrent = () => !destroyed && generation === lifecycleGeneration;
 
-        if (mode === MultiplayerMode.LOCAL) {
+        if (nextMode === MultiplayerMode.LOCAL) {
             activeApp = localAppFactory({ root });
             return;
         }
 
-        if (mode === MultiplayerMode.HOST) {
+        if (nextMode === MultiplayerMode.HOST) {
             activeApp = hostAppFactory({
                 root,
                 isCurrent,
-                onReturnToEntry: () => switchMode(MultiplayerMode.ENTRY),
+                onReturnToHost: () => switchMode(MultiplayerMode.HOST),
                 onNewLanGame: () => switchMode(MultiplayerMode.HOST)
             });
             return;
         }
 
-        if (mode === MultiplayerMode.GUEST) {
+        if (nextMode === MultiplayerMode.GUEST) {
             activeApp = guestAppFactory({
                 root,
                 isCurrent,
-                onReturnToEntry: () => switchMode(MultiplayerMode.ENTRY)
+                onReturnToHost: () => switchMode(MultiplayerMode.HOST)
             });
             return;
         }
-
-        const entry = new MultiplayerEntryPanel({
-            onLocal: () => switchMode(MultiplayerMode.LOCAL),
-            onHost: () => switchMode(MultiplayerMode.HOST),
-            onGuest: () => switchMode(MultiplayerMode.GUEST)
-        });
-        root.appendChild(entry.render());
-        activeApp = entry;
     }
 
     switchMode(getInitialMode());
@@ -82,7 +76,12 @@ export function createGameApplication({
 }
 
 function getInitialMode() {
-    if (typeof window === "undefined") return MultiplayerMode.ENTRY;
-    const mode = new URL(window.location.href).searchParams.get("mode");
-    return mode === "guest" ? MultiplayerMode.GUEST : MultiplayerMode.ENTRY;
+    const mode =
+        typeof window === "undefined"
+            ? null
+            : new URL(window.location.href).searchParams.get("mode");
+
+    if (mode === "guest") return MultiplayerMode.GUEST;
+    if (mode === "local") return MultiplayerMode.LOCAL;
+    return MultiplayerMode.HOST;
 }

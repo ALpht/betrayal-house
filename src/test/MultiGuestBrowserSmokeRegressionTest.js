@@ -64,6 +64,22 @@ function createFakeGuestSession({ playerId = "player-a" } = {}) {
                 winner: null,
                 reason: null
             },
+            map: {
+                rooms: [{
+                    roomId: 0,
+                    name: "Entrance Hall",
+                    x: 0,
+                    y: 0,
+                    rotation: 0,
+                    isRevealed: true,
+                    connections: []
+                }],
+                players: [
+                    { playerId, displayName: "Brandon Jaspers", roomId: 0 },
+                    { playerId: "player-b", displayName: "Ox Bellows", roomId: 0 }
+                ],
+                currentPlayerId: playerId
+            },
             cards: [],
             actions: [
                 { type: "END_TURN", label: "END_TURN", enabled: true }
@@ -167,6 +183,31 @@ export async function runMultiGuestBrowserSmokeRegressionTest() {
     });
 
     const hostRoot = document.createElement("div");
+    const publicHostSession = {
+        getPublicProjection() {
+            return {
+                map: {
+                    rooms: [{
+                        roomId: 0,
+                        name: "Entrance Hall",
+                        x: 0,
+                        y: 0,
+                        rotation: 0,
+                        isRevealed: true,
+                        connections: []
+                    }],
+                    players: [
+                        { playerId: "player-a", displayName: "Brandon Jaspers", roomId: 0 },
+                        { playerId: "player-b", displayName: "Ox Bellows", roomId: 0 }
+                    ],
+                    currentPlayerId: "player-a"
+                }
+            };
+        },
+        subscribePublicProjection() {
+            return () => {};
+        }
+    };
     createHostLanGameApp({
         root: hostRoot,
         hostFactory: () => ({
@@ -184,15 +225,17 @@ export async function runMultiGuestBrowserSmokeRegressionTest() {
             createRoom() {},
             activateSession() {},
             closeRoom() {},
-            getHostSession: () => null,
+            getHostSession: () => publicHostSession,
             destroy() {}
         })
     });
 
     assert(
         !textOf(hostRoot).includes("Current Character") &&
-            !textOf(hostRoot).includes("Local game started"),
-        "Case 1: Host LAN app does not mount local player presentation"
+            !textOf(hostRoot).includes("Local game started") &&
+            textOf(hostRoot).includes("Entrance Hall") &&
+            textOf(hostRoot).includes("Brandon Jaspers"),
+        "Case 1: Host renders public map without local player presentation"
     );
 
     const guestRoot = document.createElement("div");
@@ -223,6 +266,12 @@ export async function runMultiGuestBrowserSmokeRegressionTest() {
         endTurn && !endTurn.disabled,
         "Case 3: Current Guest renders enabled action control"
     );
+    assert(
+        textOf(guestRoot).includes("Entrance Hall") &&
+            textOf(guestRoot).includes("Brandon Jaspers") &&
+            !textOf(guestRoot).includes("Ox Bellows"),
+        "Case 3-map: Guest map shows only the assigned character room"
+    );
     const guestPanels = guestRoot.children[0]?.children || [];
     const sessionPanelIndex = guestPanels.findIndex?.(panel =>
         panel.className?.includes("multiplayer-session")
@@ -234,8 +283,11 @@ export async function runMultiGuestBrowserSmokeRegressionTest() {
         sessionPanelIndex >= 0 &&
             statusPanelIndex === -1 &&
             !textOf(guestRoot).includes("RoleGUEST") &&
-            !textOf(guestRoot).includes("Reconnect"),
-        "Case 3a: Guest shows personal actions without persistent diagnostic controls"
+            !textOf(guestRoot).includes("Reconnect") &&
+            !textOf(guestRoot).includes("Leave Game") &&
+            !textOf(guestRoot).includes("Assigned") &&
+            !textOf(guestRoot).includes("Current Turn"),
+        "Case 3a: Guest shows a compact character controller without redundant controls"
     );
 
     endTurn?.click();

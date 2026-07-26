@@ -2,6 +2,7 @@ import { createLocalGameSession } from "../../bootstrap/createLocalGameSession.j
 import { HostTransportGateway } from "../transport/HostTransportGateway.js";
 import { MultiplayerProjectionBuilder } from "../state/MultiplayerProjectionBuilder.js";
 import { MultiplayerStatePublisher } from "../state/MultiplayerStatePublisher.js";
+import { readMultiplayerMapState } from "../state/MultiplayerMapStateAdapter.js";
 import { MultiplayerActionCoordinator } from "./MultiplayerActionCoordinator.js";
 import {
     MultiplayerPlayerBinding,
@@ -15,6 +16,8 @@ export function createHostGameSession({
 } = {}) {
     const localSession = createLocalGameSession(localSessionOptions);
     const bindings = new Map();
+    const publicProjectionSubscribers = new Set();
+    let destroyed = false;
 
     function executeAuthoritativeAction(action) {
         try {
@@ -62,7 +65,8 @@ export function createHostGameSession({
         getTurnManager: () => localSession.getTurnManager(),
         getPlayerManager: () => localSession.getPlayerManager(),
         getVictoryResult: () => localSession.getLastVictoryResult(),
-        isGameEnded: () => localSession.isGameEnded()
+        isGameEnded: () => localSession.isGameEnded(),
+        getMapState: () => readMultiplayerMapState(localSession)
     });
     const publisher = new MultiplayerStatePublisher({
         sessionId,
@@ -78,12 +82,12 @@ export function createHostGameSession({
         transport,
         sessionId,
         executeAction: action => localSession.dispatchScenarioAction(action),
-        publishState: viewerId => publisher.publishGuestState(viewerId),
+        publishState: viewerId => session.publishAuthoritativeState({ viewerId }),
         authorizeSender: ({ senderId, actionPlayerId }) => senderId === actionPlayerId,
         actionCoordinator: coordinator
     }).init();
 
-    return {
+    const session = {
         localSession,
         gateway,
         publisher,
@@ -102,6 +106,16 @@ export function createHostGameSession({
         getProjection(viewerId) {
             return projectionBuilder.build(viewerId);
         },
+        getPublicProjection() {
+            return projectionBuilder.buildPublic();
+        },
+        subscribePublicProjection(handler) {
+            if (destroyed || typeof handler !== "function") {
+                return () => {};
+            }
+            publicProjectionSubscribers.add(handler);
+            return () => publicProjectionSubscribers.delete(handler);
+        },
         getPlayerBinding(clientId) {
             return bindings.get(clientId) || null;
         },
@@ -110,16 +124,30 @@ export function createHostGameSession({
         },
         executeAndPublish({ action, viewerId }) {
             const result = executeAuthoritativeAction(action);
-            if (result.accepted && viewerId) {
-                publisher.publishGuestState(viewerId);
+            if (result.accepted) {
+                this.publishAuthoritativeState({ viewerId });
             }
             return result;
         },
+        publishAuthoritativeState({ viewerId = null } = {}) {
+            const message = viewerId
+                ? publisher.publishGuestState(viewerId)
+                : null;
+            const publicProjection = projectionBuilder.buildPublic();
+            for (const handler of [...publicProjectionSubscribers]) {
+                handler(structuredClone(publicProjection));
+            }
+            return message;
+        },
         destroy() {
+            destroyed = true;
             gateway.destroy();
+            publicProjectionSubscribers.clear();
             bindings.clear();
             localSession.destroy();
             transport.destroy?.();
         }
     };
+
+    return session;
 }

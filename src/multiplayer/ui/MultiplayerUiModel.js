@@ -30,6 +30,7 @@ const ALLOWED_FIELDS = Object.freeze([
     "joinUrl",
     "copyMessage",
     "projection",
+    "houseMapModel",
     "actions",
     "statusMessage",
     "startPending",
@@ -39,7 +40,7 @@ const ALLOWED_FIELDS = Object.freeze([
 
 export function createMultiplayerUiModel(input = {}) {
     const model = {
-        mode: input.mode || MultiplayerMode.ENTRY,
+        mode: input.mode || MultiplayerMode.HOST,
         connectionState: input.connectionState || MultiplayerConnectionState.DISCONNECTED,
         lobbyState: input.lobbyState || MultiplayerLobbyState.IDLE,
         sessionState: input.sessionState || MultiplayerSessionState.INACTIVE,
@@ -75,6 +76,7 @@ export function createMultiplayerUiModel(input = {}) {
         joinUrl: input.joinUrl || "",
         copyMessage: input.copyMessage || "",
         projection: input.projection || null,
+        houseMapModel: input.houseMapModel || null,
         actions: Array.isArray(input.actions)
             ? input.actions.map(action => Object.freeze({
                 type: action.type,

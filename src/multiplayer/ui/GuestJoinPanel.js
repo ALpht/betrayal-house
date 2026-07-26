@@ -32,13 +32,28 @@ export class GuestJoinPanel {
         const canJoin = !model.joinPending && model.sessionState !== "ACTIVE";
         const canReconnect = !model.reconnectInProgress &&
             model.connectionState === "RECONNECTING";
-        const active = model.sessionState === "ACTIVE" || model.sessionState === "GAME_ENDED";
+        const active = Boolean(model.projection) ||
+            model.sessionState === "ACTIVE" ||
+            model.sessionState === "GAME_ENDED";
         const joined = Boolean(model.projection) ||
             active ||
             (model.lobbyState !== "IDLE" && model.lobbyState !== "FAILED");
 
+        if (active) {
+            this.container.replaceChildren(
+                createCharacterPanel(model),
+                ...(model.hasUncertainAction
+                    ? [createElement("p", "multiplayer-safety-warning", "Your last action may or may not have been applied.")]
+                    : []),
+                ...(model.errorMessage
+                    ? [createElement("p", "local-error", model.errorMessage)]
+                    : [])
+            );
+            return this.container;
+        }
+
         this.container.replaceChildren(
-            createGuestHeader(model, active),
+            createGuestHeader(model, false),
             joined ? createJoinedPanel(model, this, canReconnect) : createJoinPanel(model, displayName, this, canJoin),
             ...(model.hasUncertainAction
                 ? [createElement("p", "multiplayer-safety-warning", "Your last action may or may not have been applied.")]
@@ -83,12 +98,7 @@ function createJoinedPanel(model, panel, canReconnect) {
     const active = model.sessionState === "ACTIVE" || model.sessionState === "GAME_ENDED";
     const reconnecting = model.connectionState === "RECONNECTING";
     const controls = active
-        ? [
-            createButton("Leave Game", panel.onLeave, {
-                disabled: model.lobbyState === "IDLE" || model.lobbyState === "CLOSED",
-                className: "multiplayer-secondary-action"
-            })
-        ]
+        ? []
         : [
             ...(reconnecting ? [
                 createButton(model.reconnectInProgress ? "Reconnecting..." : "Reconnect", panel.onReconnect, {
@@ -110,14 +120,49 @@ function createJoinedPanel(model, panel, canReconnect) {
     return joined;
 }
 
+function createCharacterPanel(model) {
+    const card = createElement("section", "multiplayer-character-card");
+    const visual = getCharacterVisual(model.playerName || model.playerId || "");
+    const avatar = createElement(
+        "div",
+        `multiplayer-character-avatar variant-${visual.variant}`,
+        visual.symbol
+    );
+    avatar.setAttribute("aria-label", `${model.playerName || "Character"} portrait`);
+    const characterName = createElement(
+        "h2",
+        "multiplayer-character-name",
+        model.playerName || "Waiting for character"
+    );
+    const ownTurn = Boolean(model.playerId) &&
+        model.currentPlayerId === model.playerId;
+    const turn = createElement(
+        "p",
+        `multiplayer-character-turn ${ownTurn ? "active" : ""}`,
+        ownTurn
+            ? "Your turn"
+            : `Waiting for ${model.currentPlayerName || "the current character"}`
+    );
+    card.replaceChildren(avatar, characterName, turn);
+    return card;
+}
+
+function getCharacterVisual(name) {
+    const symbols = ["✦", "◆", "●", "▲", "■", "✚"];
+    const hash = [...String(name)].reduce(
+        (total, character) => total + character.charCodeAt(0),
+        0
+    );
+    const variant = hash % symbols.length;
+    return {
+        variant,
+        symbol: symbols[variant]
+    };
+}
+
 function getCrestText(model) {
     if (!model.playerName) return model.ready ? "R" : "B";
-    return model.playerName
-        .split(/\s+/)
-        .slice(0, 2)
-        .map(part => part[0])
-        .join("")
-        .toUpperCase();
+    return getCharacterVisual(model.playerName).symbol;
 }
 
 function createStatusLine(label, value) {
