@@ -1,4 +1,5 @@
 import { LobbyRegistry } from "../../server/LobbyRegistry.js";
+import { MultiplayerRoomRoster } from "../../server/MultiplayerRoomRoster.js";
 import { LobbyErrorCode } from "../../server/ServerMessageType.js";
 
 function createRegistry() {
@@ -44,10 +45,32 @@ export function runMultiGuestLobbyTest() {
         "Case 5: Start enables automatically when the exact roster is connected"
     );
     assert(
-        created.room.getOrderedActiveMembers()
-            .map(member => member.publicCharacterName)
-            .join(",") === "Brandon Jaspers,Ox Bellows,Professor Longfellow",
-        "Case 6: Join order immediately receives the eventual character assignment"
+        new Set(created.room.getOrderedActiveMembers()
+            .map(member => member.publicCharacterId)).size === 3 &&
+            created.room.getOrderedActiveMembers().every(member =>
+                member.publicCharacterName
+            ),
+        "Case 6: Room immediately assigns unique randomized characters"
+    );
+
+    let randomGuestId = 0;
+    const randomizedRoster = new MultiplayerRoomRoster({
+        guestIdFactory: () => `random-guest-${++randomGuestId}`,
+        random: () => 0
+    });
+    const randomizedFirst = randomizedRoster.addGuest({
+        connectionId: "random-a",
+        displayName: "A"
+    });
+    const randomizedSecond = randomizedRoster.addGuest({
+        connectionId: "random-b",
+        displayName: "B"
+    });
+    assert(
+        randomizedFirst.publicCharacterId === "ox" &&
+            randomizedSecond.publicCharacterId === "professor" &&
+            randomizedFirst.publicCharacterId !== randomizedSecond.publicCharacterId,
+        "Case 6a: Assignment is shuffled instead of fixed Brandon then Ox"
     );
 
     const disconnected = registry.leaveClient("conn-b", { allowReconnect: true });

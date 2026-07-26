@@ -56,6 +56,7 @@ export function createMultiplayerUiModel(input = {}) {
                 readiness: member.readiness || "",
                 joinOrder: member.joinOrder || 0,
                 playerId: member.playerId || null,
+                publicCharacterId: member.publicCharacterId || null,
                 publicPlayerName: member.publicPlayerName || null,
                 publicCharacterName: member.publicCharacterName || null
             }))
@@ -81,7 +82,8 @@ export function createMultiplayerUiModel(input = {}) {
             ? input.actions.map(action => Object.freeze({
                 type: action.type,
                 label: action.label || action.type,
-                enabled: Boolean(action.enabled)
+                enabled: Boolean(action.enabled),
+                payload: Object.freeze({ ...(action.payload || {}) })
             }))
             : [],
         statusMessage: input.statusMessage || "",

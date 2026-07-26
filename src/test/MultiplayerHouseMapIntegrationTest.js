@@ -1,4 +1,5 @@
 import { ActionType } from "../scenario/action/ActionType.js";
+import { PlayerAction } from "../scenario/action/PlayerAction.js";
 import { MultiplayerProjectionBuilder } from "../multiplayer/state/MultiplayerProjectionBuilder.js";
 import { createSocketHostGameSession } from "../multiplayer/session/createSocketHostGameSession.js";
 import { GuestTransportClient } from "../multiplayer/transport/GuestTransportClient.js";
@@ -292,6 +293,67 @@ export function runMultiplayerHouseMapIntegrationTest() {
         unsubscribe();
         host.destroy();
         runStaleRevisionCase(assert);
+
+        const movementHarness = createHostHarness();
+        const current = movementHarness.host.localSession.getCurrentPlayer();
+        const beforeRoomId = movementHarness.host
+            .getPublicProjection()
+            .map.players.find(player => player.playerId === current.id)
+            ?.roomId;
+        const moveResult = movementHarness.host.executeAndPublish({
+            action: new PlayerAction({
+                id: "guest-map-move-east",
+                type: ActionType.MOVE,
+                playerId: current.id,
+                payload: { direction: "east" }
+            })
+        });
+        const afterRoomId = movementHarness.host
+            .getPublicProjection()
+            .map.players.find(player => player.playerId === current.id)
+            ?.roomId;
+        assert(
+            moveResult.accepted &&
+                beforeRoomId !== afterRoomId &&
+                movementHarness.transport.sent.some(item =>
+                    item.message.type === TransportMessageType.STATE_UPDATED
+                ),
+            "Case 9: Directional Guest MOVE uses authoritative map movement and publishes"
+        );
+        movementHarness.host.destroy();
+
+        const assignedTransport = createTransport();
+        const assignedHost = createSocketHostGameSession({
+            transport: assignedTransport,
+            sessionId: "random-character-session",
+            hostClientId: "random-host",
+            guestRoster: [
+                {
+                    guestId: "random-a",
+                    currentConnectionId: "random-connection-a",
+                    displayName: "A",
+                    joinOrder: 1,
+                    publicCharacterId: "professor"
+                },
+                {
+                    guestId: "random-b",
+                    currentConnectionId: "random-connection-b",
+                    displayName: "B",
+                    joinOrder: 2,
+                    publicCharacterId: "ox"
+                }
+            ],
+            localSessionOptions: {
+                containers: createContainers()
+            }
+        }).start();
+        const randomAssignments = assignedHost.getPublicAssignments();
+        assert(
+            randomAssignments[0].publicCharacterName === "Professor Longfellow" &&
+                randomAssignments[1].publicCharacterName === "Ox Bellows",
+            "Case 10: Session preserves the room's randomized character assignment"
+        );
+        assignedHost.destroy();
     } catch (error) {
         failed++;
         console.log("[FAIL] Multiplayer House Map Integration threw", error.message);
