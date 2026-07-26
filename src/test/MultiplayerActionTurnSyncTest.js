@@ -101,7 +101,7 @@ function createMoveExitAction(playerId) {
     });
 }
 
-function createHostGuestHarness() {
+function createHostGuestHarness({ startScenario = true } = {}) {
     const { hostEndpoint, guestEndpoint } = InMemoryTransport.createPair();
     const observedGuestMessages = [];
     guestEndpoint.subscribe(message => observedGuestMessages.push(message.type));
@@ -112,7 +112,9 @@ function createHostGuestHarness() {
             characterIds: ["brandon", "ox"]
         }
     }).start();
-    host.localSession.startScenario("relicEscape");
+    if (startScenario) {
+        host.localSession.startScenario("relicEscape");
+    }
 
     const players = host.localSession.getPlayerManager().getAllPlayers();
     const hostPlayerId = players[0].id;
@@ -347,7 +349,7 @@ export function runMultiplayerActionTurnSyncTest() {
     }
 
     try {
-        const harness = createHostGuestHarness();
+        const harness = createHostGuestHarness({ startScenario: false });
         const currentProjection = harness.host.getProjection(harness.hostPlayerId);
         const waitingProjection = harness.host.getProjection(harness.guestPlayerId);
         const currentMoves = currentProjection.actions.filter(

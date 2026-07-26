@@ -1,99 +1,43 @@
-// src/controller/ExplorationLoopController.js
+import { ExplorationRule } from "../gameplay/exploration/ExplorationRule.js";
 
-import { MovementController }
-    from "./MovementController.js";
+const DELTA_TO_DIRECTION = Object.freeze({
+    "0,-1": "north",
+    "1,0": "east",
+    "0,1": "south",
+    "-1,0": "west"
+});
 
 export class ExplorationLoopController {
-
     constructor(
         graph,
         exploreController,
-        turnManager
+        turnManager,
+        explorationRule = null
     ) {
-        this.graph =
-            graph;
-
-        this.exploreController =
-            exploreController;
-
-        this.turnManager =
-            turnManager;
+        this.graph = graph;
+        this.exploreController = exploreController;
+        this.turnManager = turnManager;
+        this.explorationRule = explorationRule || new ExplorationRule({
+            graph,
+            exploreController,
+            turnManager
+        });
     }
 
-    moveOrExplore(
-        player,
-        dx,
-        dy
-    ) {
-
-        if (
-            !this.turnManager.isCurrentPlayer(
-                player
-            )
-        ) {
-            console.warn(
-                "[TURN] Not current player"
-            );
-
+    moveOrExplore(player, dx, dy) {
+        const direction = DELTA_TO_DIRECTION[`${dx},${dy}`];
+        if (!direction) {
             return false;
         }
 
-        const currentRoom =
-            player.getCurrentRoom();
+        return this.explorationRule.executeMove(player, direction).accepted;
+    }
 
-        if (!currentRoom) {
-
-            console.warn(
-                "[PLAYER] No current room"
-            );
-
-            return false;
-        }
-
-        const targetX =
-            currentRoom.x + dx;
-
-        const targetY =
-            currentRoom.y + dy;
-
-        let targetRoom =
-            this.graph.getRoom(
-                targetX,
-                targetY
-            );
-
-        // 已揭露房間
-        if (targetRoom) {
-
-            return MovementController
-                .movePlayer(
-                    player,
-                    targetRoom
-                );
-        }
-
-        // 未揭露房間
-        targetRoom =
-            this.exploreController.explore(
-                targetX,
-                targetY
-            );
-
-        if (!targetRoom) {
-
-            return false;
-        }
-
-        return MovementController
-            .movePlayer(
-                player,
-                targetRoom
-            );
+    moveOrExploreDirection(player, direction) {
+        return this.explorationRule.executeMove(player, direction);
     }
 
     endTurn() {
-
-        this.turnManager
-            .nextTurn();
+        this.turnManager.nextTurn();
     }
 }

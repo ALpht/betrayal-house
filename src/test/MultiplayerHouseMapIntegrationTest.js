@@ -77,7 +77,6 @@ function createHostHarness() {
             characterIds: ["brandon", "ox"]
         }
     }).start();
-    host.localSession.startScenario("relicEscape");
     return { host, transport };
 }
 
@@ -274,11 +273,11 @@ export function runMultiplayerHouseMapIntegrationTest() {
         );
         assert(
             result.accepted &&
-                dispatchCount === 1 &&
+                dispatchCount === 0 &&
                 publicNotifications === 1 &&
                 stateMessages.length === 2 &&
                 host.getPublicProjection().map.currentPlayerId !== currentPlayer.id,
-            "Case 6: END_TURN dispatches once and publishes one authoritative cycle"
+            "Case 6: Exploration END_TURN bypasses ScenarioRuntime and publishes one authoritative cycle"
         );
 
         transport.sent.length = 0;

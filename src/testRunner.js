@@ -338,6 +338,26 @@ import {
 }
 from "./test/MultiplayerExplorationMovementFeedbackIntegrationTest.js";
 
+import {
+    runExplorationPlacementPlannerTest
+}
+from "./test/ExplorationPlacementPlannerTest.js";
+
+import {
+    runExplorationRuleTest
+}
+from "./test/ExplorationRuleTest.js";
+
+import {
+    runGameplayPhaseRouterTest
+}
+from "./test/GameplayPhaseRouterTest.js";
+
+import {
+    runMultiplayerExplorationRuleTest
+}
+from "./test/MultiplayerExplorationRuleTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -406,3 +426,7 @@ runMultiplayerHouseMapIntegrationTest();
 runHouseMapTransitionTest();
 runHouseMapFeedbackPanelTest();
 runMultiplayerExplorationMovementFeedbackIntegrationTest();
+runExplorationPlacementPlannerTest();
+runExplorationRuleTest();
+runGameplayPhaseRouterTest();
+runMultiplayerExplorationRuleTest();

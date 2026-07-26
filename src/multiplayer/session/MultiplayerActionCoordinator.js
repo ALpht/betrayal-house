@@ -8,12 +8,12 @@ export const ActionResultReasonCode = Object.freeze({
     SESSION_DESTROYED: "SESSION_DESTROYED"
 });
 
-function acceptedResult(sequence) {
+function acceptedResult(sequence, shouldPublish = true) {
     return {
         sequence,
         accepted: true,
         reasonCode: null,
-        shouldPublish: true
+        shouldPublish
     };
 }
 
@@ -85,7 +85,10 @@ export class MultiplayerActionCoordinator {
         try {
             const result = this.#executeAuthoritativeAction(action);
             if (result?.accepted === true) {
-                return acceptedResult(sequence);
+                return acceptedResult(
+                    sequence,
+                    result.shouldPublish !== false
+                );
             }
 
             return rejectedResult(

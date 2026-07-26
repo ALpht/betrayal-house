@@ -8,12 +8,19 @@ function nextId() {
 }
 
 export const ActionFactory = {
-    createMove(playerId, destination) {
+    createMove(playerId, destinationOrPayload) {
+        const payload =
+            destinationOrPayload &&
+            typeof destinationOrPayload === "object" &&
+            !Array.isArray(destinationOrPayload)
+                ? destinationOrPayload
+                : { destination: destinationOrPayload };
+
         return new PlayerAction({
             id: nextId(),
             type: ActionType.MOVE,
             playerId,
-            payload: { destination }
+            payload
         });
     },
 

@@ -3,6 +3,8 @@ import { EventTypes } from "../core/EventTypes.js";
 import { GameStateManager } from "../state/GameStateManager.js";
 import { ActionType } from "../scenario/action/ActionType.js";
 import { createLocalGameSession } from "../bootstrap/createLocalGameSession.js";
+import { RoomDefinitions } from "../data/RoomDefinitions.js";
+import { TileDeck } from "../model/TileDeck.js";
 
 if (typeof document === "undefined") {
     const createElement = tag => {
@@ -70,10 +72,20 @@ function findButton(container, label) {
     return container.children.find(child => child.textContent === label) || null;
 }
 
+function createOmenFirstTileDeck() {
+    const omen = RoomDefinitions.find(room => room.triggerType === "omen");
+    const remaining = RoomDefinitions.filter(room => room !== omen);
+    return new TileDeck(
+        [omen, ...remaining],
+        { random: () => 0.999999 }
+    );
+}
+
 function createRelicSession({ targetRef = { value: "relic_1" } } = {}) {
     return createLocalGameSession({
         containers: createContainers(),
         characterIds: ["brandon", "ox"],
+        tileDeck: createOmenFirstTileDeck(),
         actionInputProvider: type => {
             if (type === ActionType.COLLECT) {
                 return { itemId: "relic", targetId: targetRef.value };

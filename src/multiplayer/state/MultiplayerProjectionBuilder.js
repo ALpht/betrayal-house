@@ -2,13 +2,6 @@ import { GameStateManager } from "../../state/GameStateManager.js";
 import { InformationScope } from "../../scenario/information/InformationScope.js";
 import { ActionType } from "../../scenario/action/ActionType.js";
 
-const MAP_MOVEMENT_ACTIONS = Object.freeze([
-    Object.freeze({ direction: "north", label: "↑ North" }),
-    Object.freeze({ direction: "west", label: "← West" }),
-    Object.freeze({ direction: "east", label: "→ East" }),
-    Object.freeze({ direction: "south", label: "↓ South" })
-]);
-
 function emptyVictory() {
     return {
         completed: false,
@@ -70,53 +63,33 @@ function buildCards(visiblePackets) {
         .map(packet => structuredClone(packet.payload));
 }
 
-function buildActions(runtime, { gameEnded, currentPlayerId, viewerId }) {
+function buildActions(actions, { gameEnded, currentPlayerId, viewerId }) {
     if (gameEnded) {
         return [];
     }
 
     const isViewerTurn = currentPlayerId === viewerId;
-    const movementActions = MAP_MOVEMENT_ACTIONS.map(action => ({
-        type: ActionType.MOVE,
-        label: action.label,
-        enabled: isViewerTurn,
-        payload: {
-            direction: action.direction
-        }
-    }));
-    const runtimeActions = runtime
-        ? runtime.getActionAvailability()
-        : [];
-    const scenarioActions = runtimeActions
-        .filter(action =>
-            action.type !== ActionType.MOVE &&
-            action.type !== ActionType.END_TURN
-        )
-        .map(action => ({
+    return (Array.isArray(actions) ? actions : []).map(action => {
+        const projected = {
         type: action.type,
         label: action.label || action.type,
         enabled:
             Boolean(action.enabled) &&
             isViewerTurn &&
             !gameEnded
-        }));
-    const endTurnAvailability = runtimeActions.find(
-        action => action.type === ActionType.END_TURN
-    );
+        };
 
-    return [
-        ...movementActions,
-        ...scenarioActions,
-        {
-            type: ActionType.END_TURN,
-            label: endTurnAvailability?.label || "End Turn",
-            enabled:
-                isViewerTurn &&
-                (endTurnAvailability
-                    ? Boolean(endTurnAvailability.enabled)
-                    : true)
+        if (
+            action.type === ActionType.MOVE &&
+            typeof action.payload?.direction === "string"
+        ) {
+            projected.payload = {
+                direction: action.payload.direction
+            };
         }
-    ];
+
+        return projected;
+    });
 }
 
 function compareIds(left, right) {
@@ -182,7 +155,8 @@ export class MultiplayerProjectionBuilder {
         isGameEnded = () => false,
         getLifecycleState = () => GameStateManager.getState(),
         getTraitorPlayerId = () => GameStateManager.getTraitorPlayerId?.() || null,
-        getMapState = () => ({ rooms: [], players: [], currentPlayerId: null })
+        getMapState = () => ({ rooms: [], players: [], currentPlayerId: null }),
+        getActionAvailability = null
     } = {}) {
         this.getRuntime = getRuntime;
         this.getRouter = getRouter;
@@ -193,6 +167,7 @@ export class MultiplayerProjectionBuilder {
         this.getLifecycleState = getLifecycleState;
         this.getTraitorPlayerId = getTraitorPlayerId;
         this.getMapState = getMapState;
+        this.getActionAvailability = getActionAvailability;
     }
 
     build(viewerId) {
@@ -230,11 +205,16 @@ export class MultiplayerProjectionBuilder {
                 }
                 : emptyVictory(),
             cards: buildCards(visiblePackets),
-            actions: buildActions(runtime, {
+            actions: buildActions(
+                this.getActionAvailability
+                    ? this.getActionAvailability(viewerId)
+                    : runtime?.getActionAvailability?.() || [],
+                {
                 gameEnded: this.isGameEnded(),
                 currentPlayerId: currentPlayer?.id || null,
                 viewerId
-            }),
+                }
+            ),
             map: buildMap(this.getMapState())
         };
     }

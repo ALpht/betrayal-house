@@ -3,6 +3,7 @@ import { EventTypes } from "../core/EventTypes.js";
 import { GraphMap } from "../model/GraphMap.js";
 import { RoomNode } from "../model/RoomNode.js";
 import { RoomTile } from "../model/RoomTile.js";
+import { TileDeck } from "../model/TileDeck.js";
 import { PlayerManager } from "../model/PlayerManager.js";
 import { CharacterFactory } from "../model/CharacterFactory.js";
 import { CharacterDefinitions } from "../data/CharacterDefinitions.js";
@@ -49,29 +50,10 @@ import { VictoryPanel } from "../presentation/panel/VictoryPanel.js";
 import { CharacterPanel } from "../presentation/panel/CharacterPanel.js";
 import { CharacterPresentationQuery } from "../presentation/query/CharacterPresentationQuery.js";
 import { LocalActionInputAdapter } from "./LocalActionInputAdapter.js";
-
-const DIRECTIONS = Object.freeze({
-    north: [0, -1],
-    east: [1, 0],
-    south: [0, 1],
-    west: [-1, 0]
-});
-
-class OrderedDeck {
-    constructor(items = []) {
-        this.items = [...items];
-    }
-
-    peek() { return this.items[0] || null; }
-    draw() { return this.items.shift() || null; }
-    isEmpty() { return this.items.length === 0; }
-    count() { return this.items.length; }
-    moveTopToBottom() {
-        if (this.items.length > 1) {
-            this.items.push(this.items.shift());
-        }
-    }
-}
+import { ActionFactory } from "../presentation/ActionFactory.js";
+import { ExplorationRule } from "../gameplay/exploration/ExplorationRule.js";
+import { ExplorationActionHandler } from "../gameplay/exploration/ExplorationActionHandler.js";
+import { AuthoritativeGameplayActionRouter } from "../gameplay/AuthoritativeGameplayActionRouter.js";
 
 function makeContainer() {
     return {
@@ -102,24 +84,15 @@ function makePresentationRuntime({ router, scenarioRuntime }) {
     };
 }
 
-function orderedRoomsForLocalPlay(roomDefinitions) {
-    const omenRoom = roomDefinitions.find(r => r.triggerType === "omen");
-    const eventRoom = roomDefinitions.find(r => r.triggerType === "event");
-    const itemRoom = roomDefinitions.find(r => r.triggerType === "item");
-    const rest = roomDefinitions.filter(r =>
-        r !== omenRoom && r !== eventRoom && r !== itemRoom
-    );
-
-    return [omenRoom, eventRoom, itemRoom, ...rest].filter(Boolean);
-}
-
 export function createLocalGameSession({
     containers = {},
     characterIds = ["brandon", "ox"],
     roomDefinitions = RoomDefinitions,
     scenarioId = "relicEscape",
     hauntRule = { shouldTrigger: () => true },
-    actionInputProvider = () => ({})
+    actionInputProvider = () => ({}),
+    tileDeck: providedTileDeck = null,
+    tileRandom = Math.random
 } = {}) {
     const state = {
         started: false,
@@ -154,7 +127,10 @@ export function createLocalGameSession({
     const eventDeck = new EventDeck(EventDefinitions.map(createCard));
     const itemDeck = new ItemDeck(ItemDefinitions.map(createCard));
     const omenDeck = new OmenDeck(OmenDefinitions.map(createCard));
-    const tileDeck = new OrderedDeck(orderedRoomsForLocalPlay(roomDefinitions));
+    const tileDeck = providedTileDeck || new TileDeck(
+        roomDefinitions,
+        { random: tileRandom }
+    );
     const actionAdapter = new LocalActionInputAdapter({
         inputProvider: actionInputProvider
     });
@@ -328,6 +304,22 @@ export function createLocalGameSession({
         owned.presentation = presentation;
     }
 
+    function executeScenarioActionDirect(action) {
+        if (!state.runtime || state.gameEnded || !action) {
+            return { success: false, error: "Scenario unavailable" };
+        }
+
+        if (action.type === ActionType.END_TURN) {
+            turnManager.nextTurn();
+            return { success: true, shouldPublish: true };
+        }
+
+        state.dispatchCount++;
+        const result = ScenarioActionHandler.dispatch(state.runtime, action);
+        evaluateVictory();
+        return result;
+    }
+
     const session = {
         start() {
             if (state.started) return session;
@@ -339,11 +331,30 @@ export function createLocalGameSession({
             createPlayers(entrance);
 
             const exploreController = new ExploreController(graph, tileDeck);
-            const explorationLoop = new ExplorationLoopController(
+            const explorationRule = new ExplorationRule({
                 graph,
                 exploreController,
                 turnManager
+            });
+            const explorationActionHandler = new ExplorationActionHandler({
+                playerManager,
+                turnManager,
+                explorationRule
+            });
+            const explorationLoop = new ExplorationLoopController(
+                graph,
+                exploreController,
+                turnManager,
+                explorationRule
             );
+            const gameplayRouter = new AuthoritativeGameplayActionRouter({
+                getGameState: () => GameStateManager.getState(),
+                getRuntime: () => state.runtime,
+                getCurrentPlayerId: () =>
+                    turnManager.getCurrentPlayer()?.id || null,
+                explorationActionHandler,
+                executeScenarioAction: executeScenarioActionDirect
+            });
 
             owned.controllers.push(
                 new FogOfWarController(graph),
@@ -378,6 +389,9 @@ export function createLocalGameSession({
             });
 
             session.explorationLoop = explorationLoop;
+            session.explorationRule = explorationRule;
+            session.explorationActionHandler = explorationActionHandler;
+            session.gameplayRouter = gameplayRouter;
             turnManager.start(playerManager.getAllPlayers());
             createPresentation();
 
@@ -395,43 +409,51 @@ export function createLocalGameSession({
 
         move(direction) {
             if (state.gameEnded) return false;
-            const delta = DIRECTIONS[direction];
-            if (!delta) return false;
-
             const player = turnManager.getCurrentPlayer();
-            const moved = session.explorationLoop.moveOrExplore(
-                player,
-                delta[0],
-                delta[1]
+            if (!player) return false;
+
+            const result = session.executeAuthoritativeAction(
+                ActionFactory.createMove(player.id, { direction })
             );
 
-            if (moved) {
+            if (result.accepted) {
                 setStatus(`Moved ${direction}`);
             }
 
-            return moved;
+            return result.accepted;
         },
 
         endTurn() {
             if (state.gameEnded) return false;
-            turnManager.nextTurn();
-            return true;
+            const player = turnManager.getCurrentPlayer();
+            if (!player) return false;
+
+            return session.executeAuthoritativeAction(
+                ActionFactory.createEndTurn(player.id)
+            ).accepted;
+        },
+
+        executeAuthoritativeAction(action) {
+            if (!session.gameplayRouter || state.gameEnded) {
+                return {
+                    accepted: false,
+                    reasonCode: state.gameEnded ? "GAME_ENDED" : "ACTION_REJECTED",
+                    stateChanged: false,
+                    shouldPublish: false
+                };
+            }
+
+            return session.gameplayRouter.execute(action);
+        },
+
+        getAuthoritativeActionAvailability(playerId) {
+            return session.gameplayRouter
+                ? session.gameplayRouter.getAvailability(playerId)
+                : [];
         },
 
         dispatchScenarioAction(action) {
-            if (!state.runtime || state.gameEnded || !action) {
-                return { success: false, error: "Scenario unavailable" };
-            }
-
-            if (action.type === ActionType.END_TURN) {
-                session.endTurn();
-                return { success: true };
-            }
-
-            state.dispatchCount++;
-            const result = ScenarioActionHandler.dispatch(state.runtime, action);
-            evaluateVictory();
-            return result;
+            return executeScenarioActionDirect(action);
         },
 
         startScenario(id = scenarioId) {
@@ -461,6 +483,10 @@ export function createLocalGameSession({
 
             state.runtime = null;
             state.started = false;
+            session.explorationLoop = null;
+            session.explorationRule = null;
+            session.explorationActionHandler = null;
+            session.gameplayRouter = null;
             owned.controllers = [];
             owned.subscriptions = [];
             owned.panels = [];
@@ -471,6 +497,7 @@ export function createLocalGameSession({
         getRuntime() { return state.runtime; },
         getRouter() { return router; },
         getGraph() { return graph; },
+        getTileDeck() { return tileDeck; },
         getPlayerManager() { return playerManager; },
         getTurnManager() { return turnManager; },
         getCurrentPlayer() { return turnManager.getCurrentPlayer(); },

@@ -64,7 +64,9 @@ export function createHostGameSession({
         getPlayerManager: () => localSession.getPlayerManager(),
         getVictoryResult: () => localSession.getLastVictoryResult(),
         isGameEnded: () => localSession.isGameEnded(),
-        getMapState: () => readMultiplayerMapState(localSession)
+        getMapState: () => readMultiplayerMapState(localSession),
+        getActionAvailability: viewerId =>
+            localSession.getAuthoritativeActionAvailability(viewerId)
     });
     const publisher = new MultiplayerStatePublisher({
         sessionId,
@@ -125,7 +127,7 @@ export function createHostGameSession({
         },
         executeAndPublish({ action, viewerId }) {
             const result = executeAuthoritativeAction(action);
-            if (result.accepted) {
+            if (result.accepted && result.shouldPublish !== false) {
                 this.publishAuthoritativeState({ viewerId });
             }
             return result;
