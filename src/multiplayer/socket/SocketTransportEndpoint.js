@@ -26,7 +26,8 @@ export class SocketTransportEndpoint {
 
         if (!this.socket) {
             this.socket = io(this.url, {
-                transports: ["websocket"],
+                transports: ["polling", "websocket"],
+                upgrade: true,
                 autoConnect: false,
                 reconnection: false,
                 forceNew: true,

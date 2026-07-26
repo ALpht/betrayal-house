@@ -11,7 +11,8 @@ export function createMultiplayerHostBrowser({
     initialScenarioId = "relicEscape"
 } = {}) {
     const socket = io(url, {
-        transports: ["websocket"],
+        transports: ["polling", "websocket"],
+        upgrade: true,
         autoConnect: false,
         reconnection: false,
         forceNew: true,
@@ -119,7 +120,8 @@ export function createMultiplayerHostBrowser({
                     guestId: member.guestId,
                     currentConnectionId: member.currentConnectionId,
                     displayName: member.displayName,
-                    joinOrder: member.joinOrder
+                    joinOrder: member.joinOrder,
+                    publicCharacterId: member.publicCharacterId
                 })),
                 localSessionOptions
             }).start();

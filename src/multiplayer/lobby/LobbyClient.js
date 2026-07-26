@@ -22,7 +22,7 @@ export class LobbyClient {
         url,
         socket = null,
         requestIdFactory = createRequestId,
-        requestTimeoutMs = 5000
+        requestTimeoutMs = 10000
     } = {}) {
         this.url = url;
         this.socket = socket;
@@ -34,6 +34,10 @@ export class LobbyClient {
         this.destroyed = false;
         this.boundResponseHandler = message => this.#handleMessage(message);
         this.boundErrorHandler = error => this.#setError(error?.code || "CONNECTION_ERROR");
+        this.boundConnectErrorHandler = () => {
+            this.#setError("CONNECTION_ERROR");
+            this.#resolvePendingFailures("CONNECTION_ERROR");
+        };
         this.boundConnectHandler = () => {
             if (this.destroyed) return;
             this.state.connectionState = LobbyConnectionState.CONNECTED;
@@ -43,6 +47,7 @@ export class LobbyClient {
             if (this.destroyed) return;
             this.state.connectionState = LobbyConnectionState.DISCONNECTED;
             this.#notify();
+            this.#resolvePendingFailures("CONNECTION_ERROR");
         };
     }
 
@@ -56,7 +61,8 @@ export class LobbyClient {
 
         if (!this.socket) {
             this.socket = io(this.url, {
-                transports: ["websocket"],
+                transports: ["polling", "websocket"],
+                upgrade: true,
                 autoConnect: false,
                 reconnection: false,
                 forceNew: true,
@@ -66,6 +72,7 @@ export class LobbyClient {
 
         this.socket.on(LOBBY_RESPONSE_EVENT, this.boundResponseHandler);
         this.socket.on(CONNECTION_ERROR_EVENT, this.boundErrorHandler);
+        this.socket.on("connect_error", this.boundConnectErrorHandler);
         this.socket.on("connect", this.boundConnectHandler);
         this.socket.on("disconnect", this.boundDisconnectHandler);
 
@@ -188,6 +195,7 @@ export class LobbyClient {
         if (this.socket) {
             this.socket.off(LOBBY_RESPONSE_EVENT, this.boundResponseHandler);
             this.socket.off(CONNECTION_ERROR_EVENT, this.boundErrorHandler);
+            this.socket.off("connect_error", this.boundConnectErrorHandler);
             this.socket.off("connect", this.boundConnectHandler);
             this.socket.off("disconnect", this.boundDisconnectHandler);
         }
@@ -210,6 +218,7 @@ export class LobbyClient {
                 const pending = this.pending.get(requestId);
                 this.pending.delete(requestId);
                 pending.cleanup?.();
+                this.#setError("REQUEST_TIMEOUT");
                 resolve({
                     type: LobbyMessageType.ROOM_REJECTED,
                     requestId,
@@ -242,6 +251,7 @@ export class LobbyClient {
             };
             this.pending.set(requestId, { resolve, timer, cleanup });
             this.socket.once("connect", handleConnect);
+            this.socket.connect();
         });
         return promise;
     }
@@ -263,6 +273,22 @@ export class LobbyClient {
         for (const subscriber of [...this.subscribers]) {
             subscriber(message, this.getState());
         }
+    }
+
+    #resolvePendingFailures(code) {
+        for (const [requestId, pending] of this.pending.entries()) {
+            clearTimeout(pending.timer);
+            pending.cleanup?.();
+            pending.resolve({
+                type: LobbyMessageType.ROOM_REJECTED,
+                requestId,
+                payload: {
+                    code,
+                    message: code
+                }
+            });
+        }
+        this.pending.clear();
     }
 
     #applyMessage(message = {}) {
