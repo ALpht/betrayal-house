@@ -146,6 +146,13 @@ export async function runMultiplayerResumeIntegrationTest() {
             id: "resume-guest-seq-1"
         }));
         await waitUntil(() => guestSession.getState().lastActionResult?.sequence === 1);
+        guestSession.sendAction(createAction({
+            type: ActionType.END_TURN,
+            playerId: guestBinding.playerId,
+            payload: {},
+            id: "resume-guest-end-turn"
+        }));
+        await waitUntil(() => guestSession.getState().lastActionResult?.sequence === 2);
         const previousRevision = guestSession.getState().revision;
         const previousSequence = guestSession.getSequence();
 
@@ -163,6 +170,13 @@ export async function runMultiplayerResumeIntegrationTest() {
             id: "resume-guest-b-offline-action"
         }));
         await waitUntil(() => guestSessionB.getState().lastActionResult?.sequence === 1);
+        guestSessionB.sendAction(createAction({
+            type: ActionType.END_TURN,
+            playerId: guestBindingB.playerId,
+            payload: {},
+            id: "resume-guest-b-end-turn"
+        }));
+        await waitUntil(() => guestSessionB.getState().lastActionResult?.sequence === 2);
         const resumeResult = await guestBrowser.resumeRoom();
         await waitUntil(() => guestBrowser.getGuestSession()?.getState().revision >= previousRevision);
 

@@ -13,13 +13,29 @@ function normalizeDisplayName(value) {
     return String(value || "").trim();
 }
 
+function shuffledCharacters(definitions, random) {
+    const characters = [...definitions];
+    for (let index = characters.length - 1; index > 0; index--) {
+        const target = Math.floor(random() * (index + 1));
+        [characters[index], characters[target]] = [
+            characters[target],
+            characters[index]
+        ];
+    }
+    return characters;
+}
+
 export class MultiplayerRoomRoster {
     constructor({
         guestIdFactory = createGuestId,
-        characterDefinitions = CharacterDefinitions
+        characterDefinitions = CharacterDefinitions,
+        random = Math.random
     } = {}) {
         this.guestIdFactory = guestIdFactory;
-        this.characterDefinitions = characterDefinitions;
+        this.characterDefinitions = shuffledCharacters(
+            characterDefinitions,
+            random
+        );
         this.members = new Map();
         this.guestIdsByConnectionId = new Map();
         this.nextJoinOrder = 1;
@@ -28,7 +44,17 @@ export class MultiplayerRoomRoster {
     addGuest({ connectionId, displayName }) {
         const name = normalizeDisplayName(displayName);
         const guestId = this.guestIdFactory();
-        const character = this.characterDefinitions[this.nextJoinOrder - 1] || null;
+        const assignedCharacterIds = new Set(
+            [...this.members.values()]
+                .filter(member =>
+                    member.membershipState === RosterMembershipState.ACTIVE
+                )
+                .map(member => member.publicCharacterId)
+                .filter(Boolean)
+        );
+        const character = this.characterDefinitions.find(
+            candidate => !assignedCharacterIds.has(candidate.id)
+        ) || null;
         const member = {
             guestId,
             currentConnectionId: connectionId,
@@ -38,6 +64,7 @@ export class MultiplayerRoomRoster {
             readiness: RosterReadiness.NOT_READY,
             joinOrder: this.nextJoinOrder++,
             playerId: null,
+            publicCharacterId: character?.id || null,
             publicPlayerName: character?.name || null,
             publicCharacterName: character?.name || null
         };
@@ -171,6 +198,7 @@ export class MultiplayerRoomRoster {
             readiness: member.readiness,
             joinOrder: member.joinOrder,
             playerId: member.playerId,
+            publicCharacterId: member.publicCharacterId,
             publicPlayerName: member.publicPlayerName,
             publicCharacterName: member.publicCharacterName
         }));

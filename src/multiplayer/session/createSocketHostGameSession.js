@@ -11,6 +11,7 @@ import {
 } from "./MultiplayerPlayerBinding.js";
 import { MultiplayerPlayerBindingRegistry } from "./MultiplayerPlayerBindingRegistry.js";
 import { createRuntimeId } from "../../core/RuntimeId.js";
+import { executeAuthoritativePlayerAction } from "./executeAuthoritativePlayerAction.js";
 
 function createSessionId() {
     return createRuntimeId("session");
@@ -22,8 +23,25 @@ function normalizeRoster(roster = []) {
         .sort((a, b) => a.joinOrder - b.joinOrder);
 }
 
-function defaultCharacterIds(count) {
-    return CharacterDefinitions.slice(0, count).map(character => character.id);
+function shuffledCharacterIds(random) {
+    const ids = CharacterDefinitions.map(character => character.id);
+    for (let index = ids.length - 1; index > 0; index--) {
+        const target = Math.floor(random() * (index + 1));
+        [ids[index], ids[target]] = [ids[target], ids[index]];
+    }
+    return ids;
+}
+
+function assignedCharacterIds(roster, random) {
+    const rosterIds = roster.map(member => member.publicCharacterId);
+    const knownIds = new Set(CharacterDefinitions.map(character => character.id));
+    if (
+        rosterIds.every(id => knownIds.has(id)) &&
+        new Set(rosterIds).size === roster.length
+    ) {
+        return rosterIds;
+    }
+    return shuffledCharacterIds(random).slice(0, roster.length);
 }
 
 export function createSocketHostGameSession({
@@ -32,7 +50,8 @@ export function createSocketHostGameSession({
     hostClientId,
     guestClientId = null,
     guestRoster = null,
-    localSessionOptions = {}
+    localSessionOptions = {},
+    characterRandom = Math.random
 } = {}) {
     const roster = normalizeRoster(
         guestRoster ||
@@ -52,7 +71,9 @@ export function createSocketHostGameSession({
 
     const localSession = createLocalGameSession({
         ...localSessionOptions,
-        characterIds: localSessionOptions.characterIds || defaultCharacterIds(roster.length)
+        characterIds:
+            localSessionOptions.characterIds ||
+            assignedCharacterIds(roster, characterRandom)
     });
     const bindingRegistry = new MultiplayerPlayerBindingRegistry();
     let destroyed = false;
@@ -61,10 +82,7 @@ export function createSocketHostGameSession({
 
     function executeAuthoritativeAction(action) {
         try {
-            const result = localSession.dispatchScenarioAction(action);
-            return result?.success
-                ? { accepted: true, reasonCode: null }
-                : { accepted: false, reasonCode: "ACTION_REJECTED" };
+            return executeAuthoritativePlayerAction(localSession, action);
         } catch (_error) {
             return { accepted: false, reasonCode: "ACTION_REJECTED" };
         }
@@ -127,7 +145,10 @@ export function createSocketHostGameSession({
     const gateway = new HostTransportGateway({
         transport,
         sessionId,
-        executeAction: action => localSession.dispatchScenarioAction(action),
+        executeAction: action => executeAuthoritativePlayerAction(
+            localSession,
+            action
+        ),
         publishState: () => {
             session.publishAuthoritativeState();
         },

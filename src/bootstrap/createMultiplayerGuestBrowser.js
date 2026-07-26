@@ -27,7 +27,8 @@ export function createMultiplayerGuestBrowser({
 
     function createSocket() {
         return io(url, {
-            transports: ["websocket"],
+            transports: ["polling", "websocket"],
+            upgrade: true,
             autoConnect: false,
             reconnection: false,
             forceNew: true,

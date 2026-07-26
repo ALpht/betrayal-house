@@ -1,5 +1,13 @@
 import { GameStateManager } from "../../state/GameStateManager.js";
 import { InformationScope } from "../../scenario/information/InformationScope.js";
+import { ActionType } from "../../scenario/action/ActionType.js";
+
+const MAP_MOVEMENT_ACTIONS = Object.freeze([
+    Object.freeze({ direction: "north", label: "↑ North" }),
+    Object.freeze({ direction: "west", label: "← West" }),
+    Object.freeze({ direction: "east", label: "→ East" }),
+    Object.freeze({ direction: "south", label: "↓ South" })
+]);
 
 function emptyVictory() {
     return {
@@ -63,18 +71,52 @@ function buildCards(visiblePackets) {
 }
 
 function buildActions(runtime, { gameEnded, currentPlayerId, viewerId }) {
-    if (!runtime || gameEnded) {
+    if (gameEnded) {
         return [];
     }
 
-    return runtime.getActionAvailability().map(action => ({
+    const isViewerTurn = currentPlayerId === viewerId;
+    const movementActions = MAP_MOVEMENT_ACTIONS.map(action => ({
+        type: ActionType.MOVE,
+        label: action.label,
+        enabled: isViewerTurn,
+        payload: {
+            direction: action.direction
+        }
+    }));
+    const runtimeActions = runtime
+        ? runtime.getActionAvailability()
+        : [];
+    const scenarioActions = runtimeActions
+        .filter(action =>
+            action.type !== ActionType.MOVE &&
+            action.type !== ActionType.END_TURN
+        )
+        .map(action => ({
         type: action.type,
         label: action.label || action.type,
         enabled:
             Boolean(action.enabled) &&
-            currentPlayerId === viewerId &&
+            isViewerTurn &&
             !gameEnded
-    }));
+        }));
+    const endTurnAvailability = runtimeActions.find(
+        action => action.type === ActionType.END_TURN
+    );
+
+    return [
+        ...movementActions,
+        ...scenarioActions,
+        {
+            type: ActionType.END_TURN,
+            label: endTurnAvailability?.label || "End Turn",
+            enabled:
+                isViewerTurn &&
+                (endTurnAvailability
+                    ? Boolean(endTurnAvailability.enabled)
+                    : true)
+        }
+    ];
 }
 
 function compareIds(left, right) {

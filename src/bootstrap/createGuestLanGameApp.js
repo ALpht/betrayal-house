@@ -137,6 +137,8 @@ export function createGuestLanGameApp({
             ? MultiplayerConnectionState.FAILED
             : disconnectedWithRoom
                 ? MultiplayerConnectionState.RECONNECTING
+            : state.connectionState === "DISCONNECTED"
+                ? MultiplayerConnectionState.DISCONNECTED
             : state.connectionState === "RESUMING" || state.connectionState === "RECONNECTING"
                 ? MultiplayerConnectionState.RECONNECTING
                 : state.connectionState === "CLOSED"
@@ -223,7 +225,7 @@ export function createGuestLanGameApp({
             id: createRuntimeId(`guest-ui-${state.playerId}-${action.type}`),
             type: action.type,
             playerId: state.playerId,
-            payload: {}
+            payload: structuredClone(action.payload || {})
         });
     }
 

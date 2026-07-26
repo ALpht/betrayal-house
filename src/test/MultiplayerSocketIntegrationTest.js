@@ -177,6 +177,10 @@ export async function runMultiplayerSocketIntegrationTest() {
             "Case 2: Guest action crosses socket once and receives ACTION_RESULT plus STATE_UPDATED"
         );
 
+        guestSession.sendAction(createEndTurnAction(guestBinding.playerId));
+        await waitUntil(() =>
+            guestSession.getState().lastActionResult?.sequence === 2
+        );
         guestBrowser.destroy();
         await waitUntil(() => hostBrowser.lobby.getState().roster.some(member =>
             member.connectionState === "RECONNECTING"

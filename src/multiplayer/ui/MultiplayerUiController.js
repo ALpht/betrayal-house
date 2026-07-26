@@ -10,6 +10,7 @@ import { HostLobbyPanel } from "./HostLobbyPanel.js";
 import { GuestJoinPanel } from "./GuestJoinPanel.js";
 import { SessionControlPanel } from "./SessionControlPanel.js";
 import { HouseMapPresentationQuery } from "../../presentation/query/HouseMapPresentationQuery.js";
+import { HouseMapTransitionQuery } from "../../presentation/query/HouseMapTransitionQuery.js";
 
 export class MultiplayerUiController {
     constructor({
@@ -21,6 +22,8 @@ export class MultiplayerUiController {
         this.actions = actions;
         this.destroyed = false;
         this.houseMapQuery = new HouseMapPresentationQuery();
+        this.houseMapTransitionQuery = new HouseMapTransitionQuery();
+        this.previousFullHouseMapModel = null;
         this.state = createMultiplayerUiModel({
             mode,
             houseMapModel: this.houseMapQuery.buildModel(null)
@@ -34,6 +37,20 @@ export class MultiplayerUiController {
 
     update(partial = {}) {
         if (this.destroyed) return this.state;
+        const hasProjectionUpdate = Object.prototype.hasOwnProperty.call(
+            partial,
+            "projection"
+        );
+        const modeChanged = partial.mode && partial.mode !== this.state.mode;
+        const guestStartedResuming =
+            (partial.mode || this.state.mode) === MultiplayerMode.GUEST &&
+            partial.sessionState === MultiplayerSessionState.RESUMING &&
+            this.state.sessionState !== MultiplayerSessionState.RESUMING;
+        const sessionClosed =
+            partial.sessionState === MultiplayerSessionState.CLOSED;
+        if (modeChanged || guestStartedResuming || sessionClosed) {
+            this.previousFullHouseMapModel = null;
+        }
         const next = {
             ...this.state,
             ...partial
@@ -58,17 +75,40 @@ export class MultiplayerUiController {
         next.currentPlayerName = next.projection?.turn?.displayName || next.currentPlayerName;
         next.playerId = next.projection?.character?.playerId || next.playerId;
         next.playerName = next.projection?.character?.displayName || next.playerName;
-        next.houseMapModel = this.houseMapQuery.buildModel(next.projection, {
-            focusPlayerId: next.mode === MultiplayerMode.GUEST
-                ? next.playerId
-                : null,
-            includePlayerMarkers: next.mode !== MultiplayerMode.GUEST
-        });
+        let renderedTransition = null;
+        let fullHouseMapModel = null;
+        if (hasProjectionUpdate) {
+            if (next.projection) {
+                fullHouseMapModel = this.houseMapQuery.buildModel(next.projection);
+                const fullTransition = this.houseMapTransitionQuery.buildTransition(
+                    this.previousFullHouseMapModel,
+                    fullHouseMapModel
+                );
+                renderedTransition = next.mode === MultiplayerMode.GUEST
+                    ? this.houseMapTransitionQuery.focusForPlayer(
+                        fullTransition,
+                        next.playerId
+                    )
+                    : fullTransition;
+                next.houseMapModel = next.mode === MultiplayerMode.GUEST
+                    ? this.houseMapQuery.buildModel(next.projection, {
+                        focusPlayerId: next.playerId,
+                        includePlayerMarkers: true
+                    })
+                    : fullHouseMapModel;
+            } else {
+                this.previousFullHouseMapModel = null;
+                next.houseMapModel = this.houseMapQuery.buildModel(null);
+            }
+        }
         if (next.projection?.victory?.completed) {
             next.sessionState = MultiplayerSessionState.GAME_ENDED;
         }
         this.state = createMultiplayerUiModel(next);
-        this.render();
+        this.render(renderedTransition);
+        if (fullHouseMapModel) {
+            this.previousFullHouseMapModel = fullHouseMapModel;
+        }
         return this.state;
     }
 
@@ -76,11 +116,11 @@ export class MultiplayerUiController {
         return this.state;
     }
 
-    render() {
+    render(transition = null) {
         if (this.destroyed || !this.root) return;
         const children = [];
         if (this.state.mode === MultiplayerMode.HOST) {
-            children.push(this.hostPanel.render(this.state));
+            children.push(this.hostPanel.render(this.state, transition));
         }
         if (this.state.mode === MultiplayerMode.GUEST) {
             children.push(this.guestPanel.render(this.state));
@@ -90,7 +130,7 @@ export class MultiplayerUiController {
                 this.state.sessionState === MultiplayerSessionState.GAME_ENDED ||
                 this.state.sessionState === MultiplayerSessionState.RESUMING
             ) {
-                children.push(this.sessionPanel.render(this.state));
+                children.push(this.sessionPanel.render(this.state, transition));
             } else {
                 this.sessionPanel.destroy();
             }
@@ -104,6 +144,7 @@ export class MultiplayerUiController {
         this.hostPanel.destroy();
         this.guestPanel.destroy();
         this.sessionPanel.destroy();
+        this.previousFullHouseMapModel = null;
         this.root?.replaceChildren?.();
     }
 }

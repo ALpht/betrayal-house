@@ -323,6 +323,21 @@ import {
 }
 from "./test/MultiplayerHouseMapIntegrationTest.js";
 
+import {
+    runHouseMapTransitionTest
+}
+from "./test/HouseMapTransitionTest.js";
+
+import {
+    runHouseMapFeedbackPanelTest
+}
+from "./test/HouseMapFeedbackPanelTest.js";
+
+import {
+    runMultiplayerExplorationMovementFeedbackIntegrationTest
+}
+from "./test/MultiplayerExplorationMovementFeedbackIntegrationTest.js";
+
 //runMovementTest();
 runTurnManagerTest();
 exploreLoopTest();
@@ -388,3 +403,6 @@ runRuntimeIdTest();
 runGuestResumeStoreTest();
 runHouseMapPresentationTest();
 runMultiplayerHouseMapIntegrationTest();
+runHouseMapTransitionTest();
+runHouseMapFeedbackPanelTest();
+runMultiplayerExplorationMovementFeedbackIntegrationTest();

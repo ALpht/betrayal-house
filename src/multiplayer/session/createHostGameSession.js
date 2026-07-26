@@ -3,6 +3,7 @@ import { HostTransportGateway } from "../transport/HostTransportGateway.js";
 import { MultiplayerProjectionBuilder } from "../state/MultiplayerProjectionBuilder.js";
 import { MultiplayerStatePublisher } from "../state/MultiplayerStatePublisher.js";
 import { readMultiplayerMapState } from "../state/MultiplayerMapStateAdapter.js";
+import { executeAuthoritativePlayerAction } from "./executeAuthoritativePlayerAction.js";
 import { MultiplayerActionCoordinator } from "./MultiplayerActionCoordinator.js";
 import {
     MultiplayerPlayerBinding,
@@ -21,10 +22,7 @@ export function createHostGameSession({
 
     function executeAuthoritativeAction(action) {
         try {
-            const result = localSession.dispatchScenarioAction(action);
-            return result?.success
-                ? { accepted: true, reasonCode: null }
-                : { accepted: false, reasonCode: "ACTION_REJECTED" };
+            return executeAuthoritativePlayerAction(localSession, action);
         } catch (_error) {
             return { accepted: false, reasonCode: "ACTION_REJECTED" };
         }
@@ -81,7 +79,10 @@ export function createHostGameSession({
     const gateway = new HostTransportGateway({
         transport,
         sessionId,
-        executeAction: action => localSession.dispatchScenarioAction(action),
+        executeAction: action => executeAuthoritativePlayerAction(
+            localSession,
+            action
+        ),
         publishState: viewerId => session.publishAuthoritativeState({ viewerId }),
         authorizeSender: ({ senderId, actionPlayerId }) => senderId === actionPlayerId,
         actionCoordinator: coordinator
