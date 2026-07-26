@@ -16,7 +16,7 @@ export function createGuestLanGameApp({
     root,
     guestFactory = createMultiplayerGuestBrowser,
     isCurrent = () => true,
-    onReturnToEntry = () => {},
+    onReturnToHost = () => {},
     initialHostServerAddress = null,
     initialRoomCode = null,
     resumeStoreFactory = createGuestResumeStore
@@ -53,7 +53,7 @@ export function createGuestLanGameApp({
             onReady: value => setReady(value),
             onLeave: () => leaveRoom(),
             onReconnect: () => reconnect(),
-            onReturn: onReturnToEntry,
+            onReturn: onReturnToHost,
             onAction: action => sendAction(action)
         }
     });
@@ -295,7 +295,7 @@ export function createGuestLanGameApp({
         clearReconnectTimer();
         await guest?.leaveRoom?.();
         destroyLocal();
-        onReturnToEntry();
+        onReturnToHost();
     }
 
     function destroyLocal() {

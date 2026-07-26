@@ -54,3 +54,25 @@ default: 2
 ```
 
 There is no bench, spectator slot, or late player insertion in M16F.
+
+## M17A Public House Map Addendum
+
+The Host may consume a public-only projection:
+
+```js
+{
+    map: {
+        rooms,
+        players,
+        currentPlayerId
+    }
+}
+```
+
+This does not make the Host a Viewer. The Host projection must not include
+`viewerId`, player assignment, private character presentation, gameplay actions, or
+viewer-specific information packets.
+
+The Host renders the current projection immediately after activation and subscribes to
+one local notification per authoritative publish cycle. Unsubscribe is owned by Host
+bootstrap cleanup, and Host session destroy clears any remaining subscribers.

@@ -57,7 +57,12 @@ export function runMultiplayerSessionUiTest() {
         });
         findButton(root, "Collect")?.click();
         assert(sent === 1, "Case 4: current viewer action is enabled once");
-        assert(textOf(root).includes("Brandon"), "Case 5: current and assigned player render");
+        assert(
+            textOf(root).includes("Brandon") &&
+                !textOf(root).includes("Assigned") &&
+                !textOf(root).includes("Leave Game"),
+            "Case 5: compact character identity renders without redundant labels"
+        );
 
         controller.update({
             connectionState: MultiplayerConnectionState.CONNECTED,

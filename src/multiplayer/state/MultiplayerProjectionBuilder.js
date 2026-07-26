@@ -77,6 +77,59 @@ function buildActions(runtime, { gameEnded, currentPlayerId, viewerId }) {
     }));
 }
 
+function compareIds(left, right) {
+    return String(left).localeCompare(String(right), undefined, {
+        numeric: true
+    });
+}
+
+function buildMap(mapState = {}) {
+    const sourceRooms = Array.isArray(mapState.rooms) ? mapState.rooms : [];
+    const revealedRoomIds = new Set(
+        sourceRooms
+            .filter(room => room?.isRevealed)
+            .map(room => room.roomId)
+    );
+    const rooms = sourceRooms
+        .filter(room => room?.isRevealed && revealedRoomIds.has(room.roomId))
+        .map(room => ({
+            roomId: room.roomId,
+            name: room.name,
+            x: room.x,
+            y: room.y,
+            rotation: room.rotation,
+            isRevealed: true,
+            connections: [...new Set(
+                (Array.isArray(room.connectedRoomIds)
+                    ? room.connectedRoomIds
+                    : []
+                ).filter(roomId => revealedRoomIds.has(roomId))
+            )].sort(compareIds)
+        }))
+        .sort((left, right) =>
+            left.y - right.y ||
+            left.x - right.x ||
+            compareIds(left.roomId, right.roomId)
+        );
+    const players = (Array.isArray(mapState.players) ? mapState.players : [])
+        .filter(player =>
+            player &&
+            revealedRoomIds.has(player.roomId)
+        )
+        .map(player => ({
+            playerId: player.playerId,
+            displayName: player.displayName,
+            roomId: player.roomId
+        }))
+        .sort((left, right) => compareIds(left.playerId, right.playerId));
+
+    return {
+        rooms,
+        players,
+        currentPlayerId: mapState.currentPlayerId ?? null
+    };
+}
+
 export class MultiplayerProjectionBuilder {
     constructor({
         getRuntime = () => null,
@@ -86,7 +139,8 @@ export class MultiplayerProjectionBuilder {
         getVictoryResult = () => null,
         isGameEnded = () => false,
         getLifecycleState = () => GameStateManager.getState(),
-        getTraitorPlayerId = () => GameStateManager.getTraitorPlayerId?.() || null
+        getTraitorPlayerId = () => GameStateManager.getTraitorPlayerId?.() || null,
+        getMapState = () => ({ rooms: [], players: [], currentPlayerId: null })
     } = {}) {
         this.getRuntime = getRuntime;
         this.getRouter = getRouter;
@@ -96,6 +150,7 @@ export class MultiplayerProjectionBuilder {
         this.isGameEnded = isGameEnded;
         this.getLifecycleState = getLifecycleState;
         this.getTraitorPlayerId = getTraitorPlayerId;
+        this.getMapState = getMapState;
     }
 
     build(viewerId) {
@@ -137,7 +192,14 @@ export class MultiplayerProjectionBuilder {
                 gameEnded: this.isGameEnded(),
                 currentPlayerId: currentPlayer?.id || null,
                 viewerId
-            })
+            }),
+            map: buildMap(this.getMapState())
+        };
+    }
+
+    buildPublic() {
+        return {
+            map: buildMap(this.getMapState())
         };
     }
 }

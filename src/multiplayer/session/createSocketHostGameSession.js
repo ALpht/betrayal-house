@@ -3,6 +3,7 @@ import { CharacterDefinitions } from "../../data/CharacterDefinitions.js";
 import { HostTransportGateway } from "../transport/HostTransportGateway.js";
 import { MultiplayerProjectionBuilder } from "../state/MultiplayerProjectionBuilder.js";
 import { MultiplayerStatePublisher } from "../state/MultiplayerStatePublisher.js";
+import { readMultiplayerMapState } from "../state/MultiplayerMapStateAdapter.js";
 import { MultiplayerActionCoordinator } from "./MultiplayerActionCoordinator.js";
 import {
     MultiplayerPlayerBinding,
@@ -56,6 +57,7 @@ export function createSocketHostGameSession({
     const bindingRegistry = new MultiplayerPlayerBindingRegistry();
     let destroyed = false;
     let publishFailure = null;
+    const publicProjectionSubscribers = new Set();
 
     function executeAuthoritativeAction(action) {
         try {
@@ -98,7 +100,8 @@ export function createSocketHostGameSession({
         getTurnManager: () => localSession.getTurnManager(),
         getPlayerManager: () => localSession.getPlayerManager(),
         getVictoryResult: () => localSession.getLastVictoryResult(),
-        isGameEnded: () => localSession.isGameEnded()
+        isGameEnded: () => localSession.isGameEnded(),
+        getMapState: () => readMultiplayerMapState(localSession)
     });
     const publisher = new MultiplayerStatePublisher({
         sessionId,
@@ -126,7 +129,7 @@ export function createSocketHostGameSession({
         sessionId,
         executeAction: action => localSession.dispatchScenarioAction(action),
         publishState: () => {
-            session.publishAllGuestStates();
+            session.publishAuthoritativeState();
         },
         actionCoordinator: coordinator
     }).init();
@@ -181,7 +184,7 @@ export function createSocketHostGameSession({
             });
         },
         publishInitialGuestState() {
-            return this.publishAllGuestStates();
+            return this.publishAuthoritativeState();
         },
         publishGuestState(connectionOrGuestId = guestClientId) {
             const binding = this.getPlayerBinding(connectionOrGuestId);
@@ -195,23 +198,41 @@ export function createSocketHostGameSession({
                 ? publisher.publishGuestState(binding.viewerId, { targetClientId })
                 : null;
         },
-        publishAllGuestStates({ connectedClientIds = null } = {}) {
+        publishAuthoritativeState({ connectedClientIds = null } = {}) {
             const allowed = connectedClientIds ? new Set(connectedClientIds) : null;
-            return roster
+            const messages = roster
                 .filter(member => !allowed || allowed.has(member.currentConnectionId))
                 .map(member => this.publishGuestState(member.currentConnectionId))
                 .filter(Boolean);
+            const publicProjection = projectionBuilder.buildPublic();
+            for (const handler of [...publicProjectionSubscribers]) {
+                handler(structuredClone(publicProjection));
+            }
+            return messages;
+        },
+        publishAllGuestStates(options = {}) {
+            return this.publishAuthoritativeState(options);
         },
         executeAndPublish({ action }) {
             const result = executeAuthoritativeAction(action);
             if (result.accepted) {
-                this.publishAllGuestStates();
+                this.publishAuthoritativeState();
             }
             return result;
         },
         getProjection(connectionOrGuestId) {
             const binding = this.getPlayerBinding(connectionOrGuestId);
             return binding ? projectionBuilder.build(binding.viewerId) : null;
+        },
+        getPublicProjection() {
+            return projectionBuilder.buildPublic();
+        },
+        subscribePublicProjection(handler) {
+            if (destroyed || typeof handler !== "function") {
+                return () => {};
+            }
+            publicProjectionSubscribers.add(handler);
+            return () => publicProjectionSubscribers.delete(handler);
         },
         getPublishFailure() {
             return publishFailure ? structuredClone(publishFailure) : null;
@@ -222,6 +243,7 @@ export function createSocketHostGameSession({
             }
             destroyed = true;
             gateway.destroy();
+            publicProjectionSubscribers.clear();
             bindingRegistry.clear();
             localSession.destroy();
             transport.destroy?.();

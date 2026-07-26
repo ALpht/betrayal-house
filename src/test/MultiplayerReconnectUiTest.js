@@ -101,7 +101,7 @@ export async function runMultiplayerReconnectUiTest() {
         const app = createGuestLanGameApp({
             root,
             guestFactory: () => fakeGuest,
-            onReturnToEntry: () => {}
+            onReturnToHost: () => {}
         });
 
         await app.joinRoom.call(app, "ABCD");

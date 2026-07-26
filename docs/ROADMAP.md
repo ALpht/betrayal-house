@@ -789,26 +789,61 @@ The completed M16 platform owns:
 Future work must extend this platform rather than reopen Lobby, Binding, Reconnect,
 or Session foundations without a new verified architectural requirement.
 
-## Proposed M17 - Multiplayer Game Experience
+## M17 - Multiplayer Game Experience
 
-Status: PROPOSED
+### M17A - Shared House Map Experience
+
+Status: COMPLETE
+
+Final post-development report: `docs/M17A_POST_DEVELOPMENT_REPORT.md`
+
+M17A extends the completed M16 platform with one public House Map contract shared by
+the Dedicated Host and every Guest:
 
 ```text
-M17A  HostMapProjection
-      Public map DTO
-
-M17B  Host Tile Renderer
-      Render the discovered House on the Host
-
-M17C  Player Position Projection
-      Public player markers and positions
-
-M17D  Movement / Explore Rendering
-      Live public movement and exploration updates
-
-M17E  End Game / Result / Rematch UI
-      Multiplayer completion and next-game lifecycle
+Authoritative GraphMap
+        |
+        v
+Primitive Map Snapshot
+        |
+        v
+Public Map Projection
+        |
+        v
+HouseMapPresentationModel
+        |
+        v
+Shared HouseMapPanel
 ```
+
+Completed capabilities:
+
+- Revealed-room coordinates, rotation, and authoritative Graph edges
+- Public player markers and current-player highlighting
+- Public-only Host projection with no Host viewer identity
+- Per-viewer Guest projections containing the same public map
+- Latest-map rebuild on reconnect
+- Full public-map rendering for Host and focused current-room rendering for mobile Guests
+
+Final product decisions:
+
+- Guest projection retains the complete public map contract; Guest UI defaults to a
+  presentation-only focus on the assigned character's current room.
+- The LAN root URL opens the Host QR lobby directly. The obsolete ENTRY mode and
+  play-mode selection page are not part of the product flow.
+- Guest character assignment happens on join without a Ready step, and Active Guest
+  UI has no Leave Game control.
+- New LAN Game closes the old Room and Session before creating a fresh lobby, QR code,
+  player bindings, and character assignments.
+
+M17A therefore fixes both the Shared House Map boundary and the simplified LAN product
+entry and Session restart flow.
+
+### Next: M17B - Exploration And Movement Visual Feedback
+
+M17B may improve feedback for already-authoritative exploration and movement. It must
+reuse the M17A projection and Panel boundary rather than introduce a client GraphMap,
+movement legality, or a second topology model.
 
 M17 uses the completed M16 multiplayer platform. It is not an extension of the M16
 foundation milestone.

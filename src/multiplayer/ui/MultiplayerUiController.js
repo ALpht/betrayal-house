@@ -9,6 +9,7 @@ import {
 import { HostLobbyPanel } from "./HostLobbyPanel.js";
 import { GuestJoinPanel } from "./GuestJoinPanel.js";
 import { SessionControlPanel } from "./SessionControlPanel.js";
+import { HouseMapPresentationQuery } from "../../presentation/query/HouseMapPresentationQuery.js";
 
 export class MultiplayerUiController {
     constructor({
@@ -19,7 +20,11 @@ export class MultiplayerUiController {
         this.root = root;
         this.actions = actions;
         this.destroyed = false;
-        this.state = createMultiplayerUiModel({ mode });
+        this.houseMapQuery = new HouseMapPresentationQuery();
+        this.state = createMultiplayerUiModel({
+            mode,
+            houseMapModel: this.houseMapQuery.buildModel(null)
+        });
         this.hostPanel = new HostLobbyPanel(actions);
         this.guestPanel = new GuestJoinPanel(actions);
         this.sessionPanel = new SessionControlPanel({
@@ -53,6 +58,12 @@ export class MultiplayerUiController {
         next.currentPlayerName = next.projection?.turn?.displayName || next.currentPlayerName;
         next.playerId = next.projection?.character?.playerId || next.playerId;
         next.playerName = next.projection?.character?.displayName || next.playerName;
+        next.houseMapModel = this.houseMapQuery.buildModel(next.projection, {
+            focusPlayerId: next.mode === MultiplayerMode.GUEST
+                ? next.playerId
+                : null,
+            includePlayerMarkers: next.mode !== MultiplayerMode.GUEST
+        });
         if (next.projection?.victory?.completed) {
             next.sessionState = MultiplayerSessionState.GAME_ENDED;
         }
@@ -80,6 +91,8 @@ export class MultiplayerUiController {
                 this.state.sessionState === MultiplayerSessionState.RESUMING
             ) {
                 children.push(this.sessionPanel.render(this.state));
+            } else {
+                this.sessionPanel.destroy();
             }
         }
         this.root.replaceChildren(...children);

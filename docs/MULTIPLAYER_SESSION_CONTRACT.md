@@ -371,3 +371,57 @@ guestId -> playerId
 The authoritative Host session creates one local runtime and publishes one viewer-safe
 projection per connected bound Guest. Accepted Guest action publishes updated state to
 all connected Guests.
+
+## M17A Public Map Projection Addendum
+
+Every Guest viewer projection may include:
+
+```js
+map: {
+    rooms: [{
+        roomId,
+        name,
+        x,
+        y,
+        rotation,
+        isRevealed,
+        connections
+    }],
+    players: [{
+        playerId,
+        displayName,
+        roomId
+    }],
+    currentPlayerId
+}
+```
+
+The map portion is identical public information for all viewers. Viewer-private
+character, scenario, card, and action fields remain outside `map`.
+
+Guest UI may present only the assigned character's current room. That focused
+presentation must be derived from the received public DTO and must not alter, cache, or
+reconstruct the projected topology.
+
+Dedicated Host projection:
+
+```js
+{
+    map
+}
+```
+
+It must not contain placeholder `viewerId`, `character`, or `actions` fields.
+
+Projection construction rules:
+
+- Only revealed rooms are emitted.
+- Connections come from existing Graph edges and include revealed endpoints only.
+- A player marker is emitted only when its current room is public.
+- Every build returns fresh serializable arrays and objects.
+- `currentPlayerId` is the only projected current-player source.
+
+`publishAuthoritativeState()` defines one state publication cycle. Guest fanout may
+contain zero or more connected targets, but the Host public projection subscriber is
+notified exactly once per cycle. Targeted resume continues to receive one newly rebuilt
+latest viewer projection without history replay.

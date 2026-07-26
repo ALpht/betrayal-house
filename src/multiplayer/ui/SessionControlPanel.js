@@ -1,5 +1,6 @@
 import { createButton, createElement } from "./MultiplayerDom.js";
 import { getDisabledReasonText } from "./MultiplayerDisabledReason.js";
+import { HouseMapPanel } from "../../presentation/panel/HouseMapPanel.js";
 
 export class SessionControlPanel {
     constructor({
@@ -7,6 +8,10 @@ export class SessionControlPanel {
     } = {}) {
         this.onAction = onAction;
         this.container = createElement("section", "local-panel multiplayer-session");
+        this.mapContainer = createElement("section", "house-map-panel house-map-guest");
+        this.mapPanel = new HouseMapPanel({
+            container: this.mapContainer
+        });
     }
 
     render(model) {
@@ -30,10 +35,11 @@ export class SessionControlPanel {
         );
 
         const children = [
-            createElement("p", "multiplayer-public-kicker", "Personal Controller"),
-            createElement("h2", "", model.projection?.scenario?.title || "Game Session"),
+            createElement("p", "multiplayer-session-scenario", model.projection?.scenario?.title || ""),
+            this.mapContainer,
             actionSection
         ];
+        this.mapPanel.render(model.houseMapModel);
         if (latestCard) {
             const card = createElement("section", "multiplayer-visible-card");
             card.replaceChildren(
@@ -48,6 +54,7 @@ export class SessionControlPanel {
     }
 
     destroy() {
+        this.mapPanel.destroy();
         this.container.replaceChildren();
     }
 }
