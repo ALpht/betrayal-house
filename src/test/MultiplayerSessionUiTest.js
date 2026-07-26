@@ -37,10 +37,16 @@ export function runMultiplayerSessionUiTest() {
 
         const root = document.createElement("section");
         let sent = 0;
+        let lastAction = null;
         const controller = new MultiplayerUiController({
             root,
             mode: MultiplayerMode.GUEST,
-            actions: { onAction: () => { sent++; } }
+            actions: {
+                onAction: action => {
+                    sent++;
+                    lastAction = action;
+                }
+            }
         });
         controller.update({
             connectionState: MultiplayerConnectionState.CONNECTED,
@@ -65,6 +71,35 @@ export function runMultiplayerSessionUiTest() {
         );
 
         controller.update({
+            projection: {
+                gameEnded: false,
+                turn: { playerId: "p1", displayName: "Brandon", isViewerTurn: true },
+                character: { playerId: "p1", displayName: "Brandon" },
+                actions: [
+                    { type: "MOVE", label: "↑ North", enabled: true, payload: { direction: "north" } },
+                    { type: "MOVE", label: "← West", enabled: true, payload: { direction: "west" } },
+                    { type: "MOVE", label: "→ East", enabled: true, payload: { direction: "east" } },
+                    { type: "MOVE", label: "↓ South", enabled: true, payload: { direction: "south" } },
+                    { type: "END_TURN", label: "End Turn", enabled: true }
+                ],
+                cards: [],
+                scenario: { title: "Exploration" },
+                victory: { completed: false }
+            }
+        });
+        findButton(root, "→ East")?.click();
+        assert(
+            sent === 2 &&
+                lastAction?.type === "MOVE" &&
+                lastAction?.payload?.direction === "east" &&
+                findButton(root, "↑ North") &&
+                findButton(root, "← West") &&
+                findButton(root, "↓ South") &&
+                findButton(root, "End Turn"),
+            "Case 5a: Guest renders four direction controls and a reachable End Turn"
+        );
+
+        controller.update({
             connectionState: MultiplayerConnectionState.CONNECTED,
             projection: {
                 gameEnded: true,
@@ -75,7 +110,7 @@ export function runMultiplayerSessionUiTest() {
             }
         });
         findButton(root, "Collect")?.click();
-        assert(sent === 1, "Case 6: victory disables actions");
+        assert(sent === 2, "Case 6: victory disables actions");
         assert(textOf(root).includes("The game has ended."), "Case 7: game-ended disabled reason renders");
         controller.destroy();
     } catch (error) {

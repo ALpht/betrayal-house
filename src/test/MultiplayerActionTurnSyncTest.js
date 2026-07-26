@@ -347,6 +347,50 @@ export function runMultiplayerActionTurnSyncTest() {
     }
 
     try {
+        const harness = createHostGuestHarness();
+        const currentProjection = harness.host.getProjection(harness.hostPlayerId);
+        const waitingProjection = harness.host.getProjection(harness.guestPlayerId);
+        const currentMoves = currentProjection.actions.filter(
+            action => action.type === ActionType.MOVE && action.payload?.direction
+        );
+        const waitingMoves = waitingProjection.actions.filter(
+            action => action.type === ActionType.MOVE && action.payload?.direction
+        );
+
+        assert(
+            currentMoves.length === 4 &&
+                currentMoves.every(action => action.enabled) &&
+                new Set(currentMoves.map(action => action.payload.direction)).size === 4 &&
+                waitingMoves.length === 4 &&
+                waitingMoves.every(action => !action.enabled),
+            "Case 7a: Projection exposes four viewer-safe authoritative directions"
+        );
+        harness.destroy();
+    } catch (e) {
+        failed++;
+        console.log("[FAIL] Case 7a threw", e.message);
+    }
+
+    try {
+        const harness = createHostGuestHarness();
+        const beforePlayerId = harness.host.localSession.getCurrentPlayer().id;
+        const forgedTurn = harness.host.executeAndPublish({
+            action: createEndTurnAction(harness.guestPlayerId),
+            viewerId: harness.guestPlayerId
+        });
+
+        assert(
+            forgedTurn.accepted === false &&
+                harness.host.localSession.getCurrentPlayer().id === beforePlayerId,
+            "Case 7b: Authoritative adapter rejects non-current player actions"
+        );
+        harness.destroy();
+    } catch (e) {
+        failed++;
+        console.log("[FAIL] Case 7b threw", e.message);
+    }
+
+    try {
         const originalRandom = Math.random;
         Math.random = () => 0.99;
         const session = createLocalGameSession({
@@ -745,9 +789,11 @@ export function runMultiplayerActionTurnSyncTest() {
         const keys = Object.keys(action);
 
         assert(
-            keys.every(key => ["type", "label", "enabled"].includes(key)) &&
+            keys.every(key =>
+                ["type", "label", "enabled", "payload"].includes(key)
+            ) &&
                 action.enabled === false,
-            "Case 22: Non-current viewer action projection uses safe whitelist only"
+            "Case 22: Non-current viewer action projection uses safe allowlist only"
         );
         harness.destroy();
     } catch (e) {

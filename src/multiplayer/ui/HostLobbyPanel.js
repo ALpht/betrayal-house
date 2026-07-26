@@ -24,9 +24,9 @@ export class HostLobbyPanel {
         });
     }
 
-    render(model) {
+    render(model, transition = null) {
         if (model.sessionState === "ACTIVE" || model.sessionState === "GAME_ENDED") {
-            this.mapPanel.render(model.houseMapModel);
+            this.mapPanel.render(model.houseMapModel, transition);
             this.container.replaceChildren(createActiveHostView(model, this));
             return this.container;
         }

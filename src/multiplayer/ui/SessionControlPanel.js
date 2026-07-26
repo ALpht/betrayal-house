@@ -14,14 +14,31 @@ export class SessionControlPanel {
         });
     }
 
-    render(model) {
-        const actionButtons = model.actions.map(action => createButton(
-            action.label,
-            () => this.onAction(action),
-            {
-                disabled: !action.enabled || Boolean(model.disabledReason),
-                className: "local-command multiplayer-action-button"
-            }
+    render(model, transition = null) {
+        const movementActions = model.actions.filter(
+            action => action.type === "MOVE" && action.payload?.direction
+        );
+        const otherActions = model.actions.filter(
+            action => !movementActions.includes(action)
+        );
+        const movementGrid = createElement(
+            "section",
+            "multiplayer-movement-controls"
+        );
+        movementGrid.setAttribute("aria-label", "Movement");
+        movementGrid.replaceChildren(
+            ...movementActions.map(action => createActionButton(
+                action,
+                model,
+                this.onAction,
+                `direction-${action.payload.direction}`
+            ))
+        );
+        const actionButtons = otherActions.map(action => createActionButton(
+            action,
+            model,
+            this.onAction,
+            action.type === "END_TURN" ? "end-turn" : ""
         ));
         const cards = Array.isArray(model.projection?.cards) ? model.projection.cards : [];
         const latestCard = cards.at(-1);
@@ -31,6 +48,7 @@ export class SessionControlPanel {
             ...(model.disabledReason
                 ? [createElement("p", "multiplayer-turn-note", getDisabledReasonText(model.disabledReason))]
                 : []),
+            ...(movementActions.length ? [movementGrid] : []),
             ...actionButtons
         );
 
@@ -39,7 +57,7 @@ export class SessionControlPanel {
             this.mapContainer,
             actionSection
         ];
-        this.mapPanel.render(model.houseMapModel);
+        this.mapPanel.render(model.houseMapModel, transition);
         if (latestCard) {
             const card = createElement("section", "multiplayer-visible-card");
             card.replaceChildren(
@@ -57,4 +75,19 @@ export class SessionControlPanel {
         this.mapPanel.destroy();
         this.container.replaceChildren();
     }
+}
+
+function createActionButton(action, model, onAction, modifier = "") {
+    return createButton(
+        action.label,
+        () => onAction(action),
+        {
+            disabled: !action.enabled || Boolean(model.disabledReason),
+            className: [
+                "local-command",
+                "multiplayer-action-button",
+                modifier ? `multiplayer-action-button--${modifier}` : ""
+            ].filter(Boolean).join(" ")
+        }
+    );
 }
