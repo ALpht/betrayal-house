@@ -2,7 +2,7 @@ import { createHostLanGameApp } from "../bootstrap/createHostLanGameApp.js";
 import { createGuestLanGameApp } from "../bootstrap/createGuestLanGameApp.js";
 import { createGameApplication } from "../bootstrap/createGameApplication.js";
 import { LobbyClient } from "../multiplayer/lobby/LobbyClient.js";
-import { installTestDom, findButton, textOf } from "./TestDom.js";
+import { findButton, findFirst, installTestDom, textOf } from "./TestDom.js";
 
 function createFakeLobby(initialState = {}) {
     const subscribers = new Set();
@@ -82,6 +82,10 @@ function createFakeGuestSession({ playerId = "player-a" } = {}) {
             },
             cards: [],
             actions: [
+                { type: "MOVE", label: "↑ North", enabled: true, payload: { direction: "north" } },
+                { type: "MOVE", label: "← West", enabled: true, payload: { direction: "west" } },
+                { type: "MOVE", label: "→ East", enabled: true, payload: { direction: "east" } },
+                { type: "MOVE", label: "↓ South", enabled: true, payload: { direction: "south" } },
                 { type: "END_TURN", label: "END_TURN", enabled: true }
             ]
         },
@@ -262,6 +266,9 @@ export async function runMultiGuestBrowserSmokeRegressionTest() {
     await guestApp.joinRoom("ABCD");
     fakeGuest.lobby.emit(null, fakeGuest.lobby.getState());
     const endTurn = findButton(guestRoot, "END_TURN");
+    const roomBeforeSameMapUpdate = findFirst(guestRoot, node =>
+        node.getAttribute?.("data-room-id") === 0
+    );
     assert(
         endTurn && !endTurn.disabled,
         "Case 3: Current Guest renders enabled action control"
@@ -290,13 +297,87 @@ export async function runMultiGuestBrowserSmokeRegressionTest() {
         "Case 3a: Guest shows a compact character controller without redundant controls"
     );
 
+    fakeGuest.getGuestSession().emit({
+        revision: 2,
+        projection: fakeGuest.getGuestSession().getState().projection,
+        pendingAction: null
+    });
+    const roomAfterSameMapUpdate = findFirst(guestRoot, node =>
+        node.getAttribute?.("data-room-id") === 0
+    );
+    assert(
+        roomAfterSameMapUpdate === roomBeforeSameMapUpdate,
+        "Case 3b: Collect-like same-map projection preserves the rendered map DOM"
+    );
+
+    const east = findButton(guestRoot, "→ East");
+    east?.click();
+    const sentMove = fakeGuest.getGuestSession().getSentActions()[0];
+    assert(
+        sentMove?.type === "MOVE" &&
+            sentMove.payload?.direction === "east" &&
+            findButton(guestRoot, "↑ North") &&
+            findButton(guestRoot, "← West") &&
+            findButton(guestRoot, "↓ South"),
+        "Case 4: Guest direction control sends its authoritative MOVE payload"
+    );
+
     endTurn?.click();
-    const sent = fakeGuest.getGuestSession().getSentActions()[0];
+    const sent = fakeGuest.getGuestSession().getSentActions()[1];
     assert(
         sent?.id &&
             sent.type === "END_TURN" &&
             sent.playerId === "player-a",
-        "Case 4: Guest action control sends complete PlayerAction payload"
+        "Case 4-end: Guest End Turn remains reachable below movement controls"
+    );
+
+    const movedProjection = fakeGuest.getGuestSession().getState().projection;
+    movedProjection.map.rooms[0].connections = [1];
+    movedProjection.map.rooms.push({
+        roomId: 1,
+        name: "Gallery",
+        x: 1,
+        y: 0,
+        rotation: 0,
+        isRevealed: true,
+        connections: [0]
+    });
+    movedProjection.map.players[0].roomId = 1;
+    movedProjection.map.currentPlayerId = "player-b";
+    movedProjection.turn = {
+        playerId: "player-b",
+        displayName: "Ox Bellows",
+        isViewerTurn: false
+    };
+    fakeGuest.getGuestSession().emit({
+        revision: 2,
+        projection: movedProjection,
+        pendingAction: null
+    });
+    const ownMarker = findFirst(guestRoot, node =>
+        node.getAttribute?.("data-player-id") === "player-a"
+    );
+    const liveFeedback = findFirst(guestRoot, node =>
+        node.getAttribute?.("aria-live") === "polite"
+    );
+    assert(
+        textOf(guestRoot).includes("Gallery") &&
+            !textOf(guestRoot).includes("Entrance Hall") &&
+            ownMarker?.className.includes("house-map-player--moved") &&
+            textOf(liveFeedback).includes("New room revealed") &&
+            textOf(liveFeedback).includes("Brandon Jaspers moved here"),
+        "Case 4a: Guest exploration immediately focuses the new room with own feedback"
+    );
+
+    fakeGuest.lobby.emit(null, {
+        ...fakeGuest.lobby.getState(),
+        connectionState: "ACTIVE"
+    });
+    assert(
+        !findFirst(guestRoot, node =>
+            node.getAttribute?.("aria-live") === "polite"
+        ),
+        "Case 4b: Lobby-only refresh does not replay map feedback"
     );
 
     fakeGuest.lobby.emit({
@@ -365,6 +446,51 @@ export async function runMultiGuestBrowserSmokeRegressionTest() {
     });
     await joinPromise;
     lobby.destroy();
+
+    const failureListeners = new Map();
+    let reconnectCalls = 0;
+    const failingSocket = {
+        connected: false,
+        on(event, handler) {
+            failureListeners.set(event, handler);
+        },
+        once(event, handler) {
+            failureListeners.set(event, handler);
+        },
+        off(event, handler) {
+            if (failureListeners.get(event) === handler) {
+                failureListeners.delete(event);
+            }
+        },
+        connect() {
+            reconnectCalls++;
+        },
+        emit() {}
+    };
+    const failingLobby = new LobbyClient({
+        url: "http://192.168.0.182:3001",
+        socket: failingSocket,
+        requestTimeoutMs: 100
+    }).connect();
+    const failedJoin = failingLobby.joinRoom({
+        roomCode: "ABCD",
+        displayName: "Guest A"
+    });
+    failureListeners.get("connect_error")?.(new Error("mobile handshake failed"));
+    const failedResult = await failedJoin;
+    const retryJoin = failingLobby.joinRoom({
+        roomCode: "ABCD",
+        displayName: "Guest A"
+    });
+    failureListeners.get("connect_error")?.(new Error("mobile handshake failed"));
+    await retryJoin;
+    assert(
+        failedResult.payload?.code === "CONNECTION_ERROR" &&
+            failingLobby.getState().error === "CONNECTION_ERROR" &&
+            reconnectCalls >= 3,
+        "Case 7a: Mobile connect failure is visible and Join retry reconnects"
+    );
+    failingLobby.destroy();
 
     Object.defineProperty(global, "window", {
         value: { location: { href: "http://192.168.0.182:5173/?mode=guest&s=http%3A%2F%2F192.168.0.182%3A3001&r=WXYZ" } },
